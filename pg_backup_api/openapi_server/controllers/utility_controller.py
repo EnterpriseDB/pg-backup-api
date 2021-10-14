@@ -37,7 +37,7 @@ def diagnose():  # noqa: E501
 
 
 def status():  # noqa: E501
-    """Check if Barman API App running
+    """Check if Postgres Backup API App running
 
      # noqa: E501
 

@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Barman REST API
+  title: Postgres Backup REST API
   version: 0.0.1
 components:
   schemas:
@@ -43,7 +43,7 @@ paths:
             application/json:
               schema:
                 type: string
-        "503":  # maybe? in case the underlying barman installation isn't up for some reason?
+        "503":  # maybe? in case the underlying backup installation isn't up for some reason?
           description: Service unavailable
           content:
             application/json:
@@ -53,7 +53,7 @@ paths:
     get:
       tags:
         - "utility"
-      summary: Check if Barman API App running
+      summary: Check if Postgres Backup API App running
       x-openapi-router-controller: "openapi_server.controllers.utility_controller"
       operationId: "status"
       responses:

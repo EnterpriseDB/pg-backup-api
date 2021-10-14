@@ -4,7 +4,7 @@ A server that provides an HTTP API to interact with Postgres backups
 
 # To run the Flask app
 
-Manually (either on local dev machine or from a barman server) if on an actual server, must do this as the barman user so barman can actually access the other servers  
+Manually (either on local dev machine or from a backup server) if on an actual Barman server, must do this as the barman user so it can actually access the other servers
 
 from the root pg-backup-api directory
 `python3 pg_backup_api/run.py serve`

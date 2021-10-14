@@ -21,7 +21,7 @@ import json
 import barman
 from barman import diagnose, output
 from barman.server import Server
-from barman_api.openapi_server.models.diagnose_output import DiagnoseOutput
+from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput
 
 
 class UtilityController:
