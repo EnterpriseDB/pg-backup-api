@@ -98,7 +98,7 @@ def main():
     except KeyboardInterrupt:
         logger.error("Process interrupted by user (KeyboardInterrupt)")
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
 
 
 if __name__ == "__main__":

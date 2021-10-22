@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # openapi-generator
-pg_backup_api/.openapi-generator/*
+**/.openapi-generator/*
