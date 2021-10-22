@@ -4,8 +4,8 @@ To generate new server controller/model code from the spec,
 
 - Set the env variable `PYTHON_POST_PROCESS_FILE` to where the `black` executable is installed
 
-- From the root `pg-backup-api` directory, run
-`openapi-generator generate --enable-post-process-file -i pg_backup_api/spec/pg_backup_api.yaml -o pg_backup_api -t pg_backup_api/generator_templates -g python-flask`
+- From the top-most `pg_backup_api` directory, run
+`openapi-generator generate --enable-post-process-file -i pg_backup_api/spec/pg_backup_api.yaml -o pg_backup_api -t ../generator_templates -g python-flask`
 
 It will also generate two empty directories - `test` and `openapi`. You can delete or ignore these.
 

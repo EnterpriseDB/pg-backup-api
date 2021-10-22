@@ -93,14 +93,12 @@ def main():
 
     p = ArghParser(epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)")
     p.add_commands([serve, status])
-    p.dispatch()  # FIXME
-    #try:
-    #    p.dispatch()
-    #except KeyboardInterrupt:
-    #    logger.error("Process interrupted by user (KeyboardInterrupt)")
-    #except Exception as e:
-    #    logger.error('hewwo')
-    #    logger.error(e)
+    try:
+        p.dispatch()
+    except KeyboardInterrupt:
+        logger.error("Process interrupted by user (KeyboardInterrupt)")
+    except Exception as e:
+        logger.error(e)
 
 
 if __name__ == "__main__":
