@@ -22,7 +22,7 @@ paths:
       tags:
         - "utility"
       summary: Return barman diagnose information
-      x-openapi-router-controller: "openapi_server.controllers.utility_controller"
+      x-openapi-router-controller: "pg_backup_api.openapi_server.controllers.utility_controller"
       operationId: "diagnose"
       responses:
         "200":
@@ -54,7 +54,7 @@ paths:
       tags:
         - "utility"
       summary: Check if Postgres Backup API App running
-      x-openapi-router-controller: "openapi_server.controllers.utility_controller"
+      x-openapi-router-controller: "pg_backup_api.openapi_server.controllers.utility_controller"
       operationId: "status"
       responses:
         "200":

@@ -19,8 +19,8 @@
 import connexion
 import six
 
-from openapi_server.models.diagnose_output import DiagnoseOutput  # noqa: E501
-from logic.controller import Controller
+from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput  # noqa: E501
+from pg_backup_api.logic.controller import Controller
 from pg_backup_api.openapi_server import util
 
 

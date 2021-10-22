@@ -44,7 +44,7 @@ setup(
     url="",
     keywords=["OpenAPI", "Postgres Backup REST API"],
     install_requires=REQUIRES,
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     package_data={'': ['openapi/openapi.yaml']},
     include_package_data=True,
     entry_points={

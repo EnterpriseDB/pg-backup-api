@@ -67,7 +67,7 @@ class Controller:
         controller_filename = inspect.stack()[1].filename
         controller_name = os.path.splitext(os.path.split(controller_filename)[-1])[0]
         controller_module = importlib.import_module(
-            f".{controller_name}", package="logic"
+            f".{controller_name}", package="pg_backup_api.logic"
         )
         class_name = "".join([s.capitalize() for s in controller_name.split("_")])
         controller_class = getattr(controller_module, class_name)
