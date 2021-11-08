@@ -30,7 +30,7 @@ VERSION = "0.1.0"
 # http://pypi.python.org/pypi/setuptools
 
 REQUIRES = [
-    "barman>2.14",
+    "barman>2.16",
     "connexion>=2.0.2",
     "swagger-ui-bundle>=0.0.2",
     "python_dateutil>=2.6.0",
