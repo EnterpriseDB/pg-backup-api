@@ -17,7 +17,7 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from argh import ArghParser, arg, expects_obj
+import argparse
 import connexion
 import logging
 from logging.config import dictConfig
@@ -32,8 +32,6 @@ from pg_backup_api.openapi_server import encoder
 LOG_FILENAME = "/var/log/barman/barman-api.log"  # TODO make configurable
 
 
-@arg("--port", help="port to run the REST app on", default=7480)
-@expects_obj  # futureproofing for possible future args
 def serve(args):
     """
     Run the Postgres Backup API app.
@@ -56,13 +54,11 @@ def serve(args):
     app.run(host="127.0.0.1", port=args.port)
 
 
-@arg("--port", help="port the REST API is running on", default=7480)
-@expects_obj  # futureproofing for possible future args
 def status(args):
     try:
         requests.get(f"http://127.0.0.1:{args.port}/status")
     except ConnectionError:
-        return "The Postgres Backup API API does not appear to be available."
+        return "The Postgres Backup API does not appear to be available."
     return "OK"
 
 
@@ -91,14 +87,20 @@ def main():
     )
     logger = logging.getLogger(__name__)
 
-    p = ArghParser(epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)")
-    p.add_commands([serve, status])
-    try:
-        p.dispatch()
-    except KeyboardInterrupt:
-        logger.error("Process interrupted by user (KeyboardInterrupt)")
-    except Exception as e:
-        logger.exception(e)
+    p = argparse.ArgumentParser(epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)")
+
+    subparsers = p.add_subparsers()
+
+    p_serve = subparsers.add_parser('serve')
+    p_serve.add_argument('--port', type=int, default=7480)
+    p_serve.set_defaults(func=serve)
+
+    p_status = subparsers.add_parser('status')
+    p_status.add_argument('--port', type=int, default=7480)
+    p_status.set_defaults(func=status)
+
+    args = p.parse_args()
+    return args.func(args)
 
 
 if __name__ == "__main__":
