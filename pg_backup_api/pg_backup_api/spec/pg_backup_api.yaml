@@ -1,0 +1,66 @@
+openapi: 3.0.0
+info:
+  title: Postgres Backup REST API
+  version: 0.0.1
+components:
+  schemas:
+    DiagnoseOutput:
+      type: "object"
+      required:
+        - global
+        - servers
+      # these top-level entries are guaranteed, but otherwise we don't guarantee a particular format of diagnose's json output, 
+      # so the values being strings of json is the best we can do
+      properties:
+        global:
+          type: string
+        servers:
+          type: string
+paths:
+  /diagnose:
+    get:
+      tags:
+        - "utility"
+      summary: Return barman diagnose information
+      x-openapi-router-controller: "pg_backup_api.openapi_server.controllers.utility_controller"
+      operationId: "diagnose"
+      responses:
+        "200":
+          description: A json blob of the diagnose information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiagnoseOutput"
+        "403":
+          description: User was not authenticated.
+          content:
+            application/json:
+              schema:
+                type: string
+        "500":  # is this necessary to specify?
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: string
+        "503":  # maybe? in case the underlying backup installation isn't up for some reason?
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                type: string
+  /status:
+    get:
+      tags:
+        - "utility"
+      summary: Check if Postgres Backup API App running
+      x-openapi-router-controller: "pg_backup_api.openapi_server.controllers.utility_controller"
+      operationId: "status"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+      

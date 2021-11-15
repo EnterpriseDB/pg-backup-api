@@ -1,0 +1,1 @@
+include pg_backup_api/spec/*
