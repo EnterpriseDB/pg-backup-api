@@ -32,7 +32,6 @@ VERSION = "0.1.0"
 REQUIRES = [
     "barman>2.16",
     "connexion>=2.0.2",
-    "swagger-ui-bundle>=0.0.2",
     "python_dateutil>=2.6.0",
     "Jinja2 <3.0, >=2.10.1"
 ]
@@ -45,7 +44,7 @@ setup(
     author_email="barman@enterprisedb.com",
     url="http://www.pgbarman.org/",
     keywords=["OpenAPI", "Postgres Backup REST API"],
-    python_requires='>=3.7',
+    python_requires='>=3.6',
     install_requires=REQUIRES,
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
