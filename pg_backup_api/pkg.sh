@@ -9,7 +9,16 @@ then
     exit 1
 fi
 
-fpm --verbose --debug --debug-workspace \
+IS_DBG=$2
+
+if [ "$IS_DBG" = "--debug" ]
+then
+    DBG_SETTINGS="--verbose --debug"
+else
+    DBG_SETTINGS=""
+fi
+
+fpm $DBG_SETTINGS \
     -s virtualenv \
     -t $PKG_TYPE \
     -n pg-backup-api \
