@@ -34,6 +34,7 @@ echo "Generating...\n"
 fpm $DBG_SETTINGS \
     -s virtualenv \
     -t $PKG_TYPE \
+    -p ../packaging \
     -n pg-backup-api \
     -v $VERSION \
     --virtualenv-setup-install \
