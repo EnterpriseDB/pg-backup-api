@@ -20,7 +20,9 @@ import sys
 from setuptools import setup, find_packages
 
 NAME = "pg_backup_api"
-VERSION = "0.1.0"
+
+with open("./version.txt", "r") as f:
+    VERSION = f.readline()
 
 # To install the library, run the following
 #

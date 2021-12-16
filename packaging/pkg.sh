@@ -25,12 +25,17 @@ else
     DBG_SETTINGS=""
 fi
 
+cd ../pg_backup_api
+
+VERSION=`cat version.txt`
+
 echo "Generating...\n"
 
 fpm $DBG_SETTINGS \
     -s virtualenv \
     -t $PKG_TYPE \
     -n pg-backup-api \
+    -v $VERSION \
     --virtualenv-setup-install \
     ./requirements.txt
 
