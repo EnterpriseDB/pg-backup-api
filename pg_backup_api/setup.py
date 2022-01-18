@@ -35,7 +35,6 @@ REQUIRES = [
     "barman>2.16",
     "connexion>=2.0.2",
     "python_dateutil>=2.6.0",
-    "Jinja2 <3.0, >=2.10.1"
 ]
 
 setup(
