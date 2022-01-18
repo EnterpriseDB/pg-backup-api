@@ -38,5 +38,6 @@ fpm $DBG_SETTINGS \
     -p ../packaging \
     -n pg-backup-api \
     -v $VERSION \
+    --prefix /usr/bin \
     --virtualenv-setup-install \
     ./requirements.txt
