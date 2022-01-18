@@ -130,3 +130,7 @@ dmypy.json
 
 # openapi-generator
 **/.openapi-generator/*
+
+# packaging
+*.deb
+*.rpm
