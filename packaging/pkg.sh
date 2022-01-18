@@ -34,9 +34,9 @@ echo "Generating...\n"
 fpm $DBG_SETTINGS \
     -s virtualenv \
     -t $PKG_TYPE \
+    -d "barman > 2.16" \
     -p ../packaging \
     -n pg-backup-api \
     -v $VERSION \
     --virtualenv-setup-install \
     ./requirements.txt
-
