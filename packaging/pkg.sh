@@ -38,6 +38,8 @@ fpm $DBG_SETTINGS \
     -p ../packaging \
     -n pg-backup-api \
     -v $VERSION \
-    --prefix /usr/bin \
+    --prefix /usr/bin/pgbapi-venv \
+    --after-install ../packaging/after-install.sh \
+    --before-remove ../packaging/before-remove.sh \
     --virtualenv-setup-install \
     ./requirements.txt
