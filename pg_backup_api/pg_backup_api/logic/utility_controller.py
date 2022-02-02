@@ -48,7 +48,7 @@ class UtilityController:
         stored_output = json.loads(output._writer.json_output["_INFO"][-1])
 
         diag_output = DiagnoseOutput(
-            _global=json.dumps(stored_output["global"]), servers=json.dumps(stored_output["servers"])
+            _global=stored_output["global"], servers=stored_output["servers"]
         )
 
         return diag_output.to_dict()
