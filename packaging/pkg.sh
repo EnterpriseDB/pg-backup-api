@@ -41,6 +41,5 @@ fpm $DBG_SETTINGS \
     --prefix /usr/bin/pgbapi-venv \
     --after-install ../packaging/after-install.sh \
     --before-remove ../packaging/before-remove.sh \
-    --deb-systemd ../packaging/pg-backup-api.service \
     --virtualenv-setup-install \
     ./requirements.txt
