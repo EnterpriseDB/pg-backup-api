@@ -23,7 +23,7 @@ jobs:
             - name: Install fpm
               run: sudo gem install fpm
             - name: Install python deps
-              run: pip install virtualenv-tools3
+              run: sudo pip install virtualenv-tools3
             - name: Build deb
               working-directory: ./packaging
               run: ./pkg.sh deb --debug
