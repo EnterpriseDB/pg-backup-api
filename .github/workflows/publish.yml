@@ -21,7 +21,7 @@ jobs:
               run: |
                 sudo apt-get install -y ruby ruby-dev rubygems build-essential python3 virtualenv
             - name: Install fpm
-              run: gem install fpm
+              run: sudo gem install fpm
             - name: Install python deps
               run: pip install virtualenv-tools3
             - name: Build deb
