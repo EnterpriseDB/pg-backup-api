@@ -1,7 +1,10 @@
 
 name: Publish
 
-on: workflow_dispatch
+on: 
+    push:
+        branches:
+            - dev/publish-workflow
 
 jobs:
     build:
