@@ -26,8 +26,8 @@ jobs:
               run: pip install virtualenv-tools3
             - name: Build deb
               working-directory: ./packaging
-              run: ./pkg deb --debug
+              run: ./pkg.sh deb --debug
             - name: Build rpm
               working-directory: ./packaging
-              run: ./pkg rpm --debug
+              run: ./pkg.sh rpm --debug
                 
