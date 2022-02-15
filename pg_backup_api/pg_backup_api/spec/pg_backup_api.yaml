@@ -634,21 +634,16 @@ components:
         - total_time
 
     Tablespace:
-      # In OpenAPI 3.1 we can use prefixItems here to be more specific however with
-      # OpenAPI 3.0 we must do the best we can...
       description: >
-        A single tablespace represented by an ordered array containing the name of the
-        tablespace, the tablespace OID and the path to the tablespace on the PostgreSQL
-        server
+        A single tablespace represented by an ordered array. The first item MUST be a
+        string containing the name of the tablespace. The second item MUST be a number
+        representing the tablespace OID. The third item MUST be a string containing the
+        path to the tablespace on the PostgreSQL server.
       type: array
-      items:
-        oneOf:
-          - description: The name of the tablespace
-            type: string
-          - description: The OID of the tablespace
-            type: number
-          - description: The path to the tablespace directory on the PostgreSQL server
-            type: string
+      # The best we can do here is to use the any type. OpenAPI 3.0.0 does not let us
+      # specify an ordered array of types and openapi-generator does not support
+      # workarounds such as using oneOf.
+      items: {}
       maxItems: 3
       minItems: 3
 
@@ -818,19 +813,15 @@ components:
       # OpenAPI 3.0 we must do the best we can...
       description: >
         Details of the replication slot being used by Barman on this PostgreSQL server
-        in the form of an ordered array containing the slot_name, active and
-        restart_lsn fields from pg_replication_slots
+        in the form of an ordered array. The first item MUST be a string containing
+        the slot_name. The second item MUST be a boolean reflecting the active state
+        of the replication slot. The third item MUST be a string containing the LSN
+        of the oldest WAL which still might be required by the consumer of this slot.
       type: array
-      items:
-        oneOf:
-          - description: The name of the replication slot
-            type: string
-          - description: Whether the replication slot is being actively used
-            type: boolean
-          - description: >
-              The LSN of the oldest WAL which still might be required by the consumer
-              of this slot
-            type: string
+      # The best we can do here is to use the any type. OpenAPI 3.0.0 does not let us
+      # specify an ordered array of types and openapi-generator does not support
+      # workarounds such as using oneOf.
+      items: {}
       maxItems: 3
       minItems: 3
 
