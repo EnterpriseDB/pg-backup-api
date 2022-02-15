@@ -21,11 +21,8 @@
 import pprint
 
 import six
-import typing
 
 from pg_backup_api.openapi_server import util
-
-T = typing.TypeVar('T')
 
 
 class Model(object):
@@ -38,7 +35,7 @@ class Model(object):
     attribute_map = {}
 
     @classmethod
-    def from_dict(cls: typing.Type[T], dikt) -> T:
+    def from_dict(cls, dikt):
         """Returns the dict as a model"""
         return util.deserialize_model(dikt, cls)
 
