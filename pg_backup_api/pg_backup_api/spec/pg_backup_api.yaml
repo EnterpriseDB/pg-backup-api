@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Postgres Backup REST API
-  version: 0.0.1
+  version: 1.0.0
 components:
   schemas:
     DiagnoseOutput:
@@ -9,13 +9,856 @@ components:
       required:
         - global
         - servers
-      # these top-level entries are guaranteed, but otherwise we don't guarantee a particular format of diagnose's json output, 
-      # so the values being strings of json is the best we can do
       properties:
         global:
-          type: string
+          type: object
+          properties:
+            config:
+              $ref: "#/components/schemas/GlobalConfig"
+            system_info:
+              $ref: "#/components/schemas/SystemInfo"
+          required:
+            - system_info
         servers:
+          type: object
+          properties:
+            backups:
+              $ref: "#/components/schemas/Backups"
+            config:
+              $ref: "#/components/schemas/ServerConfig"
+            status:
+              $ref: "#/components/schemas/Status"
+            wals:
+              $ref: "#/components/schemas/Wals"
+          required:
+            - backups
+            - config
+            - status
+            - wals
+
+    GlobalConfig:
+      allOf:
+        - $ref: "#/components/schemas/Config"
+      properties:
+        barman_user:
+          description: System user that runs Barman
           type: string
+        errors_list:
+          description: List of configuration errors affecting multiple servers
+          type: array
+          items:
+            description: >
+              An error detected for a combination of servers while parsing the config
+            type: string
+        log_file:
+          description: Location of Barman's log file
+          type: string
+        log_level:
+          description: Level of logging (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+          type: string
+      required:
+        - errors_list
+
+    ServerConfig:
+      allOf:
+        - $ref: "#/components/schemas/Config"
+      properties:
+        active:
+          description: Whether the server is configured as active
+          type: boolean
+        backup_directory:
+          description: Directory where backup data for a server will be placed
+          type: string
+        basebackups_directory:
+          description: Directory where base backups will be placed
+          type: string
+        conninfo:
+          description: Connection string used by Barman to connect to the PostgreSQL server
+          type: string
+        description:
+          description: A human readable description of a server
+          nullable: true
+          type: string
+        disabled:
+          description: Whether the server has been disabled due to configuration errors
+          type: boolean
+        errors_directory:
+          description: Directory that contains WAL files that contain an error
+          type: string
+        incoming_wals_directory:
+          description: Directory where incoming WAL files are archived
+          type: string
+        msg_list:
+          description: List of configuration errors for this server
+          type: array
+          items:
+            description: An error detected for this server while parsing the config
+            type: string
+        name:
+          description: The name of this server as configured in Barman
+          type: string
+        ssh_command:
+          description: Command used by Barman to login to the PostgreSQL server via ssh
+          nullable: true
+          type: string
+        streaming_conninfo:
+          description: >
+            Connection string used by Barman to connect to the PostgreSQL server via
+            streaming replication protocol
+          nullable: true
+          type: string
+        streaming_wals_directory:
+          description: >
+            Directory where WAL files are streamed from the PostgreSQL server to Barman
+          type: string
+        wals_directory:
+          description: Directory which contains WAL files
+          type: string
+
+    Config:
+      type: object
+      properties:
+        archiver:
+          description: >
+            Whether Barman should check for and manage WALs archived to Barman via
+            PostgreSQL WAL archiving
+          type: boolean
+        archiver_batch_size:
+          description: >
+            The maximum number of WAL files to be archived by Barman in a single run
+          type: integer
+        backup_method:
+          description: >
+            The method used by Barman for backup execution - one of: local-rsync,
+            postgres or rsync
+          type: string
+        backup_options:
+          description: >
+            A comma-separated list of options - either: `exclusive_backup` or
+            `concurrent_backup` and optionally: `external_configuration`
+          type: string
+        bandwidth_limit:
+          description: Maximum transfer rate in kilobytes per second
+          type: integer
+          nullable: true
+        barman_home:
+          description: Main data directory for Barman
+          type: string
+        barman_lock_directory:
+          description: Directory for locks
+          type: string
+        basebackup_retry_sleep:
+          description: Number of seconds of wait after a failed copy, before retrying
+          type: integer
+        basebackup_retry_times:
+          description: Number of retries of base backup copy, after an error
+          type: integer
+        check_timeout:
+          description: Maximum execution time, in seconds per server, for a barman check
+          type: integer
+        compression:
+          description: Standard compression algorithm applied to WAL files
+          type: string
+        configuration_files_directory:
+          description: Directory for additional configuration files to be included
+          type: string
+        create_slot:
+          description: >
+            Whether Barman should automatically create the replication slot - one of
+            `auto` or `manual`
+          type: string
+        custom_compression_filter:
+          description: Customised compression algorithm applied to WAL files
+          nullable: true
+          type: string
+        custom_compression_magic:
+          description: >
+            Customised compression magic which is checked in the beginning of a WAL
+            file to select the custom algorithm
+          nullable: true
+          type: string
+        custom_decompression_filter:
+          description: Customised decompression algorithm applied to compressed WAL files
+          nullable: true
+          type: string
+        forward_config_path:
+          description: >
+            Determines whether a passive node should forward its configuration file
+            path to its primary node during cron or sync-info commands
+          type: boolean
+        immediate_checkpoint:
+          description: Whether to request an immediate checkpoint at the start of a backup
+          type: boolean
+        last_backup_maximum_age:
+          description: >
+            A time frame that must contain the latest backup
+          nullable: true
+          type: string
+        last_backup_minimum_size:
+          description: >
+            The lower limit to the acceptable size of the latest successful backup
+          nullable: true
+          type: integer
+        last_wal_maximum_age:
+          description: >
+            A time frame that must contain the latest WAL file archive
+          nullable: true
+          type: string
+        max_incoming_wals_queue:
+          description: >
+            Maximum number of WAL files in the incoming queue that are allowed before
+            barman check returns an error
+          nullable: true
+          type: integer
+        minimum_redundancy:
+          description: Minimum number of backups to be retained
+          type: integer
+        network_compression:
+          description: Enable data compression for network transfers
+          type: boolean
+        parallel_jobs:
+          description: >
+            How many parallel workers will copy files during a backup or recovery
+            command
+          type: integer
+        path_prefix:
+          description: >
+            One or more absolute paths, separated by colon, where Barman looks for
+            executable files
+          nullable: true
+          type: string
+        post_archive_retry_script:
+          description: Hook script launched after a WAL file is archived by maintenance
+          nullable: true
+          type: string
+        post_archive_script:
+          description: >
+            Hook script launched after a WAL file is archived by maintenance, after
+            `post_archive_retry_script`
+          nullable: true
+          type: string
+        post_backup_retry_script:
+          description: Hook script launched after a base backup
+          nullable: true
+          type: string
+        post_backup_script:
+          description: >
+            Hook script launched after a base backup, after `post_backup_retry_script`
+          nullable: true
+          type: string
+        post_delete_retry_script:
+          description: Hook script launched after the deletion of a backup
+          nullable: true
+          type: string
+        post_delete_script:
+          description: >
+            Hook script launched after the deletion of a backup, after
+            `post_delete_retry_script`
+          nullable: true
+          type: string
+        post_recovery_retry_script:
+          description: >
+            Hook script launched after a recovery
+          nullable: true
+          type: string
+        post_recovery_script:
+          description: >
+            Hook script launched after a recovery, after `post_recovery_retry_script`
+          nullable: true
+          type: string
+        post_wal_delete_retry_script:
+          description: Hook script launched after the deletion of a WAL file
+          nullable: true
+          type: string
+        post_wal_delete_script:
+          description: >
+            Hook script launched after the deletion of a WAL file, after
+            post_wal_delete_retry_script`
+          nullable: true
+          type: string
+        pre_archive_retry_script:
+          description: >
+            Hook script launched before a WAL file is archived by maintenance, after
+            `pre_archive_script`
+          nullable: true
+          type: string
+        pre_archive_script:
+          description: Hook script launched before a WAL file is archived by maintenance
+          nullable: true
+          type: string
+        pre_backup_retry_script:
+          description: Hook script launched before a base backup, after `pre_backup_script`
+          nullable: true
+          type: string
+        pre_backup_script:
+          description: Hook script launched before a base backup
+          nullable: true
+          type: string
+        pre_delete_retry_script:
+          description: >
+            Hook script launched before the deletion of a backup, after
+            `pre_delete_script`
+          nullable: true
+          type: string
+        pre_delete_script:
+          description: Hook script launched before the deletion of a backup
+          nullable: true
+          type: string
+        pre_recovery_retry_script:
+          description: Hook script launched before a recovery, after `pre_recovery_script`
+          nullable: true
+          type: string
+        pre_recovery_script:
+          description: Hook script launched before a recovery
+          nullable: true
+          type: string
+        pre_wal_delete_retry_script:
+          description: >
+            Hook script launched before the deletion of a WAL file, after
+            `pre_wal_delete_script`
+          nullable: true
+          type: string
+        pre_wal_delete_script:
+          description: Hook script launched before the deletion of a WAL file
+          nullable: true
+          type: string
+        primary_ssh_command:
+          description: >
+            Command used by a passive Barman server to login to the primary Barman
+            server via ssh
+          nullable: true
+          type: string
+        recovery_options:
+          description: Options for recovery operations
+          type: string
+        retention_policy:
+          description: Policy for retention of periodic backups and archive logs
+          nullable: true
+          type: string
+        retention_policy_mode:
+          description: Mode which defines how retention policies are applied
+          type: string
+        reuse_backup:
+          description: >
+            Defines how incremental backup should be applied - one of `copy`, `link` or
+            `off`
+          nullable: true
+          type: string
+        slot_name:
+          description: Physical replication slot to be used by the `receive-wal` command
+          nullable: true
+          type: string
+        streaming_archiver:
+          description: >
+            Whether to use PostgreSQL's streaming protocol to receive transaction logs
+            from a server
+          type: boolean
+        streaming_archiver_batch_size:
+          description: >
+            The maximum number of streamed WAL files to be archived by Barman in a
+            single run
+          type: integer
+        streaming_archiver_name:
+          description: >
+            Identifier to be used as `application_name` by the `receive-wal` command
+          type: string
+        streaming_backup_name:
+          description: >
+            Identifier to be used as `application_name` by the `pg_basebackup` command
+          type: string
+        tablespace_bandwidth_limit:
+          description: >
+            Maximum transfer rate in kilobytes per second when copying a specific
+            tablespace - specified as a comma separated list of TABLESPACE:BWLIMIT
+            pairs
+          nullable: true
+          type: string
+        wal_retention_policy:
+          description: Policy for retention of archive logs (WAL files)
+          type: string
+
+    SystemInfo:
+      type: object
+      properties:
+        barman_ver:
+          description: Version of Barman which generated the diagnose output
+          type: string
+        kernel_ver:
+          description: Information about the OS kernel on which Barman server is running
+          type: string
+        python_ver:
+          description: Version of Python used by Barman server
+          type: string
+        release:
+          description: >
+            Information about the specific OS release on which Barman server is running
+          type: string
+        rsync_ver:
+          description: Version of Rsync used by Barman server
+          type: string
+        ssh_ver:
+          description: Version of ssh used by Barman server
+          type: string
+        timestamp:
+          description: >
+            The system time of the Barman server (in ctime format in the local timezone
+            of the server
+          type: string
+      required:
+        - barman_ver
+        - kernel_ver
+        - python_ver
+        - release
+        - rsync_ver
+        - ssh_ver
+        - timestamp
+
+    Backups:
+      description: >
+        Details of each backup stored by Barman for this server keyed by Backup ID.
+      type: object
+      # A backup is keyed by backup ID - in OpenAPI 3.1 we can use patternProperties
+      # to restrict keys to valid backup IDs but for now we use additionalProperties
+      # which will allow any key name.
+      additionalProperties:
+        type: object
+        properties:
+          backup_id:
+            description: The backup ID of the backup
+            type: string
+          backup_label:
+            description: The backup label generated by PostgreSQL
+            nullable: true
+            type: string
+          begin_offset:
+            description: The byte offset of the current WAL at the start of the backup
+            nullable: true
+            type: integer
+          begin_time:
+            description: >
+              The system time of the Barman server at the start of the backup (in
+              ctime format in the local timezone of the server)
+            nullable: true
+            type: string
+          begin_wal:
+            description: The current WAL segment at the start of the backup
+            nullable: true
+            type: string
+          begin_xlog:
+            description: The LSN of the PostgreSQL server at the start of the backup
+            nullable: true
+            type: string
+          config_file:
+            description: >
+              The path to the `postgresql.conf` file of the PostgreSQL server when
+              the backup was taken
+            nullable: true
+            type: string
+          copy_stats:
+            nullable: true
+            type: object
+            $ref: "#/components/schemas/CopyStats"
+          deduplicated_size:
+            description: >
+              The size of the backup in bytes accounting for any hard links to files
+              in previous backups
+            nullable: true
+            type: integer
+          end_offset:
+            description: The byte offset of the current WAL at the end of the backup
+            nullable: true
+            type: integer
+          end_time:
+            description: >
+              The system time of the Barman server at the end of the backup (in ctime
+              format in the local timezone of the server)
+            nullable: true
+            type: string
+          end_wal:
+            description: The current WAL segment at the end of the backup
+            nullable: true
+            type: string
+          end_xlog:
+            description: The LSN of the PostgreSQL server at the end of the backup
+            nullable: true
+            type: string
+          error:
+            description: Error message (if the backup failed)
+            nullable: true
+            type: string
+          hba_file:
+            description: >
+              The path to the `pg_hba.conf` file of the PostgreSQL server at the time
+              the backup was taken
+            nullable: true
+            type: string
+          ident_file:
+            description: >
+              The path to the `pg_ident.conf` file of the PostgreSQL server at the
+              time the backup was taken
+            nullable: true
+            type: string
+          included_files:
+            description: >
+              All files referenced by include directives in the PostgreSQL config
+              which were included in the backup
+            nullable: true
+            type: array
+            items:
+              description: Path to an included config file
+              type: string
+          mode:
+            description: >
+              The combined `backup_method` and `backup_options` configured for the
+              server at the time of the backup - can be one of:
+              `local-rsync-concurrent`, `local-rsync-exclusive`, `postgres-concurrent`,
+              `postgres-exclusive`, `rsync-concurrent` or `rsync-exclusive`
+            nullable: true
+            type: string
+          pgdata:
+            description: >
+              The path to the PGDATA directory of the PostgreSQL server at the time
+              the backup was taken
+            nullable: true
+            type: string
+          server_name:
+            description: The name of this server as configured in Barman
+            type: string
+          size:
+            description: The size of the backup in bytes
+            type: integer
+          status:
+            description: The current status of the backup
+            type: string
+          systemid:
+            description: >
+              The system identifier of the PostgreSQL server from which the backup
+              was taken
+            nullable: true
+            type: string
+          tablespaces:
+            description: The tablespaces included in this backup
+            nullable: true
+            type: array
+            items:
+              $ref: "#/components/schemas/Tablespace"
+          timeline:
+            description: The timeline of the PostgreSQL server when the backup was taken
+            nullable: true
+            type: integer
+          version:
+            description: The version of the PostgreSQL server
+            nullable: true
+            type: integer
+          xlog_segment_size:
+            description: >
+              The WAL segment size in bytes as reported by the PostgreSQL server
+              when the backup was taken
+            nullable: true
+            type: integer
+
+    CopyStats:
+      properties:
+        analysis_time:
+          description: >
+            Total number of seconds spent in the analysis phase during this backup
+          type: number
+        analysis_time_per_item:
+          description: >
+            Number of seconds spent in the analysis phase for each item, where an item
+            can be the PGDATA directory or a tablespace directory
+          type: object
+          properties:
+            pgdata:
+              description: Number of seconds spent in the analysis phase for PGDATA
+              type: number
+            TABLESPACE:
+              description: Number of seconds spent in the analysis phase for TABLESPACE
+              type: number
+        copy_time:
+          description: >
+            Total wall-clock time spent in the copy phase during this backup in seconds
+          type: number
+        copy_time_per_item:
+          description: >
+            Wall-clock time spent copying each item in seconds - an item can be the
+            PGDATA directory, a tablespace directory, the pg_control file or any
+            configuration files located outside the PGDATA directory
+          type: object
+          properties:
+            pgdata:
+              description: >
+                Number of wall-clock seconds spent in the copy phase for PGDATA
+              type: number
+            TABLESPACE:
+              description: >
+                Number of wall-clock seconds spent in the copy phase for TABLESPACE
+              type: number
+            FILENAME:
+              description: >
+                Number of wall-clock seconds spent in the copy phase for FILENAME
+              type: number
+        number_of_workers:
+          description: Number of workers used to copy files in the backup
+          type: integer
+        serialized_copy_time:
+          description: Total time spent copying data across all copy jobs in seconds
+          type: number
+        serialized_copy_time_per_item:
+          description: >
+            Total time spent copying each item across all copy jobs in seconds - an
+            item can be the PGDATA directory, a tablespace directory, the pg_control
+            file or any configuration files located outside the PGDATA directory
+          type: object
+          properties:
+            pgdata:
+              description: >
+                Total number of seconds spent by all copy jobs copying the data for
+                PGDATA
+              type: number
+            TABLESPACE:
+              description: >
+                Total number of seconds spent by all copy jobs copying the data for
+                TABLESPACE
+              type: number
+            FILENAME:
+              description: >
+                Total number of seconds spent by all copy jobs copying the data for
+                FILENAME
+              type: number
+        total_time:
+          description: Total wall-clock time spent taking the backup in seconds
+          type: number
+      required:
+        - copy_time
+        - total_time
+
+    Tablespace:
+      description: >
+        A single tablespace represented by an ordered array. The first item MUST be a
+        string containing the name of the tablespace. The second item MUST be a number
+        representing the tablespace OID. The third item MUST be a string containing the
+        path to the tablespace on the PostgreSQL server.
+      type: array
+      # The best we can do here is to use the any type. OpenAPI 3.0.0 does not let us
+      # specify an ordered array of types and openapi-generator does not support
+      # workarounds such as using oneOf.
+      items: {}
+      maxItems: 3
+      minItems: 3
+
+    Status:
+      description: Status information about the PostgreSQL server
+      type: object
+      properties:
+        archive_command:
+          description: The current value of archive_command on the PostgreSQL server
+          nullable: true
+          type: string
+        archive_mode:
+          description: The current value of archive_mode on the PostgreSQL server
+          nullable: true
+          type: string
+        archive_timeout:
+          description: >
+            The current value of archive_timeout (in seconds) on the PostgreSQL server
+          type: integer
+        archived_count:
+          description: >
+            The number of WAL files that have been successfully archived by the
+            PostgreSQL server
+          type: integer
+        checkpoint_timeout:
+          description: >
+            The current value of checkpoint_timeout (in seconds) on the PostgreSQL
+            server
+          type: integer
+        config_file:
+          description: >
+            The current path to the `postgresql.conf` file of the PostgreSQL server
+          type: string
+        connection_error:
+          description: >
+            Error message in the event that barman cannot connect to the PostgreSQL
+            server
+          type: string
+        current_archived_wals_per_second:
+          description: >
+            The WAL archive rate of the PostgreSQL server calculated over the time
+            since the last stats reset
+          type: number
+        current_lsn:
+          description: The current LSN of the PostgreSQL server
+          type: string
+        current_size:
+          description: The total size of the PostgreSQL server in bytes
+          type: number
+        current_xlog:
+          # In the backups object, {begin,end}_xlog refers to the LSN and
+          # {begin,end}_wal refers to the WAL. Here, current_xlog does in fact refer
+          # to the WAL and not the LSN.
+          description: The current WAL of the PostgreSQL server
+          type: string
+        data_checksums:
+          description: Whether data checksums are enabled for the PostgreSQL server
+          type: boolean
+        data_directory:
+          description: The current path to the PGDATA directory of the PostgreSQL server
+          type: string
+        failed_count:
+          description: >
+            The number of failed attempts for archiving WAL files by the PostgreSQL
+            server
+          type: integer
+        has_backup_privileges:
+          description: >
+            Whether the configured user has the PostgreSQL privileges required in
+            order to take a backup
+          type: boolean
+        hba_file:
+          description: The current path to the `pg_hba.conf` file of the PostgreSQL server
+          type: string
+        hot_standby:
+          description: The current value of hot_standby on the PostgreSQL server
+          type: string
+        ident_file:
+          description: >
+            The current path to the `pg_ident.conf` file of the PostgreSQL server
+          type: string
+        is_archiving:
+          description: >
+            Whether the PostgreSQL server is currently archiving WALs (as determined
+            by Barman from the content of `pg_stat_archiver`)
+          type: boolean
+        is_in_recovery:
+          description: >
+            Whether the PostgreSQL server is currently in recovery (as determined by
+            Barman using `pg_is_in_recovery()`)
+          type: boolean
+        is_superuser:
+          description: Whether the configured user has superuser privileges
+          type: boolean
+        last_archived_time:
+          description: >
+            The time that a WAL was most recently archived by PostgreSQL (in ctime
+            format in the local timezone of the server)
+          type: string
+        last_archived_wal:
+          description: The WAL segment which was most recently archived by PostgreSQL
+          type: string
+        last_failed_time:
+          description: >
+            The time of the most recent WAL archive failure on the PostgreSQL server
+            (in ctime format in the local timezone of the server)
+          nullable: true
+          type: string
+        last_failed_wal:
+          description: >
+            The WAL segment which was being archived during the most recent failed
+            WAL archive attempt
+          nullable: true
+          type: string
+        max_replication_slots:
+          description: The current value of max_replication_slots on the PostgreSQL server
+          type: string
+        max_wal_senders:
+          description: The current value of max_wal_senders on the PostgreSQL server
+          type: string
+        pgespresso_installed:
+          description: Whether the PostgreSQL server has Pgespresso installed
+          type: boolean
+        postgresql_systemid:
+          description: The system identifier of the PostgreSQL server
+          type: string
+        replication_slot:
+          $ref: "#/components/schemas/ReplicationSlot"
+        replication_slot_support:
+          description: Whether the PostgreSQL server supports replication slots
+          type: boolean
+        server_txt_version:
+          description: The version of the PostgreSQL server as human-readable text
+          type: string
+        stats_reset:
+          description: >
+            The time at which statistics were last reset for this PostgreSQL server
+            (in ctime format in the local timezone of the server)
+          type: string
+        synchronous_standby_names:
+          description: >
+            The current value of synchronous_standby_names on the PostgreSQL server
+          type: array
+          items:
+            description: >
+              Name of a standby server which can support synchronous replication
+            type: string
+        wal_compression:
+          description: The current value of wal_compression on the PostgreSQL server
+          type: string
+        wal_keep_size:
+          description: The current value of wal_keep_size on the PostgreSQL server
+          type: string
+        wal_level:
+          description: The current value of wal_level on the PostgreSQL server
+          type: string
+        xlog_segment_size:
+          description: >
+            The current WAL segment size in bytes as reported by the PostgreSQL server
+          type: integer
+      required:
+        - archive_command
+        - archive_mode
+
+    ReplicationSlot:
+      # In OpenAPI 3.1 we can use prefixItems here to be more specific however with
+      # OpenAPI 3.0 we must do the best we can...
+      description: >
+        Details of the replication slot being used by Barman on this PostgreSQL server
+        in the form of an ordered array. The first item MUST be a string containing
+        the slot_name. The second item MUST be a boolean reflecting the active state
+        of the replication slot. The third item MUST be a string containing the LSN
+        of the oldest WAL which still might be required by the consumer of this slot.
+      type: array
+      # The best we can do here is to use the any type. OpenAPI 3.0.0 does not let us
+      # specify an ordered array of types and openapi-generator does not support
+      # workarounds such as using oneOf.
+      items: {}
+      maxItems: 3
+      minItems: 3
+
+    Wals:
+      type: object
+      properties:
+        last_archived_wal_per_timeline:
+          description: >
+            Details of the most recently archived WAL on the Barman server keyed by
+            timeline.
+          type: object
+          # In OpenAPI 3.1 we can use patternProperties to restrict keys to valid
+          # timelines but for now we use additionalProperties which will allow any
+          # key name.
+          additionalProperties:
+            $ref: "#/components/schemas/LastArchivedWal"
+      required:
+        - last_archived_wal_per_timeline
+
+    LastArchivedWal:
+      type: object
+      properties:
+        compression:
+          description: Compression algorithm used to compress the WAL
+          type: string
+        name:
+          description: Name of the WAL segment
+          type: string
+        size:
+          description: Size in bytes of the WAL stored on the Barman server
+          type: integer
+        time:
+          description: >
+            Timestamp in epoch time format representing the time this WAL was archived
+            by Barman
+          type: number
+
 paths:
   /diagnose:
     get:
@@ -37,13 +880,13 @@ paths:
             application/json:
               schema:
                 type: string
-        "500":  # is this necessary to specify?
+        "500": # is this necessary to specify?
           description: Internal server error
           content:
             application/json:
               schema:
                 type: string
-        "503":  # maybe? in case the underlying backup installation isn't up for some reason?
+        "503": # maybe? in case the underlying backup installation isn't up for some reason?
           description: Service unavailable
           content:
             application/json:
@@ -63,4 +906,3 @@ paths:
             application/json:
               schema:
                 type: string
-      
