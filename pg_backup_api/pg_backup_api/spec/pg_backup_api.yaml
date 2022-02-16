@@ -21,20 +21,25 @@ components:
             - system_info
         servers:
           type: object
-          properties:
-            backups:
-              $ref: "#/components/schemas/Backups"
-            config:
-              $ref: "#/components/schemas/ServerConfig"
-            status:
-              $ref: "#/components/schemas/Status"
-            wals:
-              $ref: "#/components/schemas/Wals"
-          required:
-            - backups
-            - config
-            - status
-            - wals
+          # A server is keyed by server name. Because patternProperties are not
+          # supported in OpenAPI 3.0.0 we use additionalProperties to allow any
+          # key name.
+          additionalProperties:
+            type: object
+            properties:
+              backups:
+                $ref: "#/components/schemas/Backups"
+              config:
+                $ref: "#/components/schemas/ServerConfig"
+              status:
+                $ref: "#/components/schemas/Status"
+              wals:
+                $ref: "#/components/schemas/Wals"
+            required:
+              - backups
+              - config
+              - status
+              - wals
 
     GlobalConfig:
       allOf:
@@ -804,9 +809,6 @@ components:
           description: >
             The current WAL segment size in bytes as reported by the PostgreSQL server
           type: integer
-      required:
-        - archive_command
-        - archive_mode
 
     ReplicationSlot:
       # In OpenAPI 3.1 we can use prefixItems here to be more specific however with

@@ -43,11 +43,11 @@ class DiagnoseOutput(Model):
         :param _global: The _global of this DiagnoseOutput.  # noqa: E501
         :type _global: DiagnoseOutputGlobal
         :param servers: The servers of this DiagnoseOutput.  # noqa: E501
-        :type servers: DiagnoseOutputServers
+        :type servers: Dict[str, DiagnoseOutputServers]
         """
         self.openapi_types = {
             '_global': DiagnoseOutputGlobal,
-            'servers': DiagnoseOutputServers
+            'servers': Dict[str, DiagnoseOutputServers]
         }
 
         self.attribute_map = {
@@ -98,7 +98,7 @@ class DiagnoseOutput(Model):
 
 
         :return: The servers of this DiagnoseOutput.
-        :rtype: DiagnoseOutputServers
+        :rtype: Dict[str, DiagnoseOutputServers]
         """
         return self._servers
 
@@ -108,7 +108,7 @@ class DiagnoseOutput(Model):
 
 
         :param servers: The servers of this DiagnoseOutput.
-        :type servers: DiagnoseOutputServers
+        :type servers: Dict[str, DiagnoseOutputServers]
         """
         if servers is None:
             raise ValueError("Invalid value for `servers`, must not be `None`")  # noqa: E501

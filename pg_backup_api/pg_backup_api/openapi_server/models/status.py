@@ -265,8 +265,6 @@ class Status(Model):
         :param archive_command: The archive_command of this Status.
         :type archive_command: str
         """
-        if archive_command is None:
-            raise ValueError("Invalid value for `archive_command`, must not be `None`")  # noqa: E501
 
         self._archive_command = archive_command
 
@@ -290,8 +288,6 @@ class Status(Model):
         :param archive_mode: The archive_mode of this Status.
         :type archive_mode: str
         """
-        if archive_mode is None:
-            raise ValueError("Invalid value for `archive_mode`, must not be `None`")  # noqa: E501
 
         self._archive_mode = archive_mode
 
