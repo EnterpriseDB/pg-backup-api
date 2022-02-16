@@ -22,7 +22,7 @@ import barman
 from barman import diagnose, output
 from barman.server import Server
 from pg_backup_api.openapi_server.util import deserialize_model
-from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput, DiagnoseOutputGlobal, DiagnoseOutputServers
+from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput
 
 
 class UtilityController:
@@ -48,11 +48,8 @@ class UtilityController:
         # new outputs are appended, so grab the last one
         stored_output = json.loads(output._writer.json_output["_INFO"][-1])
 
-        diag_output = DiagnoseOutput(
-            _global=deserialize_model(stored_output["global"], DiagnoseOutputGlobal), 
-            servers=deserialize_model(stored_output["servers"], DiagnoseOutputServers)
-        )
-        
+        diag_output = deserialize_model(stored_output, DiagnoseOutput)
+
         return diag_output
 
     def status(self):
