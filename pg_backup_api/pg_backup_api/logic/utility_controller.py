@@ -21,7 +21,8 @@ import json
 import barman
 from barman import diagnose, output
 from barman.server import Server
-from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput
+from pg_backup_api.openapi_server.util import deserialize_model
+from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput, DiagnoseOutputGlobal, DiagnoseOutputServers
 
 
 class UtilityController:
@@ -48,10 +49,11 @@ class UtilityController:
         stored_output = json.loads(output._writer.json_output["_INFO"][-1])
 
         diag_output = DiagnoseOutput(
-            _global=stored_output["global"], servers=stored_output["servers"]
+            _global=deserialize_model(stored_output["global"], DiagnoseOutputGlobal), 
+            servers=deserialize_model(stored_output["servers"], DiagnoseOutputServers)
         )
-
-        return diag_output.to_dict()
+        
+        return diag_output
 
     def status(self):
         return "OK"  # If this app isn't running, we obviously won't return!
