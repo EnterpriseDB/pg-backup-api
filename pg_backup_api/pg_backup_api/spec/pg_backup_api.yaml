@@ -406,9 +406,10 @@ components:
           type: string
         timestamp:
           description: >
-            The system time of the Barman server (in ctime format in the local timezone
-            of the server
+            The system time of the Barman server (in ISO 8601 format in the local timezone
+            of the server)
           type: string
+          example: "2020-01-31T00:00:00.0000+01:00"
       required:
         - barman_ver
         - kernel_ver
@@ -442,9 +443,10 @@ components:
           begin_time:
             description: >
               The system time of the Barman server at the start of the backup (in
-              ctime format in the local timezone of the server)
+              ISO 8601 in the local timezone of the server)
             nullable: true
             type: string
+            example: "2020-01-31T00:00:00.0000+01:00"
           begin_wal:
             description: The current WAL segment at the start of the backup
             nullable: true
@@ -475,10 +477,11 @@ components:
             type: integer
           end_time:
             description: >
-              The system time of the Barman server at the end of the backup (in ctime
-              format in the local timezone of the server)
+              The system time of the Barman server at the end of the backup (in
+              ISO 8601 in the local timezone of the server)
             nullable: true
             type: string
+            example: "2020-01-31T00:00:00.0000+01:00"
           end_wal:
             description: The current WAL segment at the end of the backup
             nullable: true
@@ -745,8 +748,8 @@ components:
           type: boolean
         last_archived_time:
           description: >
-            The time that a WAL was most recently archived by PostgreSQL (in ctime
-            format in the local timezone of the server)
+            The time that a WAL was most recently archived by PostgreSQL (in
+            ISO 8601 in the local timezone of the server)
           type: string
         last_archived_wal:
           description: The WAL segment which was most recently archived by PostgreSQL
@@ -754,9 +757,10 @@ components:
         last_failed_time:
           description: >
             The time of the most recent WAL archive failure on the PostgreSQL server
-            (in ctime format in the local timezone of the server)
+            (in ISO 8601 in the local timezone of the server)
           nullable: true
           type: string
+          example: "2020-01-31T00:00:00.0000+01:00"
         last_failed_wal:
           description: >
             The WAL segment which was being archived during the most recent failed
@@ -786,8 +790,9 @@ components:
         stats_reset:
           description: >
             The time at which statistics were last reset for this PostgreSQL server
-            (in ctime format in the local timezone of the server)
+            (in ISO 8601 format in UTC)
           type: string
+          example: "2020-01-31T00:00:00.0000+01:00"
         synchronous_standby_names:
           description: >
             The current value of synchronous_standby_names on the PostgreSQL server
