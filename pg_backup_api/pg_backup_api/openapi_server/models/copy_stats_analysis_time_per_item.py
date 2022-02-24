@@ -41,15 +41,9 @@ class CopyStatsAnalysisTimePerItem(Model):
         :param tablespace: The tablespace of this CopyStatsAnalysisTimePerItem.  # noqa: E501
         :type tablespace: float
         """
-        self.openapi_types = {
-            'pgdata': float,
-            'tablespace': float
-        }
+        self.openapi_types = {"pgdata": float, "tablespace": float}
 
-        self.attribute_map = {
-            'pgdata': 'pgdata',
-            'tablespace': 'TABLESPACE'
-        }
+        self.attribute_map = {"pgdata": "pgdata", "tablespace": "TABLESPACE"}
 
         self._pgdata = pgdata
         self._tablespace = tablespace

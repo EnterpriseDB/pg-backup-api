@@ -33,7 +33,16 @@ class SystemInfo(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, barman_ver=None, kernel_ver=None, python_ver=None, release=None, rsync_ver=None, ssh_ver=None, timestamp=None):  # noqa: E501
+    def __init__(
+        self,
+        barman_ver=None,
+        kernel_ver=None,
+        python_ver=None,
+        release=None,
+        rsync_ver=None,
+        ssh_ver=None,
+        timestamp=None,
+    ):  # noqa: E501
         """SystemInfo - a model defined in OpenAPI
 
         :param barman_ver: The barman_ver of this SystemInfo.  # noqa: E501
@@ -52,23 +61,23 @@ class SystemInfo(Model):
         :type timestamp: str
         """
         self.openapi_types = {
-            'barman_ver': str,
-            'kernel_ver': str,
-            'python_ver': str,
-            'release': str,
-            'rsync_ver': str,
-            'ssh_ver': str,
-            'timestamp': str
+            "barman_ver": str,
+            "kernel_ver": str,
+            "python_ver": str,
+            "release": str,
+            "rsync_ver": str,
+            "ssh_ver": str,
+            "timestamp": str,
         }
 
         self.attribute_map = {
-            'barman_ver': 'barman_ver',
-            'kernel_ver': 'kernel_ver',
-            'python_ver': 'python_ver',
-            'release': 'release',
-            'rsync_ver': 'rsync_ver',
-            'ssh_ver': 'ssh_ver',
-            'timestamp': 'timestamp'
+            "barman_ver": "barman_ver",
+            "kernel_ver": "kernel_ver",
+            "python_ver": "python_ver",
+            "release": "release",
+            "rsync_ver": "rsync_ver",
+            "ssh_ver": "ssh_ver",
+            "timestamp": "timestamp",
         }
 
         self._barman_ver = barman_ver
@@ -111,7 +120,9 @@ class SystemInfo(Model):
         :type barman_ver: str
         """
         if barman_ver is None:
-            raise ValueError("Invalid value for `barman_ver`, must not be `None`")  # noqa: E501
+            raise ValueError(
+                "Invalid value for `barman_ver`, must not be `None`"
+            )  # noqa: E501
 
         self._barman_ver = barman_ver
 
@@ -136,7 +147,9 @@ class SystemInfo(Model):
         :type kernel_ver: str
         """
         if kernel_ver is None:
-            raise ValueError("Invalid value for `kernel_ver`, must not be `None`")  # noqa: E501
+            raise ValueError(
+                "Invalid value for `kernel_ver`, must not be `None`"
+            )  # noqa: E501
 
         self._kernel_ver = kernel_ver
 
@@ -161,7 +174,9 @@ class SystemInfo(Model):
         :type python_ver: str
         """
         if python_ver is None:
-            raise ValueError("Invalid value for `python_ver`, must not be `None`")  # noqa: E501
+            raise ValueError(
+                "Invalid value for `python_ver`, must not be `None`"
+            )  # noqa: E501
 
         self._python_ver = python_ver
 
@@ -186,7 +201,9 @@ class SystemInfo(Model):
         :type release: str
         """
         if release is None:
-            raise ValueError("Invalid value for `release`, must not be `None`")  # noqa: E501
+            raise ValueError(
+                "Invalid value for `release`, must not be `None`"
+            )  # noqa: E501
 
         self._release = release
 
@@ -211,7 +228,9 @@ class SystemInfo(Model):
         :type rsync_ver: str
         """
         if rsync_ver is None:
-            raise ValueError("Invalid value for `rsync_ver`, must not be `None`")  # noqa: E501
+            raise ValueError(
+                "Invalid value for `rsync_ver`, must not be `None`"
+            )  # noqa: E501
 
         self._rsync_ver = rsync_ver
 
@@ -236,7 +255,9 @@ class SystemInfo(Model):
         :type ssh_ver: str
         """
         if ssh_ver is None:
-            raise ValueError("Invalid value for `ssh_ver`, must not be `None`")  # noqa: E501
+            raise ValueError(
+                "Invalid value for `ssh_ver`, must not be `None`"
+            )  # noqa: E501
 
         self._ssh_ver = ssh_ver
 
@@ -261,6 +282,8 @@ class SystemInfo(Model):
         :type timestamp: str
         """
         if timestamp is None:
-            raise ValueError("Invalid value for `timestamp`, must not be `None`")  # noqa: E501
+            raise ValueError(
+                "Invalid value for `timestamp`, must not be `None`"
+            )  # noqa: E501
 
         self._timestamp = timestamp
