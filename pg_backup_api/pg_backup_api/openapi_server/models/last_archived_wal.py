@@ -46,17 +46,17 @@ class LastArchivedWal(Model):
         :type time: float
         """
         self.openapi_types = {
-            'compression': str,
-            'name': str,
-            'size': int,
-            'time': float
+            "compression": str,
+            "name": str,
+            "size": int,
+            "time": float,
         }
 
         self.attribute_map = {
-            'compression': 'compression',
-            'name': 'name',
-            'size': 'size',
-            'time': 'time'
+            "compression": "compression",
+            "name": "name",
+            "size": "size",
+            "time": "time",
         }
 
         self._compression = compression

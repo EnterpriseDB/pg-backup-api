@@ -43,16 +43,12 @@ class CopyStatsCopyTimePerItem(Model):
         :param filename: The filename of this CopyStatsCopyTimePerItem.  # noqa: E501
         :type filename: float
         """
-        self.openapi_types = {
-            'pgdata': float,
-            'tablespace': float,
-            'filename': float
-        }
+        self.openapi_types = {"pgdata": float, "tablespace": float, "filename": float}
 
         self.attribute_map = {
-            'pgdata': 'pgdata',
-            'tablespace': 'TABLESPACE',
-            'filename': 'FILENAME'
+            "pgdata": "pgdata",
+            "tablespace": "TABLESPACE",
+            "filename": "FILENAME",
         }
 
         self._pgdata = pgdata

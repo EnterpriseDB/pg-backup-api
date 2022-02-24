@@ -21,7 +21,9 @@
 import connexion
 import six
 
-from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput  # noqa: E501
+from pg_backup_api.openapi_server.models.diagnose_output import (
+    DiagnoseOutput,
+)  # noqa: E501
 from pg_backup_api.logic.controller import Controller
 from pg_backup_api.openapi_server import util
 
@@ -34,8 +36,9 @@ def diagnose():  # noqa: E501
 
     :rtype: DiagnoseOutput
     """
-    return Controller.call_method("diagnose", 
-                                  )
+    return Controller.call_method(
+        "diagnose",
+    )
 
 
 def status():  # noqa: E501
@@ -46,5 +49,6 @@ def status():  # noqa: E501
 
     :rtype: str
     """
-    return Controller.call_method("status", 
-                                  )
+    return Controller.call_method(
+        "status",
+    )

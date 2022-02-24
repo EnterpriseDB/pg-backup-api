@@ -88,10 +88,11 @@ def deserialize_date(string):
     :rtype: date
     """
     if string is None:
-      return None
-    
+        return None
+
     try:
         from dateutil.parser import parse
+
         return parse(string).date()
     except ImportError:
         return string
@@ -108,10 +109,11 @@ def deserialize_datetime(string):
     :rtype: datetime
     """
     if string is None:
-      return None
-    
+        return None
+
     try:
         from dateutil.parser import parse
+
         return parse(string)
     except ImportError:
         return string
@@ -131,9 +133,11 @@ def deserialize_model(data, klass):
         return data
 
     for attr, attr_type in six.iteritems(instance.openapi_types):
-        if data is not None \
-                and instance.attribute_map[attr] in data \
-                and isinstance(data, (list, dict)):
+        if (
+            data is not None
+            and instance.attribute_map[attr] in data
+            and isinstance(data, (list, dict))
+        ):
             value = data[instance.attribute_map[attr]]
             setattr(instance, attr, _deserialize(value, attr_type))
 
@@ -150,8 +154,7 @@ def _deserialize_list(data, boxed_type):
     :return: deserialized list.
     :rtype: list
     """
-    return [_deserialize(sub_data, boxed_type)
-            for sub_data in data]
+    return [_deserialize(sub_data, boxed_type) for sub_data in data]
 
 
 def _deserialize_dict(data, boxed_type):
@@ -164,5 +167,4 @@ def _deserialize_dict(data, boxed_type):
     :return: deserialized dict.
     :rtype: dict
     """
-    return {k: _deserialize(v, boxed_type)
-            for k, v in six.iteritems(data)}
+    return {k: _deserialize(v, boxed_type) for k, v in six.iteritems(data)}
