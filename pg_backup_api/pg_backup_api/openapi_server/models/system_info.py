@@ -265,7 +265,7 @@ class SystemInfo(Model):
     def timestamp(self):
         """Gets the timestamp of this SystemInfo.
 
-        The system time of the Barman server (in ctime format in the local timezone of the server   # noqa: E501
+        The system time of the Barman server (in ISO 8601 format in the local timezone of the server)   # noqa: E501
 
         :return: The timestamp of this SystemInfo.
         :rtype: str
@@ -276,7 +276,7 @@ class SystemInfo(Model):
     def timestamp(self, timestamp):
         """Sets the timestamp of this SystemInfo.
 
-        The system time of the Barman server (in ctime format in the local timezone of the server   # noqa: E501
+        The system time of the Barman server (in ISO 8601 format in the local timezone of the server)   # noqa: E501
 
         :param timestamp: The timestamp of this SystemInfo.
         :type timestamp: str

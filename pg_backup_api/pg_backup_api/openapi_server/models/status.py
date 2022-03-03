@@ -772,7 +772,7 @@ class Status(Model):
     def last_archived_time(self):
         """Gets the last_archived_time of this Status.
 
-        The time that a WAL was most recently archived by PostgreSQL (in ctime format in the local timezone of the server)   # noqa: E501
+        The time that a WAL was most recently archived by PostgreSQL (in ISO 8601 in the local timezone of the server)   # noqa: E501
 
         :return: The last_archived_time of this Status.
         :rtype: str
@@ -783,7 +783,7 @@ class Status(Model):
     def last_archived_time(self, last_archived_time):
         """Sets the last_archived_time of this Status.
 
-        The time that a WAL was most recently archived by PostgreSQL (in ctime format in the local timezone of the server)   # noqa: E501
+        The time that a WAL was most recently archived by PostgreSQL (in ISO 8601 in the local timezone of the server)   # noqa: E501
 
         :param last_archived_time: The last_archived_time of this Status.
         :type last_archived_time: str
@@ -818,7 +818,7 @@ class Status(Model):
     def last_failed_time(self):
         """Gets the last_failed_time of this Status.
 
-        The time of the most recent WAL archive failure on the PostgreSQL server (in ctime format in the local timezone of the server)   # noqa: E501
+        The time of the most recent WAL archive failure on the PostgreSQL server (in ISO 8601 in the local timezone of the server)   # noqa: E501
 
         :return: The last_failed_time of this Status.
         :rtype: str
@@ -829,7 +829,7 @@ class Status(Model):
     def last_failed_time(self, last_failed_time):
         """Sets the last_failed_time of this Status.
 
-        The time of the most recent WAL archive failure on the PostgreSQL server (in ctime format in the local timezone of the server)   # noqa: E501
+        The time of the most recent WAL archive failure on the PostgreSQL server (in ISO 8601 in the local timezone of the server)   # noqa: E501
 
         :param last_failed_time: The last_failed_time of this Status.
         :type last_failed_time: str
@@ -1033,7 +1033,7 @@ class Status(Model):
     def stats_reset(self):
         """Gets the stats_reset of this Status.
 
-        The time at which statistics were last reset for this PostgreSQL server (in ctime format in the local timezone of the server)   # noqa: E501
+        The time at which statistics were last reset for this PostgreSQL server (in ISO 8601 format in UTC)   # noqa: E501
 
         :return: The stats_reset of this Status.
         :rtype: str
@@ -1044,7 +1044,7 @@ class Status(Model):
     def stats_reset(self, stats_reset):
         """Sets the stats_reset of this Status.
 
-        The time at which statistics were last reset for this PostgreSQL server (in ctime format in the local timezone of the server)   # noqa: E501
+        The time at which statistics were last reset for this PostgreSQL server (in ISO 8601 format in UTC)   # noqa: E501
 
         :param stats_reset: The stats_reset of this Status.
         :type stats_reset: str
