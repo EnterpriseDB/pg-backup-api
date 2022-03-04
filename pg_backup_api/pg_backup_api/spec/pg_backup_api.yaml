@@ -538,6 +538,13 @@ components:
           status:
             description: The current status of the backup
             type: string
+            enum:
+              - DONE
+              - EMPTY
+              - FAILED
+              - STARTED
+              - SYNCING
+              - WAITING_FOR_WALS
           systemid:
             description: >
               The system identifier of the PostgreSQL server from which the backup
