@@ -409,6 +409,7 @@ components:
             The system time of the Barman server (in ISO 8601 format in the local timezone
             of the server)
           type: string
+          pattern: '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$'
           example: "2020-01-31T00:00:00.0000+01:00"
       required:
         - barman_ver
@@ -446,6 +447,7 @@ components:
               ISO 8601 in the local timezone of the server)
             nullable: true
             type: string
+            pattern: '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$'
             example: "2020-01-31T00:00:00.0000+01:00"
           begin_wal:
             description: The current WAL segment at the start of the backup
@@ -481,6 +483,7 @@ components:
               ISO 8601 in the local timezone of the server)
             nullable: true
             type: string
+            pattern: '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$'
             example: "2020-01-31T00:00:00.0000+01:00"
           end_wal:
             description: The current WAL segment at the end of the backup
@@ -758,6 +761,8 @@ components:
             The time that a WAL was most recently archived by PostgreSQL (in
             ISO 8601 in the local timezone of the server)
           type: string
+          pattern: '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$'
+          example: "2020-01-31T00:00:00.0000+01:00"
         last_archived_wal:
           description: The WAL segment which was most recently archived by PostgreSQL
           type: string
@@ -767,6 +772,7 @@ components:
             (in ISO 8601 in the local timezone of the server)
           nullable: true
           type: string
+          pattern: '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$'
           example: "2020-01-31T00:00:00.0000+01:00"
         last_failed_wal:
           description: >
@@ -799,6 +805,7 @@ components:
             The time at which statistics were last reset for this PostgreSQL server
             (in ISO 8601 format in UTC)
           type: string
+          pattern: '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$'
           example: "2020-01-31T00:00:00.0000+01:00"
         synchronous_standby_names:
           description: >

@@ -24,7 +24,10 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from pg_backup_api.openapi_server.models.base_model_ import Model
+import re
 from pg_backup_api.openapi_server import util
+
+import re  # noqa: E501
 
 
 class Status(Model):
@@ -773,6 +776,7 @@ class Status(Model):
         """Gets the last_archived_time of this Status.
 
         The time that a WAL was most recently archived by PostgreSQL (in ISO 8601 in the local timezone of the server)   # noqa: E501
+        Example: '2020-01-31T00:00:00.0000+01:00'
 
         :return: The last_archived_time of this Status.
         :rtype: str
@@ -784,10 +788,23 @@ class Status(Model):
         """Sets the last_archived_time of this Status.
 
         The time that a WAL was most recently archived by PostgreSQL (in ISO 8601 in the local timezone of the server)   # noqa: E501
+        Example: '2020-01-31T00:00:00.0000+01:00'
 
         :param last_archived_time: The last_archived_time of this Status.
         :type last_archived_time: str
         """
+        if last_archived_time is not None and not re.search(
+            r"^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$",
+            last_archived_time,
+        ):  # noqa: E501
+            msg = (
+                "Invalid value for `last_archived_time`, must be a follow pattern or equal to "
+                "`{}`, got `{}`.".format(
+                    "^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$",
+                    last_archived_time,
+                )
+            )  # noqa: W605
+            raise ValueError(msg)  # noqa: E501
 
         self._last_archived_time = last_archived_time
 
@@ -819,6 +836,7 @@ class Status(Model):
         """Gets the last_failed_time of this Status.
 
         The time of the most recent WAL archive failure on the PostgreSQL server (in ISO 8601 in the local timezone of the server)   # noqa: E501
+        Example: '2020-01-31T00:00:00.0000+01:00'
 
         :return: The last_failed_time of this Status.
         :rtype: str
@@ -830,10 +848,23 @@ class Status(Model):
         """Sets the last_failed_time of this Status.
 
         The time of the most recent WAL archive failure on the PostgreSQL server (in ISO 8601 in the local timezone of the server)   # noqa: E501
+        Example: '2020-01-31T00:00:00.0000+01:00'
 
         :param last_failed_time: The last_failed_time of this Status.
         :type last_failed_time: str
         """
+        if last_failed_time is not None and not re.search(
+            r"^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$",
+            last_failed_time,
+        ):  # noqa: E501
+            msg = (
+                "Invalid value for `last_failed_time`, must be a follow pattern or equal to "
+                "`{}`, got `{}`.".format(
+                    "^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$",
+                    last_failed_time,
+                )
+            )  # noqa: W605
+            raise ValueError(msg)  # noqa: E501
 
         self._last_failed_time = last_failed_time
 
@@ -1034,6 +1065,7 @@ class Status(Model):
         """Gets the stats_reset of this Status.
 
         The time at which statistics were last reset for this PostgreSQL server (in ISO 8601 format in UTC)   # noqa: E501
+        Example: '2020-01-31T00:00:00.0000+01:00'
 
         :return: The stats_reset of this Status.
         :rtype: str
@@ -1045,10 +1077,23 @@ class Status(Model):
         """Sets the stats_reset of this Status.
 
         The time at which statistics were last reset for this PostgreSQL server (in ISO 8601 format in UTC)   # noqa: E501
+        Example: '2020-01-31T00:00:00.0000+01:00'
 
         :param stats_reset: The stats_reset of this Status.
         :type stats_reset: str
         """
+        if stats_reset is not None and not re.search(
+            r"^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$",
+            stats_reset,
+        ):  # noqa: E501
+            msg = (
+                "Invalid value for `stats_reset`, must be a follow pattern or equal to "
+                "`{}`, got `{}`.".format(
+                    "^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$",
+                    stats_reset,
+                )
+            )  # noqa: W605
+            raise ValueError(msg)  # noqa: E501
 
         self._stats_reset = stats_reset
 
