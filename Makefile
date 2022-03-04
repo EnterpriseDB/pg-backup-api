@@ -11,4 +11,10 @@ generate: ## Run openapi-generator to generate controllers and models
 								 -i /local/pg_backup_api/pg_backup_api/spec/pg_backup_api.yaml \
 								 -o /local/pg_backup_api/pg_backup_api \
 								 -t /local/generator_templates \
-								 -g python-flask
+								 -g python-flask \
+								 --global-property debugModels=true
+
+test:
+	pytest
+
+

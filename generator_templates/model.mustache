@@ -80,6 +80,9 @@ class {{classname}}(Model):
         {{#description}}
         {{{description}}}  # noqa: E501
         {{/description}}
+        {{#pattern}}
+        Example: {{{ example }}}
+        {{/pattern}}
 
         :return: The {{name}} of this {{classname}}.
         :rtype: {{dataType}}
@@ -93,6 +96,9 @@ class {{classname}}(Model):
         {{#description}}
         {{{description}}}  # noqa: E501
         {{/description}}
+        {{#pattern}}
+        Example: {{{ example }}}
+        {{/pattern}}
 
         :param {{name}}: The {{name}} of this {{classname}}.
         :type {{name}}: {{dataType}}
@@ -150,7 +156,9 @@ class {{classname}}(Model):
 {{/minimum}}
 {{#pattern}}
         if {{name}} is not None and not re.search(r'{{{vendorExtensions.x-regex}}}', {{name}}{{#vendorExtensions.x-modifiers}}{{#-first}}, flags={{/-first}}re.{{.}}{{^-last}} | {{/-last}}{{/vendorExtensions.x-modifiers}}):  # noqa: E501
-            raise ValueError("Invalid value for `{{name}}`, must be a follow pattern or equal to `{{{pattern}}}`")  # noqa: E501
+            msg = "Invalid value for `{{name}}`, must be a follow pattern or equal to " \
+            "`{}`, got `{}`.".format("{{{vendorExtensions.x-regex}}}", {{name}})  # noqa: W605
+            raise ValueError(msg)  # noqa: E501
 {{/pattern}}
 {{#maxItems}}
         if {{name}} is not None and len({{name}}) > {{maxItems}}:

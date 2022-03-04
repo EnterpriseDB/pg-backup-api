@@ -24,7 +24,10 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from pg_backup_api.openapi_server.models.base_model_ import Model
+import re
 from pg_backup_api.openapi_server import util
+
+import re  # noqa: E501
 
 
 class SystemInfo(Model):
@@ -266,6 +269,7 @@ class SystemInfo(Model):
         """Gets the timestamp of this SystemInfo.
 
         The system time of the Barman server (in ISO 8601 format in the local timezone of the server)   # noqa: E501
+        Example: '2020-01-31T00:00:00.0000+01:00'
 
         :return: The timestamp of this SystemInfo.
         :rtype: str
@@ -277,6 +281,7 @@ class SystemInfo(Model):
         """Sets the timestamp of this SystemInfo.
 
         The system time of the Barman server (in ISO 8601 format in the local timezone of the server)   # noqa: E501
+        Example: '2020-01-31T00:00:00.0000+01:00'
 
         :param timestamp: The timestamp of this SystemInfo.
         :type timestamp: str
@@ -285,5 +290,17 @@ class SystemInfo(Model):
             raise ValueError(
                 "Invalid value for `timestamp`, must not be `None`"
             )  # noqa: E501
+        if timestamp is not None and not re.search(
+            r"^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$",
+            timestamp,
+        ):  # noqa: E501
+            msg = (
+                "Invalid value for `timestamp`, must be a follow pattern or equal to "
+                "`{}`, got `{}`.".format(
+                    "^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$",
+                    timestamp,
+                )
+            )  # noqa: W605
+            raise ValueError(msg)  # noqa: E501
 
         self._timestamp = timestamp
