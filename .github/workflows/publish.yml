@@ -1,40 +1,151 @@
-
 name: Publish
 
-on: 
-    push:
-        branches:
-            - dev/publish-workflow
+env:
+  CLOUDSMITH_REPO: "ibm-dev"
+  RELEASE_VERSION: "1"
+
+on:
+  workflow_dispatch:
 
 jobs:
-    build:
-        name: build
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repo
-              uses: actions/checkout@v2
-            - name: Install python
-              uses: actions/setup-python@v2
-              with:
-                python-version: 3.7
-            - name: Install other deps
-              run: |
-                sudo apt-get update
-                sudo apt-get install -y ruby \
-                                        ruby-dev \
-                                        rubygems \
-                                        build-essential \
-                                        python3 \
-                                        virtualenv
-            - name: Install fpm
-              run: sudo gem install fpm
-            - name: Install python deps
-              run: sudo pip install virtualenv-tools3
-            - name: Build deb
-              working-directory: ./packaging
-              run: ./pkg.sh deb --debug
-            - name: Build rpm
-              working-directory: ./packaging
-              run: ./pkg.sh rpm --debug
-            - name: confirm packages
-              run: ls packaging
+  build-debs:
+    name: build-debs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - python_version: 3.8
+            platform_flavour: ubuntu
+            platform_version: "20.04"
+          - python_version: 3.7
+            platform_flavour: debian
+            platform_version: buster
+          - python_version: 3.6
+            platform_flavour: ubuntu
+            platform_version: "18.04"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install other deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby \
+                                  ruby-dev \
+                                  rubygems \
+                                  build-essential \
+                                  python3 \
+                                  virtualenv
+      - name: Install fpm
+        run: sudo gem install fpm
+      - name: Install python deps
+        run: sudo pip install virtualenv-tools3
+      - name: Install python
+        env:
+          PYTHON_VERSION: ${{ matrix.python_version }}
+        run: |
+          sudo apt-get install software-properties-common
+          sudo add-apt-repository ppa:deadsnakes/ppa
+          sudo apt-get install python${PYTHON_VERSION} python${PYTHON_VERSION}-dev
+      - name: Build deb
+        working-directory: ./packaging
+        env:
+          PLATFORM_FLAVOUR: ${{ matrix.platform_flavour }}
+          PLATFORM_VERSION: ${{ matrix.platform_version }}
+          PYTHON_VERSION: ${{ matrix.python_version }}
+        run: |
+          ./pkg.sh deb ${{env.RELEASE_VERSION}} \
+            --python ${{ env.PYTHON_VERSION }} \
+            --platform-flavour ${{ env.PLATFORM_FLAVOUR }} \
+            --platform-version ${{ env.PLATFORM_VERSION }} \
+            --debug
+      - name: Set pg-backup-api version
+        run: |
+          echo FULL_VERSION=$(cat pg_backup_api/version.txt) >> $GITHUB_ENV
+      - name: Push pg-backup-api DEB to CloudSmith Repo
+        id: push_pg_backup_api_deb
+        uses: cloudsmith-io/action@master
+        with:
+          api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+          command: "push"
+          format: "deb"
+          owner: "enterprisedb"
+          repo: "${{env.CLOUDSMITH_REPO}}"
+          distro: "${{ matrix.platform_flavour }}"
+          release: "${{ matrix.platform_version }}"
+          version: "any-version"
+          republish: "true" # needed ONLY if version is not changing
+          file: >
+            packaging/pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}_amd64.deb
+
+  build-rpms:
+    name: build-rpms
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - python_version: 3.6
+            platform_flavour: el
+            platform_version: "8"
+          - python_version: 3.6
+            platform_flavour: el
+            platform_version: "7"
+          - python_version: 3.6
+            platform_flavour: sles
+            platform_version: "15"
+          - python_version: 3.6
+            platform_flavour: sles
+            platform_version: "12"
+    env:
+      RELEASE_VERSION: "1"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Install other deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby \
+                                  ruby-dev \
+                                  rubygems \
+                                  build-essential \
+                                  python3 \
+                                  virtualenv
+      - name: Install fpm
+        run: sudo gem install fpm
+      - name: Install python deps
+        run: sudo pip install virtualenv-tools3
+      - name: Install python
+        env:
+          PYTHON_VERSION: ${{ matrix.python_version }}
+        run: |
+          sudo apt-get install software-properties-common
+          sudo add-apt-repository ppa:deadsnakes/ppa
+          sudo apt-get install python${PYTHON_VERSION} python${PYTHON_VERSION}-dev
+      - name: Build rpm
+        working-directory: ./packaging
+        env:
+          PLATFORM_FLAVOUR: ${{ matrix.platform_flavour }}
+          PLATFORM_VERSION: ${{ matrix.platform_version }}
+          PYTHON_VERSION: ${{ matrix.python_version }}
+        run: |
+          ./pkg.sh rpm ${{env.RELEASE_VERSION}} \
+            --python ${{ env.PYTHON_VERSION }} \
+            --platform-flavour ${{ env.PLATFORM_FLAVOUR }} \
+            --platform-version ${{ env.PLATFORM_VERSION }} \
+            --debug
+      - name: Set pg-backup-api version
+        run: |
+          echo FULL_VERSION=$(cat pg_backup_api/version.txt) >> $GITHUB_ENV
+      - name: Push pg-backup-api RPM to CloudSmith Repo
+        id: push_pg_backup_api_rpm
+        uses: cloudsmith-io/action@master
+        with:
+          api-key: ${{ secrets.CLOUDSMITH_API_KEY }}
+          command: "push"
+          format: "rpm"
+          owner: "enterprisedb"
+          repo: "${{env.CLOUDSMITH_REPO}}"
+          distro: "${{ matrix.platform_flavour }}"
+          release: "${{ matrix.platform_version }}"
+          version: "any-version"
+          republish: "true" # needed ONLY if version is not changing
+          file: "packaging/pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.x86_64.rpm"
