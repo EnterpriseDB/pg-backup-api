@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Package metadata is defined here
+DESCRIPTION="An HTTP API for interacting with Postgres backups\n\
+Postgres backup API (pg-backup-api) is an open-source tool for\n\
+interacting with Postgres backups via JSON over HTTP."
+LICENSE="GPLv3"
+URL="https://github.com/EnterpriseDB/pg-backup-api"
+VENDOR="EnterpriseDB <barman@enterprisedb.com>"
 
 PKG_TYPE=$1
 shift
@@ -91,6 +98,9 @@ VERSION=`cat version.txt`
 
 echo "Generating...\n"
 
+# The --description arg below is a workaround for the handling of newlines in
+# fpm which doesn't quite work as expected.
+# See https://github.com/jordansissel/fpm/issues/1468 for more information.
 fpm $DBG_SETTINGS \
     -s virtualenv \
     -t $PKG_TYPE \
@@ -104,5 +114,9 @@ fpm $DBG_SETTINGS \
     --before-remove ../packaging/before-remove-$PKG_TYPE.sh \
     --virtualenv-setup-install \
     --iteration $RELEASE_VERSION \
+    --description "$(printf "$DESCRIPTION")" \
+    --license "$LICENSE" \
+    --url "$URL" \
+    --vendor "$VENDOR" \
     $extra_opts \
     ./requirements.txt
