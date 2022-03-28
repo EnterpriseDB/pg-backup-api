@@ -54,6 +54,9 @@ EOF
     # uses the correct python version when building the package.
     virtualenv $venv_dir
     . /${venv_dir}/bin/activate
+    pip install python-dateutil
+    pip install jinja2
+    pip install pyyaml
     pip install virtualenv-tools3
 fi
 
@@ -115,6 +118,7 @@ fpm $DBG_SETTINGS \
     --virtualenv-setup-install \
     --iteration $RELEASE_VERSION \
     --description "$(printf "$DESCRIPTION")" \
+    --$PKG_TYPE-changelog ../packaging/changelogs/$PKG_TYPE.changelog \
     --license "$LICENSE" \
     --url "$URL" \
     --vendor "$VENDOR" \
