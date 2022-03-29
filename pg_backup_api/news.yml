@@ -1,9 +1,13 @@
+# © Copyright EnterpriseDB UK Limited 2021-2022 - All rights reserved.
+
 # pg-backup-api News - History of user-visible changes
 
-- version: "0.1.0"
-  author:
-    name: "Jane Threefoot"
-    email: "jane.threefoot@enterprisedb.com"
-  release_date: "20220328T1600Z"
-  changes:
-    - "Initial release"
+pg-backup-api release notes:
+  - version: "0.1.0"
+    date: "20220328T1600Z"
+    author:
+      name: "Jane Threefoot"
+      email: "jane.threefoot@enterprisedb.com"
+    changes:
+      Notable changes:
+        - "Pre-release"

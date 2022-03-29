@@ -1,0 +1,9 @@
+{% for release in data["pg-backup-api release notes"] %}
+* {{ date_parser(release.date).strftime("%a %b %d %Y") }} - {{ release.author["name"] }} <{{ release.author["email"] }}> {{ release.version }}-{{ release.iteration or 1 }}
+    {% for section, changes in release.changes.items() %}
+        {% for change in changes %}
+{{ format_line(change, 79, "- ", " "*2) }}
+        {% endfor %}
+    {% endfor %}
+
+{% endfor %}
