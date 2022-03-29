@@ -20,7 +20,9 @@ import sys
 from setuptools import setup, find_packages
 
 NAME = "pg_backup_api"
-VERSION = "0.1.0"
+
+with open("./version.txt", "r") as f:
+    VERSION = f.readline()
 
 # To install the library, run the following
 #
@@ -45,15 +47,13 @@ setup(
     author_email="barman@enterprisedb.com",
     url="http://www.pgbarman.org/",
     keywords=["OpenAPI", "Postgres Backup REST API"],
-    python_requires='>=3.7',
+    python_requires=">=3.6",
     install_requires=REQUIRES,
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
-    entry_points={
-        'console_scripts': ['pg-backup-api=pg_backup_api.run:main']},
+    entry_points={"console_scripts": ["pg-backup-api=pg_backup_api.run:main"]},
     license="GPL-3.0",
     long_description="""\
     A server that provides an HTTP API to interact with Postgres backups
-    """
+    """,
 )
-
