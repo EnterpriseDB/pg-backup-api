@@ -83,7 +83,6 @@ jobs:
           repo: "${{env.CLOUDSMITH_REPO}}"
           distro: "${{ matrix.platform_flavour }}"
           release: "${{ matrix.platform_version }}"
-          version: "any-version"
           republish: "${{ github.event.inputs.is_release == 'Y' && 'false' || 'true' }}"
           file: >
             packaging/pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}_amd64.deb
@@ -163,6 +162,5 @@ jobs:
           repo: "${{env.CLOUDSMITH_REPO}}"
           distro: "${{ matrix.platform_flavour }}"
           release: "${{ matrix.platform_version }}"
-          version: "any-version"
           republish: "${{ github.event.inputs.is_release == 'Y' && 'false' || 'true' }}"
           file: "packaging/pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.x86_64.rpm"
