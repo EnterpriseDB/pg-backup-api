@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 # Package metadata is defined here
 DESCRIPTION="An HTTP API for interacting with Postgres backups\n\
 Postgres backup API (pg-backup-api) is an open-source tool for\n\
@@ -31,6 +33,11 @@ while [[ $# -gt 0 ]]; do
       shift
       shift
       ;;
+    --version)
+      VERSION=$2
+      shift
+      shift
+      ;;
     *)
       RELEASE_VERSION=$1
       shift
@@ -38,6 +45,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+IS_DBG=${IS_DBG:-"false"}
 RELEASE_VERSION=${RELEASE_VERSION:-"1"}
 
 # Wrap virtualenv on the build machine so that it is forced to use a specific
@@ -96,8 +104,6 @@ else
 fi
 
 cd ../pg_backup_api
-
-VERSION=`cat version.txt`
 
 echo "Generating...\n"
 

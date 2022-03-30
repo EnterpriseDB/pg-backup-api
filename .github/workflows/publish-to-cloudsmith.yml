@@ -6,6 +6,11 @@ env:
 
 on:
   workflow_dispatch:
+    inputs:
+      is_release:
+        description: "Is release? (Y/n) [Default n]"
+        required: true
+        default: "n"
 
 jobs:
   build-debs:
@@ -46,6 +51,14 @@ jobs:
           sudo apt-get install software-properties-common
           sudo add-apt-repository ppa:deadsnakes/ppa
           sudo apt-get install python${PYTHON_VERSION} python${PYTHON_VERSION}-dev
+      - name: Set pg-backup-api version
+        run: |
+          VERSION=$(cat pg_backup_api/version.txt)
+          if test "${{ github.event.inputs.is_release }}" != "Y"
+          then
+            VERSION="$VERSION-snapshot"
+          fi
+          echo FULL_VERSION=$VERSION >> $GITHUB_ENV
       - name: Build deb
         working-directory: ./packaging
         env:
@@ -57,10 +70,8 @@ jobs:
             --python ${{ env.PYTHON_VERSION }} \
             --platform-flavour ${{ env.PLATFORM_FLAVOUR }} \
             --platform-version ${{ env.PLATFORM_VERSION }} \
+            --version ${{ env.FULL_VERSION }} \
             --debug
-      - name: Set pg-backup-api version
-        run: |
-          echo FULL_VERSION=$(cat pg_backup_api/version.txt) >> $GITHUB_ENV
       - name: Push pg-backup-api DEB to CloudSmith Repo
         id: push_pg_backup_api_deb
         uses: cloudsmith-io/action@master
@@ -73,7 +84,7 @@ jobs:
           distro: "${{ matrix.platform_flavour }}"
           release: "${{ matrix.platform_version }}"
           version: "any-version"
-          republish: "true" # needed ONLY if version is not changing
+          republish: "${{ github.event.inputs.is_release == 'Y' && 'false' || 'true' }}"
           file: >
             packaging/pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}_amd64.deb
 
@@ -120,6 +131,14 @@ jobs:
           sudo apt-get install software-properties-common
           sudo add-apt-repository ppa:deadsnakes/ppa
           sudo apt-get install python${PYTHON_VERSION} python${PYTHON_VERSION}-dev
+      - name: Set pg-backup-api version
+        run: |
+          VERSION=$(cat pg_backup_api/version.txt)
+          if test "${{ github.event.inputs.is_release }}" != "Y"
+          then
+            VERSION="${VERSION}_snapshot"
+          fi
+          echo FULL_VERSION=$VERSION >> $GITHUB_ENV
       - name: Build rpm
         working-directory: ./packaging
         env:
@@ -131,10 +150,8 @@ jobs:
             --python ${{ env.PYTHON_VERSION }} \
             --platform-flavour ${{ env.PLATFORM_FLAVOUR }} \
             --platform-version ${{ env.PLATFORM_VERSION }} \
+            --version ${{ env.FULL_VERSION }} \
             --debug
-      - name: Set pg-backup-api version
-        run: |
-          echo FULL_VERSION=$(cat pg_backup_api/version.txt) >> $GITHUB_ENV
       - name: Push pg-backup-api RPM to CloudSmith Repo
         id: push_pg_backup_api_rpm
         uses: cloudsmith-io/action@master
@@ -147,5 +164,5 @@ jobs:
           distro: "${{ matrix.platform_flavour }}"
           release: "${{ matrix.platform_version }}"
           version: "any-version"
-          republish: "true" # needed ONLY if version is not changing
+          republish: "${{ github.event.inputs.is_release == 'Y' && 'false' || 'true' }}"
           file: "packaging/pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.x86_64.rpm"
