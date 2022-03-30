@@ -100,7 +100,7 @@ fpm $DBG_SETTINGS \
     -v $VERSION \
     --prefix /usr/bin/pgbapi-venv \
     --after-install ../packaging/after-install.sh \
-    --before-remove ../packaging/before-remove.sh \
+    --before-remove ../packaging/before-remove-$PKG_TYPE.sh \
     --virtualenv-setup-install \
     --iteration $RELEASE_VERSION \
     $extra_opts \
