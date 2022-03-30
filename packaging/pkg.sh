@@ -63,7 +63,8 @@ then
                 --deb-systemd-enable"
 elif [ "$PKG_TYPE" = "rpm" ]
 then
-    extra_opts="--virtualenv-other-files-dir ../packaging/build"
+    extra_opts="--virtualenv-other-files-dir ../packaging/build \
+                --directories /usr/bin/pgbapi-venv"
 else
     echo "Valid package types are rpm or deb."
     exit 1
