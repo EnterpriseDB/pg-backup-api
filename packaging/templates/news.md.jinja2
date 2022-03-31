@@ -1,0 +1,25 @@
+# pg-backup-api release notes
+
+© Copyright EnterpriseDB UK Limited 2021-2022 - All rights reserved.
+
+{% for release in data["pg-backup-api release notes"] %}
+    {# ## v22.9 (2022-02-24) #}
+## {{ release.version }} ({{ date_parser(release.date).strftime("%Y-%m-%d") }})
+
+    {% for section, changes in release.changes.items() %}
+        {% if section != 'none' %}
+            {# ### Notable changes #}
+### {{ section }}
+
+        {% endif %}
+        {% if changes is string %}
+{{ changes }}
+
+        {% else %}
+            {% for change in changes %}
+{{ format_line(change, 79, "- ", "  ") }}
+
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+{% endfor %}
