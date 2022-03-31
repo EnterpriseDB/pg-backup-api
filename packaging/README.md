@@ -33,7 +33,7 @@ Increment the `RELEASE_VERSION` in [.github/workflows/publish-to-cloudsmith.yml]
 Once the changes are pushed and tagged, the release packages can be built and pushed to the staging repo in Cloudsmith, so:
 
 * Commit and PR the above changes, including the changelogs, `news.md` file, `version.txt` and if necessary the GitHub workflow file.
-* Tag the release with `git tag release/major.minor.patch-iteration` and push the tag.
+* Tag the release with `git tag release/major.minor.patch-iteration` and push the tag, where `iteration` is the same as `RELEASE_VERSION` in the [Publish to Cloudsmith workflow](../.github/workflows/publish-to-cloudsmith.yml).
 * Run the [Publish to Cloudsmith](https://github.com/EnterpriseDB/pg-backup-api/actions/workflows/publish-to-cloudsmith.yml) workflow being sure to set the `Is release` option to `Y`.
 
 Once happy with the packages in staging they need to be copied to the production repositories.
@@ -49,4 +49,5 @@ Once packages are tagged with `production` in the `edb` Cloudsmith repository th
 
 ### 2ndQuadrant repos
 
-Use the following (non-public) Jenkins job to sync packages from the `edb` Cloudsmith repo to the 2ndQuadrant repositories: https://ci.2ndquadrant.com/jenkins/job/pg-backup-api/job/pg-backup-api/.
+Use the following (non-public) Jenkins job to sync packages from the `edb` Cloudsmith repo to the 2ndQuadrant repositories: https://ci.2ndquadrant.com/jenkins/job/pg-backup-api/job/pg-backup-api/build.
+You will need to add the pg-backup-api release tag created above to the `SRC_GIT_REF` field and leave `PKG_GIT_REF` at the default value of `main`.
