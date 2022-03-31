@@ -79,10 +79,12 @@ if [ "$PKG_TYPE" = "deb" ]
 then
     extra_opts="--deb-systemd ../packaging/build/etc/systemd/system/pg-backup-api.service \
                 --deb-systemd-enable"
+    package_name="pg-backup-api_${VERSION}-${RELEASE_VERSION}.${PLATFORM_VERSION}_amd64.deb"
 elif [ "$PKG_TYPE" = "rpm" ]
 then
     extra_opts="--virtualenv-other-files-dir ../packaging/build \
                 --directories /usr/bin/pgbapi-venv"
+    package_name="pg-backup-api-${VERSION}-${RELEASE_VERSION}.${PLATFORM_FLAVOUR}${PLATFORM_VERSION}.x86_64.rpm"
 else
     echo "Valid package types are rpm or deb."
     exit 1
@@ -115,7 +117,7 @@ fpm $DBG_SETTINGS \
     -t $PKG_TYPE \
     -d "barman > 2.16" \
     -d $PYTHON_PACKAGE_DEP \
-    -p ../packaging \
+    -p ../packaging/$package_name \
     -n pg-backup-api \
     -v $VERSION \
     --prefix /usr/bin/pgbapi-venv \
