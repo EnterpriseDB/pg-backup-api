@@ -72,14 +72,6 @@ jobs:
             --platform-version ${{ env.PLATFORM_VERSION }} \
             --version ${{ env.FULL_VERSION }} \
             --debug
-      - name: Rename package file
-        working-directory: ./packaging
-        env:
-          PLATFORM_VERSION: ${{ matrix.platform_version }}
-        run: |
-          mv \
-            pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}_amd64.deb \
-            pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.${{env.PLATFORM_VERSION}}_amd64.deb
       - name: Push pg-backup-api DEB to CloudSmith Repo
         env:
           PLATFORM_FLAVOUR: ${{ matrix.platform_flavour }}
@@ -162,15 +154,6 @@ jobs:
             --platform-version ${{ env.PLATFORM_VERSION }} \
             --version ${{ env.FULL_VERSION }} \
             --debug
-      - name: Rename package file
-        working-directory: ./packaging
-        env:
-          PLATFORM_FLAVOUR: ${{ matrix.platform_flavour }}
-          PLATFORM_VERSION: ${{ matrix.platform_version }}
-        run: |
-          mv \
-            pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.x86_64.rpm \
-            pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.${{env.PLATFORM_FLAVOUR}}${{env.PLATFORM_VERSION}}.x86_64.rpm
       - name: Push pg-backup-api RPM to CloudSmith Repo
         env:
           PLATFORM_FLAVOUR: ${{ matrix.platform_flavour }}
