@@ -63,7 +63,8 @@ then
                 --deb-systemd-enable"
 elif [ "$PKG_TYPE" = "rpm" ]
 then
-    extra_opts="--virtualenv-other-files-dir ../packaging/build"
+    extra_opts="--virtualenv-other-files-dir ../packaging/build \
+                --directories /usr/bin/pgbapi-venv"
 else
     echo "Valid package types are rpm or deb."
     exit 1
@@ -100,7 +101,7 @@ fpm $DBG_SETTINGS \
     -v $VERSION \
     --prefix /usr/bin/pgbapi-venv \
     --after-install ../packaging/after-install.sh \
-    --before-remove ../packaging/before-remove.sh \
+    --before-remove ../packaging/before-remove-$PKG_TYPE.sh \
     --virtualenv-setup-install \
     --iteration $RELEASE_VERSION \
     $extra_opts \
