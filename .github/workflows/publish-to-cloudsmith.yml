@@ -21,13 +21,13 @@ jobs:
         include:
           - python_version: 3.8
             platform_flavour: ubuntu
-            platform_version: "20.04"
+            platform_version: focal
           - python_version: 3.7
             platform_flavour: debian
             platform_version: buster
           - python_version: 3.6
             platform_flavour: ubuntu
-            platform_version: "18.04"
+            platform_version: bionic
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -72,7 +72,18 @@ jobs:
             --platform-version ${{ env.PLATFORM_VERSION }} \
             --version ${{ env.FULL_VERSION }} \
             --debug
+      - name: Rename package file
+        working-directory: ./packaging
+        env:
+          PLATFORM_VERSION: ${{ matrix.platform_version }}
+        run: |
+          mv \
+            pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}_amd64.deb \
+            pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.${{env.PLATFORM_VERSION}}_amd64.deb
       - name: Push pg-backup-api DEB to CloudSmith Repo
+        env:
+          PLATFORM_FLAVOUR: ${{ matrix.platform_flavour }}
+          PLATFORM_VERSION: ${{ matrix.platform_version }}
         id: push_pg_backup_api_deb
         uses: cloudsmith-io/action@master
         with:
@@ -85,7 +96,7 @@ jobs:
           release: "${{ matrix.platform_version }}"
           republish: "${{ github.event.inputs.is_release == 'Y' && 'false' || 'true' }}"
           file: >
-            packaging/pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}_amd64.deb
+            packaging/pg-backup-api_${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.${{env.PLATFORM_VERSION}}_amd64.deb
 
   build-rpms:
     name: build-rpms
@@ -151,7 +162,19 @@ jobs:
             --platform-version ${{ env.PLATFORM_VERSION }} \
             --version ${{ env.FULL_VERSION }} \
             --debug
+      - name: Rename package file
+        working-directory: ./packaging
+        env:
+          PLATFORM_FLAVOUR: ${{ matrix.platform_flavour }}
+          PLATFORM_VERSION: ${{ matrix.platform_version }}
+        run: |
+          mv \
+            pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.x86_64.rpm \
+            pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.${{env.PLATFORM_FLAVOUR}}${{env.PLATFORM_VERSION}}.x86_64.rpm
       - name: Push pg-backup-api RPM to CloudSmith Repo
+        env:
+          PLATFORM_FLAVOUR: ${{ matrix.platform_flavour }}
+          PLATFORM_VERSION: ${{ matrix.platform_version }}
         id: push_pg_backup_api_rpm
         uses: cloudsmith-io/action@master
         with:
@@ -163,4 +186,4 @@ jobs:
           distro: "${{ matrix.platform_flavour }}"
           release: "${{ matrix.platform_version }}"
           republish: "${{ github.event.inputs.is_release == 'Y' && 'false' || 'true' }}"
-          file: "packaging/pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.x86_64.rpm"
+          file: "packaging/pg-backup-api-${{env.FULL_VERSION}}-${{env.RELEASE_VERSION}}.${{env.PLATFORM_FLAVOUR}}${{env.PLATFORM_VERSION}}.x86_64.rpm"
