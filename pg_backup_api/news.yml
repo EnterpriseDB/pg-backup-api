@@ -4,10 +4,10 @@
 
 pg-backup-api release notes:
   - version: "0.1.0"
-    date: "20220328T1600Z"
+    date: "20220331T1654Z"
     author:
       name: "Jane Threefoot"
       email: "jane.threefoot@enterprisedb.com"
     changes:
       Notable changes:
-        - "Pre-release"
+        - "Initial release"

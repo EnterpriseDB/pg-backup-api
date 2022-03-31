@@ -2,9 +2,9 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2022 - All rights reserved.
 
-## 0.1.0 (2022-03-28)
+## 0.1.0 (2022-03-31)
 
 ### Notable changes
 
-- Pre-release
+- Initial release
 
