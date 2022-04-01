@@ -108,8 +108,6 @@ jobs:
           - python_version: 3.6
             platform_flavour: sles
             platform_version: "12"
-    env:
-      RELEASE_VERSION: "1"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
