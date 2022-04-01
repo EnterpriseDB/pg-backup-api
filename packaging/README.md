@@ -29,12 +29,17 @@ Tag the release with the tag provided in the output of the release script and pu
 
 Run the [Publish to Cloudsmith](https://github.com/EnterpriseDB/pg-backup-api/actions/workflows/publish-to-cloudsmith.yml) workflow being sure to set the `Is release` option to `Y`.
 
+You can download the published packages using the [Cloudsmith CLI](https://github.com/cloudsmith-io/cloudsmith-cli) or with the [cs-dl.sh](scripts/cs-dl.sh) wrapper script, e.g.: `scripts/cs-dl.sh ibm-dev 0.1.0-1`.
+
 Once happy with the packages in staging they need to be copied to the production repositories.
 
 ### Cloudsmith prod repo
 
-* Using the Cloudsmith cli, copy the packages from the `ibm-dev` staging repo to the `edb` repo.
-* Also using the Cloudsmith cli, add the `production` tag to packages you just copied in the `edb` repo.
+Using the Cloudsmith cli, copy the packages from the `ibm-dev` staging repo to the `edb` repo.
+The [cs-cp.sh](scripts/cs-cp.sh) wrapper script can be used to simplify this step, e.g: `scripts/cs-cp.sh 0.1.0-1`.
+
+Also using the Cloudsmith cli, add the `production` tag to packages you just copied in the `edb` repo.
+The [cs-tag.sh](scripts/cs-tag.sh) wrapper script can be used to simplify this step, e.g.: `scripts/cs-tag.sh 0.1.0-1 production`.
 
 ### EDB repos `{apt,yum,zypp}.enterprisedb.com`
 
