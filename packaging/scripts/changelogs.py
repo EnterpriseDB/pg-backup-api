@@ -32,8 +32,9 @@ import yaml
 from dateutil import parser
 from jinja2 import Environment
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
-SOURCE = "../pg_backup_api/news.yml"
+pwd = os.path.dirname(__file__)
+TEMPLATE_DIR = os.path.join(pwd, "../templates")
+SOURCE = os.path.join(pwd, "../../pg_backup_api/news.yml")
 TEMPLATES = [
     os.path.join(TEMPLATE_DIR, "news.md.jinja2"),
     os.path.join(TEMPLATE_DIR, "deb.changelog.jinja2"),
