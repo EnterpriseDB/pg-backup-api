@@ -27,16 +27,16 @@ from pg_backup_api.openapi_server.models.base_model_ import Model
 from pg_backup_api.openapi_server.models.diagnose_output_global import (
     DiagnoseOutputGlobal,
 )
-from pg_backup_api.openapi_server.models.diagnose_output_servers import (
-    DiagnoseOutputServers,
+from pg_backup_api.openapi_server.models.diagnose_output_servers_value import (
+    DiagnoseOutputServersValue,
 )
 from pg_backup_api.openapi_server import util
 
 from pg_backup_api.openapi_server.models.diagnose_output_global import (
     DiagnoseOutputGlobal,
 )  # noqa: E501
-from pg_backup_api.openapi_server.models.diagnose_output_servers import (
-    DiagnoseOutputServers,
+from pg_backup_api.openapi_server.models.diagnose_output_servers_value import (
+    DiagnoseOutputServersValue,
 )  # noqa: E501
 
 
@@ -52,11 +52,11 @@ class DiagnoseOutput(Model):
         :param _global: The _global of this DiagnoseOutput.  # noqa: E501
         :type _global: DiagnoseOutputGlobal
         :param servers: The servers of this DiagnoseOutput.  # noqa: E501
-        :type servers: Dict[str, DiagnoseOutputServers]
+        :type servers: Dict[str, DiagnoseOutputServersValue]
         """
         self.openapi_types = {
             "_global": DiagnoseOutputGlobal,
-            "servers": Dict[str, DiagnoseOutputServers],
+            "servers": Dict[str, DiagnoseOutputServersValue],
         }
 
         self.attribute_map = {"_global": "global", "servers": "servers"}
@@ -106,7 +106,7 @@ class DiagnoseOutput(Model):
 
 
         :return: The servers of this DiagnoseOutput.
-        :rtype: Dict[str, DiagnoseOutputServers]
+        :rtype: Dict[str, DiagnoseOutputServersValue]
         """
         return self._servers
 
@@ -116,7 +116,7 @@ class DiagnoseOutput(Model):
 
 
         :param servers: The servers of this DiagnoseOutput.
-        :type servers: Dict[str, DiagnoseOutputServers]
+        :type servers: Dict[str, DiagnoseOutputServersValue]
         """
         if servers is None:
             raise ValueError(

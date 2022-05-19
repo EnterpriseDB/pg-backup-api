@@ -22,6 +22,7 @@
 from __future__ import absolute_import
 
 # import models into model package
+from pg_backup_api.openapi_server.models.backups_value import BackupsValue
 from pg_backup_api.openapi_server.models.config import Config
 from pg_backup_api.openapi_server.models.copy_stats import CopyStats
 from pg_backup_api.openapi_server.models.copy_stats_analysis_time_per_item import (
@@ -37,8 +38,8 @@ from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput
 from pg_backup_api.openapi_server.models.diagnose_output_global import (
     DiagnoseOutputGlobal,
 )
-from pg_backup_api.openapi_server.models.diagnose_output_servers import (
-    DiagnoseOutputServers,
+from pg_backup_api.openapi_server.models.diagnose_output_servers_value import (
+    DiagnoseOutputServersValue,
 )
 from pg_backup_api.openapi_server.models.global_config import GlobalConfig
 from pg_backup_api.openapi_server.models.last_archived_wal import LastArchivedWal
