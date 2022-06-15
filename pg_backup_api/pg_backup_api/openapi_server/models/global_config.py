@@ -44,6 +44,10 @@ class GlobalConfig(Model):
         log_level=None,
         archiver=None,
         archiver_batch_size=None,
+        backup_compression=None,
+        backup_compression_format=None,
+        backup_compression_level=None,
+        backup_compression_location=None,
         backup_method=None,
         backup_options=None,
         bandwidth_limit=None,
@@ -90,6 +94,7 @@ class GlobalConfig(Model):
         pre_wal_delete_script=None,
         primary_ssh_command=None,
         recovery_options=None,
+        recovery_staging_path=None,
         retention_policy=None,
         retention_policy_mode=None,
         reuse_backup=None,
@@ -115,6 +120,14 @@ class GlobalConfig(Model):
         :type archiver: bool
         :param archiver_batch_size: The archiver_batch_size of this GlobalConfig.  # noqa: E501
         :type archiver_batch_size: int
+        :param backup_compression: The backup_compression of this GlobalConfig.  # noqa: E501
+        :type backup_compression: str
+        :param backup_compression_format: The backup_compression_format of this GlobalConfig.  # noqa: E501
+        :type backup_compression_format: str
+        :param backup_compression_level: The backup_compression_level of this GlobalConfig.  # noqa: E501
+        :type backup_compression_level: int
+        :param backup_compression_location: The backup_compression_location of this GlobalConfig.  # noqa: E501
+        :type backup_compression_location: str
         :param backup_method: The backup_method of this GlobalConfig.  # noqa: E501
         :type backup_method: str
         :param backup_options: The backup_options of this GlobalConfig.  # noqa: E501
@@ -207,6 +220,8 @@ class GlobalConfig(Model):
         :type primary_ssh_command: str
         :param recovery_options: The recovery_options of this GlobalConfig.  # noqa: E501
         :type recovery_options: str
+        :param recovery_staging_path: The recovery_staging_path of this GlobalConfig.  # noqa: E501
+        :type recovery_staging_path: str
         :param retention_policy: The retention_policy of this GlobalConfig.  # noqa: E501
         :type retention_policy: str
         :param retention_policy_mode: The retention_policy_mode of this GlobalConfig.  # noqa: E501
@@ -235,6 +250,10 @@ class GlobalConfig(Model):
             "log_level": str,
             "archiver": bool,
             "archiver_batch_size": int,
+            "backup_compression": str,
+            "backup_compression_format": str,
+            "backup_compression_level": int,
+            "backup_compression_location": str,
             "backup_method": str,
             "backup_options": str,
             "bandwidth_limit": int,
@@ -281,6 +300,7 @@ class GlobalConfig(Model):
             "pre_wal_delete_script": str,
             "primary_ssh_command": str,
             "recovery_options": str,
+            "recovery_staging_path": str,
             "retention_policy": str,
             "retention_policy_mode": str,
             "reuse_backup": str,
@@ -300,6 +320,10 @@ class GlobalConfig(Model):
             "log_level": "log_level",
             "archiver": "archiver",
             "archiver_batch_size": "archiver_batch_size",
+            "backup_compression": "backup_compression",
+            "backup_compression_format": "backup_compression_format",
+            "backup_compression_level": "backup_compression_level",
+            "backup_compression_location": "backup_compression_location",
             "backup_method": "backup_method",
             "backup_options": "backup_options",
             "bandwidth_limit": "bandwidth_limit",
@@ -346,6 +370,7 @@ class GlobalConfig(Model):
             "pre_wal_delete_script": "pre_wal_delete_script",
             "primary_ssh_command": "primary_ssh_command",
             "recovery_options": "recovery_options",
+            "recovery_staging_path": "recovery_staging_path",
             "retention_policy": "retention_policy",
             "retention_policy_mode": "retention_policy_mode",
             "reuse_backup": "reuse_backup",
@@ -364,6 +389,10 @@ class GlobalConfig(Model):
         self._log_level = log_level
         self._archiver = archiver
         self._archiver_batch_size = archiver_batch_size
+        self._backup_compression = backup_compression
+        self._backup_compression_format = backup_compression_format
+        self._backup_compression_level = backup_compression_level
+        self._backup_compression_location = backup_compression_location
         self._backup_method = backup_method
         self._backup_options = backup_options
         self._bandwidth_limit = bandwidth_limit
@@ -410,6 +439,7 @@ class GlobalConfig(Model):
         self._pre_wal_delete_script = pre_wal_delete_script
         self._primary_ssh_command = primary_ssh_command
         self._recovery_options = recovery_options
+        self._recovery_staging_path = recovery_staging_path
         self._retention_policy = retention_policy
         self._retention_policy_mode = retention_policy_mode
         self._reuse_backup = reuse_backup
@@ -573,6 +603,98 @@ class GlobalConfig(Model):
         """
 
         self._archiver_batch_size = archiver_batch_size
+
+    @property
+    def backup_compression(self):
+        """Gets the backup_compression of this GlobalConfig.
+
+        The type of compression to be applied during the backup process (only supported when backup_method = postgres)   # noqa: E501
+
+        :return: The backup_compression of this GlobalConfig.
+        :rtype: str
+        """
+        return self._backup_compression
+
+    @backup_compression.setter
+    def backup_compression(self, backup_compression):
+        """Sets the backup_compression of this GlobalConfig.
+
+        The type of compression to be applied during the backup process (only supported when backup_method = postgres)   # noqa: E501
+
+        :param backup_compression: The backup_compression of this GlobalConfig.
+        :type backup_compression: str
+        """
+
+        self._backup_compression = backup_compression
+
+    @property
+    def backup_compression_format(self):
+        """Gets the backup_compression_format of this GlobalConfig.
+
+        The format for the backup output - this can be either \"plain\" or \"tar\" (only supported when backup_method = postgres)   # noqa: E501
+
+        :return: The backup_compression_format of this GlobalConfig.
+        :rtype: str
+        """
+        return self._backup_compression_format
+
+    @backup_compression_format.setter
+    def backup_compression_format(self, backup_compression_format):
+        """Sets the backup_compression_format of this GlobalConfig.
+
+        The format for the backup output - this can be either \"plain\" or \"tar\" (only supported when backup_method = postgres)   # noqa: E501
+
+        :param backup_compression_format: The backup_compression_format of this GlobalConfig.
+        :type backup_compression_format: str
+        """
+
+        self._backup_compression_format = backup_compression_format
+
+    @property
+    def backup_compression_level(self):
+        """Gets the backup_compression_level of this GlobalConfig.
+
+        The compression level to be applied when compressing the backup (only supported when backup_method = postgres)   # noqa: E501
+
+        :return: The backup_compression_level of this GlobalConfig.
+        :rtype: int
+        """
+        return self._backup_compression_level
+
+    @backup_compression_level.setter
+    def backup_compression_level(self, backup_compression_level):
+        """Sets the backup_compression_level of this GlobalConfig.
+
+        The compression level to be applied when compressing the backup (only supported when backup_method = postgres)   # noqa: E501
+
+        :param backup_compression_level: The backup_compression_level of this GlobalConfig.
+        :type backup_compression_level: int
+        """
+
+        self._backup_compression_level = backup_compression_level
+
+    @property
+    def backup_compression_location(self):
+        """Gets the backup_compression_location of this GlobalConfig.
+
+        This can be set to either \"server\" or \"client\" depending on where the compression should be performed (only supported when backup_method = postgres)   # noqa: E501
+
+        :return: The backup_compression_location of this GlobalConfig.
+        :rtype: str
+        """
+        return self._backup_compression_location
+
+    @backup_compression_location.setter
+    def backup_compression_location(self, backup_compression_location):
+        """Sets the backup_compression_location of this GlobalConfig.
+
+        This can be set to either \"server\" or \"client\" depending on where the compression should be performed (only supported when backup_method = postgres)   # noqa: E501
+
+        :param backup_compression_location: The backup_compression_location of this GlobalConfig.
+        :type backup_compression_location: str
+        """
+
+        self._backup_compression_location = backup_compression_location
 
     @property
     def backup_method(self):
@@ -1631,6 +1753,29 @@ class GlobalConfig(Model):
         """
 
         self._recovery_options = recovery_options
+
+    @property
+    def recovery_staging_path(self):
+        """Gets the recovery_staging_path of this GlobalConfig.
+
+        Path on the recovery host where compressed backups can be temporarily staged during recovery   # noqa: E501
+
+        :return: The recovery_staging_path of this GlobalConfig.
+        :rtype: str
+        """
+        return self._recovery_staging_path
+
+    @recovery_staging_path.setter
+    def recovery_staging_path(self, recovery_staging_path):
+        """Sets the recovery_staging_path of this GlobalConfig.
+
+        Path on the recovery host where compressed backups can be temporarily staged during recovery   # noqa: E501
+
+        :param recovery_staging_path: The recovery_staging_path of this GlobalConfig.
+        :type recovery_staging_path: str
+        """
+
+        self._recovery_staging_path = recovery_staging_path
 
     @property
     def retention_policy(self):
