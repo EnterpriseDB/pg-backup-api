@@ -132,6 +132,31 @@ components:
           description: >
             The maximum number of WAL files to be archived by Barman in a single run
           type: integer
+        backup_compression:
+          description: >
+            The type of compression to be applied during the backup process (only
+            supported when backup_method = postgres)
+          type: string
+          nullable: true
+        backup_compression_format:
+          description: >
+            The format for the backup output - this can be either "plain" or "tar"
+            (only supported when backup_method = postgres)
+          type: string
+          nullable: true
+        backup_compression_level:
+          description: >
+            The compression level to be applied when compressing the backup (only
+            supported when backup_method = postgres)
+          type: integer
+          nullable: true
+        backup_compression_location:
+          description: >
+            This can be set to either "server" or "client" depending on where the
+            compression should be performed (only supported when backup_method =
+            postgres)
+          type: string
+          nullable: true
         backup_method:
           description: >
             The method used by Barman for backup execution - one of: local-rsync,
@@ -336,6 +361,12 @@ components:
         recovery_options:
           description: Options for recovery operations
           type: string
+        recovery_staging_path:
+          description: >
+            Path on the recovery host where compressed backups can be temporarily
+            staged during recovery
+          nullable: true
+          type: string
         retention_policy:
           description: Policy for retention of periodic backups and archive logs
           nullable: true
@@ -455,6 +486,10 @@ components:
             type: string
           begin_xlog:
             description: The LSN of the PostgreSQL server at the start of the backup
+            nullable: true
+            type: string
+          compression:
+            description: The type of compression used to compress the backup
             nullable: true
             type: string
           config_file:
