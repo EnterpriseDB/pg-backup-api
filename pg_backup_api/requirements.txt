@@ -1,6 +1,6 @@
 argcomplete==2.0.0
 attrs==21.4.0
-barman>=2.17
+barman>=3.0.0
 certifi==2021.10.8
 charset-normalizer==2.0.10
 click==8.0.3
