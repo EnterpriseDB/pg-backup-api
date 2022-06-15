@@ -1,4 +1,4 @@
-FROM openapitools/openapi-generator-cli
+FROM openapitools/openapi-generator-cli:v5.4.0
 
 RUN apt-get update \
     && apt-get install -y python3-pip \
