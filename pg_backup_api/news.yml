@@ -3,6 +3,12 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "0.2.0"
+    date: "20220623"
+    changes:
+      Notable changes:
+        - "Support for Barman 3.0.0"
+
   - version: "0.1.0"
     date: "20220331"
     changes:
