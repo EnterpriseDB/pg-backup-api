@@ -572,6 +572,7 @@ components:
             type: string
           size:
             description: The size of the backup in bytes
+            nullable: true
             type: integer
           status:
             description: The current status of the backup
