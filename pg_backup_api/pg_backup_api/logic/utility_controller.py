@@ -17,40 +17,33 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import shutil
+import subprocess
 
-import barman
-from barman import diagnose, output
-from barman.server import Server
 from pg_backup_api.openapi_server.util import deserialize_model
 from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput
+
+# Allow 10 minutes for the barman diagnose command to complete
+DIAGNOSE_CMD_TIMEOUT = 600
 
 
 class UtilityController:
     def diagnose(self):
-        # Get every server (both inactive and temporarily disabled)
-        servers = barman.__config__.server_names()
-
-        server_dict = {}
-        for server in servers:
-            conf = barman.__config__.get_server(server)
-            if conf is None:
-                # Unknown server
-                server_dict[server] = None
-            else:
-                server_object = Server(conf)
-                server_dict[server] = server_object
-
-        # errors list with duplicate paths between servers
-        errors_list = barman.__config__.servers_msg_list
-
-        diagnose.exec_diagnose(server_dict, errors_list)
-
         # new outputs are appended, so grab the last one
-        stored_output = json.loads(output._writer.json_output["_INFO"][-1])
-
-        diag_output = deserialize_model(stored_output, DiagnoseOutput)
-
-        return diag_output
+        barman_path = shutil.which("barman")
+        with subprocess.Popen(
+            [barman_path, "diagnose"], stderr=subprocess.PIPE, stdout=subprocess.PIPE
+        ) as p:
+            try:
+                # `barman diagnose` can be quite chatty on stderr but currently we just
+                # return the diagnose output so stderr goes nowhere
+                out, _err = p.communicate(timeout=DIAGNOSE_CMD_TIMEOUT)
+                stored_output = json.loads(out)
+                diag_output = deserialize_model(stored_output, DiagnoseOutput)
+                return diag_output
+            except subprocess.TimeoutExpired:
+                p.kill()
+                raise
 
     def status(self):
         return "OK"  # If this app isn't running, we obviously won't return!

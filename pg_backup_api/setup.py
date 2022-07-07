@@ -32,7 +32,6 @@ with open("./version.txt", "r") as f:
 # http://pypi.python.org/pypi/setuptools
 
 REQUIRES = [
-    "barman>=3.0.0",
     "connexion>=2.0.2",
     "jsonschema==3.2.0",
     "pyrsistent==0.16.1",
