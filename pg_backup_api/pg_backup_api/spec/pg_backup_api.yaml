@@ -170,6 +170,7 @@ components:
         bandwidth_limit:
           description: Maximum transfer rate in kilobytes per second
           type: integer
+          format: int64
           nullable: true
         barman_home:
           description: Main data directory for Barman
@@ -229,6 +230,7 @@ components:
             The lower limit to the acceptable size of the latest successful backup
           nullable: true
           type: integer
+          format: int64
         last_wal_maximum_age:
           description: >
             A time frame that must contain the latest WAL file archive
@@ -472,6 +474,7 @@ components:
             description: The byte offset of the current WAL at the start of the backup
             nullable: true
             type: integer
+            format: int64
           begin_time:
             description: >
               The system time of the Barman server at the start of the backup (in
@@ -508,10 +511,12 @@ components:
               in previous backups
             nullable: true
             type: integer
+            format: int64
           end_offset:
             description: The byte offset of the current WAL at the end of the backup
             nullable: true
             type: integer
+            format: int64
           end_time:
             description: >
               The system time of the Barman server at the end of the backup (in
@@ -573,6 +578,7 @@ components:
           size:
             description: The size of the backup in bytes
             type: integer
+            format: int64
           status:
             description: The current status of the backup
             type: string
@@ -609,6 +615,7 @@ components:
               when the backup was taken
             nullable: true
             type: integer
+            format: int64
 
     CopyStats:
       properties:
@@ -863,6 +870,7 @@ components:
           description: >
             The current WAL segment size in bytes as reported by the PostgreSQL server
           type: integer
+          format: int64
 
     ReplicationSlot:
       # In OpenAPI 3.1 we can use prefixItems here to be more specific however with
@@ -909,6 +917,7 @@ components:
         size:
           description: Size in bytes of the WAL stored on the Barman server
           type: integer
+          format: int64
         time:
           description: >
             Timestamp in epoch time format representing the time this WAL was archived
