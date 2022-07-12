@@ -761,8 +761,10 @@ components:
           description: The current WAL of the PostgreSQL server
           type: string
         data_checksums:
-          description: Whether data checksums are enabled for the PostgreSQL server
-          type: boolean
+          description: >
+            Whether data checksums are enabled for the PostgreSQL server - can be either
+            `on` or `off`
+          type: string
         data_directory:
           description: The current path to the PGDATA directory of the PostgreSQL server
           type: string

@@ -102,7 +102,7 @@ class Status(Model):
         :param current_xlog: The current_xlog of this Status.  # noqa: E501
         :type current_xlog: str
         :param data_checksums: The data_checksums of this Status.  # noqa: E501
-        :type data_checksums: bool
+        :type data_checksums: str
         :param data_directory: The data_directory of this Status.  # noqa: E501
         :type data_directory: str
         :param failed_count: The failed_count of this Status.  # noqa: E501
@@ -168,7 +168,7 @@ class Status(Model):
             "current_lsn": str,
             "current_size": float,
             "current_xlog": str,
-            "data_checksums": bool,
+            "data_checksums": str,
             "data_directory": str,
             "failed_count": int,
             "has_backup_privileges": bool,
@@ -545,10 +545,10 @@ class Status(Model):
     def data_checksums(self):
         """Gets the data_checksums of this Status.
 
-        Whether data checksums are enabled for the PostgreSQL server  # noqa: E501
+        Whether data checksums are enabled for the PostgreSQL server - can be either `on` or `off`   # noqa: E501
 
         :return: The data_checksums of this Status.
-        :rtype: bool
+        :rtype: str
         """
         return self._data_checksums
 
@@ -556,10 +556,10 @@ class Status(Model):
     def data_checksums(self, data_checksums):
         """Sets the data_checksums of this Status.
 
-        Whether data checksums are enabled for the PostgreSQL server  # noqa: E501
+        Whether data checksums are enabled for the PostgreSQL server - can be either `on` or `off`   # noqa: E501
 
         :param data_checksums: The data_checksums of this Status.
-        :type data_checksums: bool
+        :type data_checksums: str
         """
 
         self._data_checksums = data_checksums
