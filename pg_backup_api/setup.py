@@ -31,14 +31,7 @@ with open("./version.txt", "r") as f:
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-REQUIRES = [
-    "barman>=3.0.0",
-    "connexion>=2.0.2",
-    "gunicorn==20.1.0",
-    "jsonschema==3.2.0",
-    "pyrsistent==0.16.1",
-    "python_dateutil>=2.6.0",
-]
+REQUIRES = ["barman>=2.19,<4.0.0", "Flask>=1.1.4,<3.0.0", "requests>=2.0.0,<3.0.0"]
 
 setup(
     name=NAME,
@@ -47,8 +40,8 @@ setup(
     author="EnterpriseDB",
     author_email="barman@enterprisedb.com",
     url="http://www.pgbarman.org/",
-    keywords=["OpenAPI", "Postgres Backup REST API"],
-    python_requires=">=3.6",
+    keywords=["Postgres Backup REST API"],
+    python_requires=">2.7",
     install_requires=REQUIRES,
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,

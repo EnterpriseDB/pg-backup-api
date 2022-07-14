@@ -19,44 +19,44 @@
 import json
 
 import barman
-from barman import diagnose, output
+from barman import diagnose as barman_diagnose, output
 from barman.server import Server
-from pg_backup_api.openapi_server.util import deserialize_model
-from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput
+
 from pg_backup_api.utils import load_barman_config
 
+from pg_backup_api.run import app
 
-class UtilityController:
-    def diagnose(self):
-        # Reload the barman config so that any changes are picked up
-        load_barman_config()
-        # Get every server (both inactive and temporarily disabled)
-        servers = barman.__config__.server_names()
+@app.route("/diagnose", methods=["GET"])
+def diagnose():
+    # Reload the barman config so that any changes are picked up
+    load_barman_config()
+    # Get every server (both inactive and temporarily disabled)
+    servers = barman.__config__.server_names()
 
-        server_dict = {}
-        for server in servers:
-            conf = barman.__config__.get_server(server)
-            if conf is None:
-                # Unknown server
-                server_dict[server] = None
-            else:
-                server_object = Server(conf)
-                server_dict[server] = server_object
+    server_dict = {}
+    for server in servers:
+        conf = barman.__config__.get_server(server)
+        if conf is None:
+            # Unknown server
+            server_dict[server] = None
+        else:
+            server_object = Server(conf)
+            server_dict[server] = server_object
 
-        # errors list with duplicate paths between servers
-        errors_list = barman.__config__.servers_msg_list
+    # errors list with duplicate paths between servers
+    errors_list = barman.__config__.servers_msg_list
 
-        diagnose.exec_diagnose(server_dict, errors_list)
+    barman_diagnose.exec_diagnose(server_dict, errors_list)
 
-        # new outputs are appended, so grab the last one
-        stored_output = json.loads(output._writer.json_output["_INFO"][-1])
+    # new outputs are appended, so grab the last one
+    stored_output = json.loads(output._writer.json_output["_INFO"][-1])
 
-        # clear the output writer dict
-        output._writer.json_output = {}
+    # clear the output writer dict
+    output._writer.json_output = {}
 
-        diag_output = deserialize_model(stored_output, DiagnoseOutput)
+    return stored_output
 
-        return diag_output
 
-    def status(self):
-        return "OK"  # If this app isn't running, we obviously won't return!
+@app.route("/status", methods=["GET"])
+def status():
+    return '"OK"'  # If this app isn't running, we obviously won't return!
