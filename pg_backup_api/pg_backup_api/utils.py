@@ -18,12 +18,10 @@
 
 from logging.config import dictConfig
 
-import connexion
+from flask import Flask
 
 import barman
 from barman import config
-
-from pg_backup_api.openapi_server import encoder
 
 CONFIG_FILENAME = "/etc/barman.conf"
 LOG_FILENAME = "/var/log/barman/barman-api.log"
@@ -33,14 +31,7 @@ def create_app():
     """
     Create the connexion app with the required API.
     """
-    app = connexion.App(__name__, specification_dir="./spec/")
-    app.app.json_encoder = encoder.JSONEncoder
-    app.add_api(
-        "pg_backup_api.yaml",
-        arguments={"title": "Postgres Backup API"},
-        pythonic_params=True,
-    )
-    return app
+    return Flask("Postgres Backup API")
 
 
 def load_barman_config():

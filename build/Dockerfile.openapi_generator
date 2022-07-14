@@ -1,9 +1,0 @@
-FROM openapitools/openapi-generator-cli:v5.4.0
-
-RUN apt-get update \
-    && apt-get install -y python3-pip \
-    && pip3 install black
-
-COPY build/post_generation_processing.sh /opt/
-
-ENV PYTHON_POST_PROCESS_FILE /opt/post_generation_processing.sh

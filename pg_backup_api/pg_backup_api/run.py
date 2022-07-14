@@ -18,13 +18,15 @@
 
 
 import argparse
-import connexion
-import logging
 import requests
 from requests.exceptions import ConnectionError
 
 from barman import output
+
 from pg_backup_api.utils import create_app, load_barman_config, setup_logging
+
+
+app = create_app()
 
 
 def serve(args):
@@ -35,9 +37,6 @@ def serve(args):
     # load barman configs/setup barman for the app
     load_barman_config()
     output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
-
-    # setup and run the app
-    app = create_app()
 
     # bc currently only the PEM agent will be connecting, only run on localhost
     app.run(host="127.0.0.1", port=args.port)
@@ -57,16 +56,18 @@ def main():
     """
     setup_logging()
 
-    p = argparse.ArgumentParser(epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)")
+    p = argparse.ArgumentParser(
+        epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)"
+    )
 
     subparsers = p.add_subparsers()
 
-    p_serve = subparsers.add_parser('serve')
-    p_serve.add_argument('--port', type=int, default=7480)
+    p_serve = subparsers.add_parser("serve")
+    p_serve.add_argument("--port", type=int, default=7480)
     p_serve.set_defaults(func=serve)
 
-    p_status = subparsers.add_parser('status')
-    p_status.add_argument('--port', type=int, default=7480)
+    p_status = subparsers.add_parser("status")
+    p_status.add_argument("--port", type=int, default=7480)
     p_status.set_defaults(func=status)
 
     args = p.parse_args()
