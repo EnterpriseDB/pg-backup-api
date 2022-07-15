@@ -44,7 +44,7 @@ def serve(args):
 
 def status(args):
     try:
-        requests.get(f"http://127.0.0.1:{args.port}/status")
+        requests.get("http://127.0.0.1:{args.port}/status".format(args=args))
     except ConnectionError:
         return "The Postgres Backup API does not appear to be available."
     return "OK"
