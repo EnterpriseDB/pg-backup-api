@@ -18,6 +18,8 @@
 
 import json
 
+from flask import jsonify
+
 import barman
 from barman import diagnose as barman_diagnose, output
 from barman.server import Server
@@ -48,7 +50,7 @@ def diagnose():
     # new outputs are appended, so grab the last one
     stored_output = json.loads(output._writer.json_output["_INFO"][-1])
 
-    return stored_output
+    return jsonify(stored_output)
 
 
 @app.route("/status", methods=["GET"])
