@@ -49,6 +49,8 @@ def diagnose():
 
     # new outputs are appended, so grab the last one
     stored_output = json.loads(output._writer.json_output["_INFO"][-1])
+    # clear the output writer dict
+    output._writer.json_output = {}
 
     return jsonify(stored_output)
 
