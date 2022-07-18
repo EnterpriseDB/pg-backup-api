@@ -48,6 +48,9 @@ class UtilityController:
         # new outputs are appended, so grab the last one
         stored_output = json.loads(output._writer.json_output["_INFO"][-1])
 
+        # clear the output writer dict
+        output._writer.json_output = {}
+
         diag_output = deserialize_model(stored_output, DiagnoseOutput)
 
         return diag_output
