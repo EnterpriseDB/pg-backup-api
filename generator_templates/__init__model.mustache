@@ -1,7 +1,0 @@
-{{> copyright}}
-
-# flake8: noqa
-from __future__ import absolute_import
-# import models into model package
-{{#models}}{{#model}}from pg_backup_api.{{modelPackage}}.{{classFilename}} import {{classname}}{{/model}}
-{{/models}}
