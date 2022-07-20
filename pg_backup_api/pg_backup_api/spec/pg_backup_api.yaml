@@ -189,6 +189,7 @@ components:
           type: integer
         compression:
           description: Standard compression algorithm applied to WAL files
+          nullable: true
           type: string
         configuration_files_directory:
           description: Directory for additional configuration files to be included
@@ -910,6 +911,7 @@ components:
       properties:
         compression:
           description: Compression algorithm used to compress the WAL
+          nullable: true
           type: string
         name:
           description: Name of the WAL segment
