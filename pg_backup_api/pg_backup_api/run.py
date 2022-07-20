@@ -18,18 +18,20 @@
 
 
 import argparse
-import connexion
 import logging
 from logging.config import dictConfig
 import requests
 from requests.exceptions import ConnectionError
 
+from flask import Flask
+
 import barman
 from barman import config, output
-from pg_backup_api.openapi_server import encoder
 
 
 LOG_FILENAME = "/var/log/barman/barman-api.log"  # TODO make configurable
+
+app = Flask("Postgres Backup API")
 
 
 def serve(args):
@@ -43,20 +45,13 @@ def serve(args):
     cfg.load_configuration_files_directory()
     output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
 
-    # setup and run the app
-    app = connexion.App(__name__, specification_dir="./spec/")
-    app.app.json_encoder = encoder.JSONEncoder
-    app.add_api(
-        "pg_backup_api.yaml", arguments={"title": "Postgres Backup API"}, pythonic_params=True
-    )
-
     # bc currently only the PEM agent will be connecting, only run on localhost
     app.run(host="127.0.0.1", port=args.port)
 
 
 def status(args):
     try:
-        requests.get(f"http://127.0.0.1:{args.port}/status")
+        requests.get("http://127.0.0.1:{args.port}/status".format(args=args))
     except ConnectionError:
         return "The Postgres Backup API does not appear to be available."
     return "OK"
@@ -87,16 +82,18 @@ def main():
     )
     logger = logging.getLogger(__name__)
 
-    p = argparse.ArgumentParser(epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)")
+    p = argparse.ArgumentParser(
+        epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)"
+    )
 
     subparsers = p.add_subparsers()
 
-    p_serve = subparsers.add_parser('serve')
-    p_serve.add_argument('--port', type=int, default=7480)
+    p_serve = subparsers.add_parser("serve")
+    p_serve.add_argument("--port", type=int, default=7480)
     p_serve.set_defaults(func=serve)
 
-    p_status = subparsers.add_parser('status')
-    p_status.add_argument('--port', type=int, default=7480)
+    p_status = subparsers.add_parser("status")
+    p_status.add_argument("--port", type=int, default=7480)
     p_status.set_defaults(func=status)
 
     args = p.parse_args()
