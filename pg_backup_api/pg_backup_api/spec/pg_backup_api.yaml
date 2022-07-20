@@ -760,6 +760,7 @@ components:
           # {begin,end}_wal refers to the WAL. Here, current_xlog does in fact refer
           # to the WAL and not the LSN.
           description: The current WAL of the PostgreSQL server
+          nullable: true
           type: string
         data_checksums:
           description: >
@@ -768,6 +769,7 @@ components:
           type: string
         data_directory:
           description: The current path to the PGDATA directory of the PostgreSQL server
+          nullable: true
           type: string
         failed_count:
           description: >
@@ -798,9 +800,11 @@ components:
           description: >
             Whether the PostgreSQL server is currently in recovery (as determined by
             Barman using `pg_is_in_recovery()`)
+          nullable: true
           type: boolean
         is_superuser:
           description: Whether the configured user has superuser privileges
+          nullable: true
           type: boolean
         last_archived_time:
           description: >
@@ -832,16 +836,53 @@ components:
         max_wal_senders:
           description: The current value of max_wal_senders on the PostgreSQL server
           type: string
+        pg_receivexlog_compatible:
+          description: >
+            Whether the pg_receivewal binary used by Barman is compatible with the
+            PostgreSQL server
+          nullable: true
+          type: boolean
+        pg_receivexlog_installed:
+          description: >
+            Whether the pg_receivewal binary is installed and available to Barman
+          nullable: true
+          type: boolean
+        pg_receivexlog_path:
+          description: >
+            Path to the pg_receivewal binary used by Barman
+          nullable: true
+          type: string
+        pg_receivexlog_supports_slots:
+          description: >
+            Whether the pg_receivewal binary available to Barman supports replication
+            slots
+          nullable: true
+          type: boolean
+        pg_receivexlog_synchronous:
+          description: >
+            Whether synchronous replication will be used by pg_receivewal for this
+            PostgreSQL server
+          nullable: true
+          type: boolean
+        pg_receivexlog_version:
+          description: The version of the pg_receivewal binary used by Barman
+          nullable: true
+          type: string
         postgresql_systemid:
           description: The system identifier of the PostgreSQL server
+          nullable: true
           type: string
         replication_slot:
-          $ref: "#/components/schemas/ReplicationSlot"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/ReplicationSlot"
         replication_slot_support:
           description: Whether the PostgreSQL server supports replication slots
+          nullable: true
           type: boolean
         server_txt_version:
           description: The version of the PostgreSQL server as human-readable text
+          nullable: true
           type: string
         stats_reset:
           description: >
@@ -850,14 +891,33 @@ components:
           type: string
           pattern: '^\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+[+-][0-2]\d:[0-5]\d$'
           example: "2020-01-31T00:00:00.0000+01:00"
+        streaming:
+          description: Whether the streaming_conninfo connection is currently streaming
+          nullable: true
+          type: boolean
+        streaming_supported:
+          description: Whether streaming replication is supported by the PostgreSQL server
+          nullable: true
+          type: boolean
+        streaming_systemid:
+          description: >
+            The systemid returned by calling IDENTIFY_SYSTEM using the streaming_conninfo
+            connection
+          nullable: true
+          type: string
         synchronous_standby_names:
           description: >
             The current value of synchronous_standby_names on the PostgreSQL server
+          nullable: true
           type: array
           items:
             description: >
               Name of a standby server which can support synchronous replication
             type: string
+        timeline:
+          description: The current timeline of the PostgreSQL server
+          nullable: true
+          type: integer
         wal_compression:
           description: The current value of wal_compression on the PostgreSQL server
           type: string
@@ -872,6 +932,11 @@ components:
             The current WAL segment size in bytes as reported by the PostgreSQL server
           type: integer
           format: int64
+        xlogpos:
+          description: >
+            The current WAL flush location returned by the streaming_conninfo connection
+          nullable: true
+          type: string
 
     ReplicationSlot:
       # In OpenAPI 3.1 we can use prefixItems here to be more specific however with

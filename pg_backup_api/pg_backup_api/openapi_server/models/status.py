@@ -65,16 +65,27 @@ class Status(Model):
         last_failed_wal=None,
         max_replication_slots=None,
         max_wal_senders=None,
+        pg_receivexlog_compatible=None,
+        pg_receivexlog_installed=None,
+        pg_receivexlog_path=None,
+        pg_receivexlog_supports_slots=None,
+        pg_receivexlog_synchronous=None,
+        pg_receivexlog_version=None,
         postgresql_systemid=None,
         replication_slot=None,
         replication_slot_support=None,
         server_txt_version=None,
         stats_reset=None,
+        streaming=None,
+        streaming_supported=None,
+        streaming_systemid=None,
         synchronous_standby_names=None,
+        timeline=None,
         wal_compression=None,
         wal_keep_size=None,
         wal_level=None,
         xlog_segment_size=None,
+        xlogpos=None,
     ):  # noqa: E501
         """Status - a model defined in OpenAPI
 
@@ -132,18 +143,38 @@ class Status(Model):
         :type max_replication_slots: str
         :param max_wal_senders: The max_wal_senders of this Status.  # noqa: E501
         :type max_wal_senders: str
+        :param pg_receivexlog_compatible: The pg_receivexlog_compatible of this Status.  # noqa: E501
+        :type pg_receivexlog_compatible: bool
+        :param pg_receivexlog_installed: The pg_receivexlog_installed of this Status.  # noqa: E501
+        :type pg_receivexlog_installed: bool
+        :param pg_receivexlog_path: The pg_receivexlog_path of this Status.  # noqa: E501
+        :type pg_receivexlog_path: str
+        :param pg_receivexlog_supports_slots: The pg_receivexlog_supports_slots of this Status.  # noqa: E501
+        :type pg_receivexlog_supports_slots: bool
+        :param pg_receivexlog_synchronous: The pg_receivexlog_synchronous of this Status.  # noqa: E501
+        :type pg_receivexlog_synchronous: bool
+        :param pg_receivexlog_version: The pg_receivexlog_version of this Status.  # noqa: E501
+        :type pg_receivexlog_version: str
         :param postgresql_systemid: The postgresql_systemid of this Status.  # noqa: E501
         :type postgresql_systemid: str
         :param replication_slot: The replication_slot of this Status.  # noqa: E501
-        :type replication_slot: List[object]
+        :type replication_slot: List
         :param replication_slot_support: The replication_slot_support of this Status.  # noqa: E501
         :type replication_slot_support: bool
         :param server_txt_version: The server_txt_version of this Status.  # noqa: E501
         :type server_txt_version: str
         :param stats_reset: The stats_reset of this Status.  # noqa: E501
         :type stats_reset: str
+        :param streaming: The streaming of this Status.  # noqa: E501
+        :type streaming: bool
+        :param streaming_supported: The streaming_supported of this Status.  # noqa: E501
+        :type streaming_supported: bool
+        :param streaming_systemid: The streaming_systemid of this Status.  # noqa: E501
+        :type streaming_systemid: str
         :param synchronous_standby_names: The synchronous_standby_names of this Status.  # noqa: E501
         :type synchronous_standby_names: List[str]
+        :param timeline: The timeline of this Status.  # noqa: E501
+        :type timeline: int
         :param wal_compression: The wal_compression of this Status.  # noqa: E501
         :type wal_compression: str
         :param wal_keep_size: The wal_keep_size of this Status.  # noqa: E501
@@ -152,6 +183,8 @@ class Status(Model):
         :type wal_level: str
         :param xlog_segment_size: The xlog_segment_size of this Status.  # noqa: E501
         :type xlog_segment_size: int
+        :param xlogpos: The xlogpos of this Status.  # noqa: E501
+        :type xlogpos: str
         """
         self.openapi_types = {
             "archive_command": str,
@@ -181,16 +214,27 @@ class Status(Model):
             "last_failed_wal": str,
             "max_replication_slots": str,
             "max_wal_senders": str,
+            "pg_receivexlog_compatible": bool,
+            "pg_receivexlog_installed": bool,
+            "pg_receivexlog_path": str,
+            "pg_receivexlog_supports_slots": bool,
+            "pg_receivexlog_synchronous": bool,
+            "pg_receivexlog_version": str,
             "postgresql_systemid": str,
-            "replication_slot": List[object],
+            "replication_slot": List,
             "replication_slot_support": bool,
             "server_txt_version": str,
             "stats_reset": str,
+            "streaming": bool,
+            "streaming_supported": bool,
+            "streaming_systemid": str,
             "synchronous_standby_names": List[str],
+            "timeline": int,
             "wal_compression": str,
             "wal_keep_size": str,
             "wal_level": str,
             "xlog_segment_size": int,
+            "xlogpos": str,
         }
 
         self.attribute_map = {
@@ -221,16 +265,27 @@ class Status(Model):
             "last_failed_wal": "last_failed_wal",
             "max_replication_slots": "max_replication_slots",
             "max_wal_senders": "max_wal_senders",
+            "pg_receivexlog_compatible": "pg_receivexlog_compatible",
+            "pg_receivexlog_installed": "pg_receivexlog_installed",
+            "pg_receivexlog_path": "pg_receivexlog_path",
+            "pg_receivexlog_supports_slots": "pg_receivexlog_supports_slots",
+            "pg_receivexlog_synchronous": "pg_receivexlog_synchronous",
+            "pg_receivexlog_version": "pg_receivexlog_version",
             "postgresql_systemid": "postgresql_systemid",
             "replication_slot": "replication_slot",
             "replication_slot_support": "replication_slot_support",
             "server_txt_version": "server_txt_version",
             "stats_reset": "stats_reset",
+            "streaming": "streaming",
+            "streaming_supported": "streaming_supported",
+            "streaming_systemid": "streaming_systemid",
             "synchronous_standby_names": "synchronous_standby_names",
+            "timeline": "timeline",
             "wal_compression": "wal_compression",
             "wal_keep_size": "wal_keep_size",
             "wal_level": "wal_level",
             "xlog_segment_size": "xlog_segment_size",
+            "xlogpos": "xlogpos",
         }
 
         self._archive_command = archive_command
@@ -260,16 +315,27 @@ class Status(Model):
         self._last_failed_wal = last_failed_wal
         self._max_replication_slots = max_replication_slots
         self._max_wal_senders = max_wal_senders
+        self._pg_receivexlog_compatible = pg_receivexlog_compatible
+        self._pg_receivexlog_installed = pg_receivexlog_installed
+        self._pg_receivexlog_path = pg_receivexlog_path
+        self._pg_receivexlog_supports_slots = pg_receivexlog_supports_slots
+        self._pg_receivexlog_synchronous = pg_receivexlog_synchronous
+        self._pg_receivexlog_version = pg_receivexlog_version
         self._postgresql_systemid = postgresql_systemid
         self._replication_slot = replication_slot
         self._replication_slot_support = replication_slot_support
         self._server_txt_version = server_txt_version
         self._stats_reset = stats_reset
+        self._streaming = streaming
+        self._streaming_supported = streaming_supported
+        self._streaming_systemid = streaming_systemid
         self._synchronous_standby_names = synchronous_standby_names
+        self._timeline = timeline
         self._wal_compression = wal_compression
         self._wal_keep_size = wal_keep_size
         self._wal_level = wal_level
         self._xlog_segment_size = xlog_segment_size
+        self._xlogpos = xlogpos
 
     @classmethod
     def from_dict(cls, dikt):
@@ -932,6 +998,144 @@ class Status(Model):
         self._max_wal_senders = max_wal_senders
 
     @property
+    def pg_receivexlog_compatible(self):
+        """Gets the pg_receivexlog_compatible of this Status.
+
+        Whether the pg_receivewal binary used by Barman is compatible with the PostgreSQL server   # noqa: E501
+
+        :return: The pg_receivexlog_compatible of this Status.
+        :rtype: bool
+        """
+        return self._pg_receivexlog_compatible
+
+    @pg_receivexlog_compatible.setter
+    def pg_receivexlog_compatible(self, pg_receivexlog_compatible):
+        """Sets the pg_receivexlog_compatible of this Status.
+
+        Whether the pg_receivewal binary used by Barman is compatible with the PostgreSQL server   # noqa: E501
+
+        :param pg_receivexlog_compatible: The pg_receivexlog_compatible of this Status.
+        :type pg_receivexlog_compatible: bool
+        """
+
+        self._pg_receivexlog_compatible = pg_receivexlog_compatible
+
+    @property
+    def pg_receivexlog_installed(self):
+        """Gets the pg_receivexlog_installed of this Status.
+
+        Whether the pg_receivewal binary is installed and available to Barman   # noqa: E501
+
+        :return: The pg_receivexlog_installed of this Status.
+        :rtype: bool
+        """
+        return self._pg_receivexlog_installed
+
+    @pg_receivexlog_installed.setter
+    def pg_receivexlog_installed(self, pg_receivexlog_installed):
+        """Sets the pg_receivexlog_installed of this Status.
+
+        Whether the pg_receivewal binary is installed and available to Barman   # noqa: E501
+
+        :param pg_receivexlog_installed: The pg_receivexlog_installed of this Status.
+        :type pg_receivexlog_installed: bool
+        """
+
+        self._pg_receivexlog_installed = pg_receivexlog_installed
+
+    @property
+    def pg_receivexlog_path(self):
+        """Gets the pg_receivexlog_path of this Status.
+
+        Path to the pg_receivewal binary used by Barman   # noqa: E501
+
+        :return: The pg_receivexlog_path of this Status.
+        :rtype: str
+        """
+        return self._pg_receivexlog_path
+
+    @pg_receivexlog_path.setter
+    def pg_receivexlog_path(self, pg_receivexlog_path):
+        """Sets the pg_receivexlog_path of this Status.
+
+        Path to the pg_receivewal binary used by Barman   # noqa: E501
+
+        :param pg_receivexlog_path: The pg_receivexlog_path of this Status.
+        :type pg_receivexlog_path: str
+        """
+
+        self._pg_receivexlog_path = pg_receivexlog_path
+
+    @property
+    def pg_receivexlog_supports_slots(self):
+        """Gets the pg_receivexlog_supports_slots of this Status.
+
+        Whether the pg_receivewal binary available to Barman supports replication slots   # noqa: E501
+
+        :return: The pg_receivexlog_supports_slots of this Status.
+        :rtype: bool
+        """
+        return self._pg_receivexlog_supports_slots
+
+    @pg_receivexlog_supports_slots.setter
+    def pg_receivexlog_supports_slots(self, pg_receivexlog_supports_slots):
+        """Sets the pg_receivexlog_supports_slots of this Status.
+
+        Whether the pg_receivewal binary available to Barman supports replication slots   # noqa: E501
+
+        :param pg_receivexlog_supports_slots: The pg_receivexlog_supports_slots of this Status.
+        :type pg_receivexlog_supports_slots: bool
+        """
+
+        self._pg_receivexlog_supports_slots = pg_receivexlog_supports_slots
+
+    @property
+    def pg_receivexlog_synchronous(self):
+        """Gets the pg_receivexlog_synchronous of this Status.
+
+        Whether synchronous replication will be used by pg_receivewal for this PostgreSQL server   # noqa: E501
+
+        :return: The pg_receivexlog_synchronous of this Status.
+        :rtype: bool
+        """
+        return self._pg_receivexlog_synchronous
+
+    @pg_receivexlog_synchronous.setter
+    def pg_receivexlog_synchronous(self, pg_receivexlog_synchronous):
+        """Sets the pg_receivexlog_synchronous of this Status.
+
+        Whether synchronous replication will be used by pg_receivewal for this PostgreSQL server   # noqa: E501
+
+        :param pg_receivexlog_synchronous: The pg_receivexlog_synchronous of this Status.
+        :type pg_receivexlog_synchronous: bool
+        """
+
+        self._pg_receivexlog_synchronous = pg_receivexlog_synchronous
+
+    @property
+    def pg_receivexlog_version(self):
+        """Gets the pg_receivexlog_version of this Status.
+
+        The version of the pg_receivewal binary used by Barman  # noqa: E501
+
+        :return: The pg_receivexlog_version of this Status.
+        :rtype: str
+        """
+        return self._pg_receivexlog_version
+
+    @pg_receivexlog_version.setter
+    def pg_receivexlog_version(self, pg_receivexlog_version):
+        """Sets the pg_receivexlog_version of this Status.
+
+        The version of the pg_receivewal binary used by Barman  # noqa: E501
+
+        :param pg_receivexlog_version: The pg_receivexlog_version of this Status.
+        :type pg_receivexlog_version: str
+        """
+
+        self._pg_receivexlog_version = pg_receivexlog_version
+
+    @property
     def postgresql_systemid(self):
         """Gets the postgresql_systemid of this Status.
 
@@ -958,10 +1162,9 @@ class Status(Model):
     def replication_slot(self):
         """Gets the replication_slot of this Status.
 
-        Details of the replication slot being used by Barman on this PostgreSQL server in the form of an ordered array. The first item MUST be a string containing the slot_name. The second item MUST be a boolean reflecting the active state of the replication slot. The third item MUST be a string containing the LSN of the oldest WAL which still might be required by the consumer of this slot.   # noqa: E501
 
         :return: The replication_slot of this Status.
-        :rtype: List[object]
+        :rtype: List
         """
         return self._replication_slot
 
@@ -969,19 +1172,10 @@ class Status(Model):
     def replication_slot(self, replication_slot):
         """Sets the replication_slot of this Status.
 
-        Details of the replication slot being used by Barman on this PostgreSQL server in the form of an ordered array. The first item MUST be a string containing the slot_name. The second item MUST be a boolean reflecting the active state of the replication slot. The third item MUST be a string containing the LSN of the oldest WAL which still might be required by the consumer of this slot.   # noqa: E501
 
         :param replication_slot: The replication_slot of this Status.
-        :type replication_slot: List[object]
+        :type replication_slot: List
         """
-        if replication_slot is not None and len(replication_slot) > 3:
-            raise ValueError(
-                "Invalid value for `replication_slot`, number of items must be less than or equal to `3`"
-            )  # noqa: E501
-        if replication_slot is not None and len(replication_slot) < 3:
-            raise ValueError(
-                "Invalid value for `replication_slot`, number of items must be greater than or equal to `3`"
-            )  # noqa: E501
 
         self._replication_slot = replication_slot
 
@@ -1069,6 +1263,75 @@ class Status(Model):
         self._stats_reset = stats_reset
 
     @property
+    def streaming(self):
+        """Gets the streaming of this Status.
+
+        Whether the streaming_conninfo connection is currently streaming  # noqa: E501
+
+        :return: The streaming of this Status.
+        :rtype: bool
+        """
+        return self._streaming
+
+    @streaming.setter
+    def streaming(self, streaming):
+        """Sets the streaming of this Status.
+
+        Whether the streaming_conninfo connection is currently streaming  # noqa: E501
+
+        :param streaming: The streaming of this Status.
+        :type streaming: bool
+        """
+
+        self._streaming = streaming
+
+    @property
+    def streaming_supported(self):
+        """Gets the streaming_supported of this Status.
+
+        Whether streaming replication is supported by the PostgreSQL server  # noqa: E501
+
+        :return: The streaming_supported of this Status.
+        :rtype: bool
+        """
+        return self._streaming_supported
+
+    @streaming_supported.setter
+    def streaming_supported(self, streaming_supported):
+        """Sets the streaming_supported of this Status.
+
+        Whether streaming replication is supported by the PostgreSQL server  # noqa: E501
+
+        :param streaming_supported: The streaming_supported of this Status.
+        :type streaming_supported: bool
+        """
+
+        self._streaming_supported = streaming_supported
+
+    @property
+    def streaming_systemid(self):
+        """Gets the streaming_systemid of this Status.
+
+        The systemid returned by calling IDENTIFY_SYSTEM using the streaming_conninfo connection   # noqa: E501
+
+        :return: The streaming_systemid of this Status.
+        :rtype: str
+        """
+        return self._streaming_systemid
+
+    @streaming_systemid.setter
+    def streaming_systemid(self, streaming_systemid):
+        """Sets the streaming_systemid of this Status.
+
+        The systemid returned by calling IDENTIFY_SYSTEM using the streaming_conninfo connection   # noqa: E501
+
+        :param streaming_systemid: The streaming_systemid of this Status.
+        :type streaming_systemid: str
+        """
+
+        self._streaming_systemid = streaming_systemid
+
+    @property
     def synchronous_standby_names(self):
         """Gets the synchronous_standby_names of this Status.
 
@@ -1090,6 +1353,29 @@ class Status(Model):
         """
 
         self._synchronous_standby_names = synchronous_standby_names
+
+    @property
+    def timeline(self):
+        """Gets the timeline of this Status.
+
+        The current timeline of the PostgreSQL server  # noqa: E501
+
+        :return: The timeline of this Status.
+        :rtype: int
+        """
+        return self._timeline
+
+    @timeline.setter
+    def timeline(self, timeline):
+        """Sets the timeline of this Status.
+
+        The current timeline of the PostgreSQL server  # noqa: E501
+
+        :param timeline: The timeline of this Status.
+        :type timeline: int
+        """
+
+        self._timeline = timeline
 
     @property
     def wal_compression(self):
@@ -1182,3 +1468,26 @@ class Status(Model):
         """
 
         self._xlog_segment_size = xlog_segment_size
+
+    @property
+    def xlogpos(self):
+        """Gets the xlogpos of this Status.
+
+        The current WAL flush location returned by the streaming_conninfo connection   # noqa: E501
+
+        :return: The xlogpos of this Status.
+        :rtype: str
+        """
+        return self._xlogpos
+
+    @xlogpos.setter
+    def xlogpos(self, xlogpos):
+        """Sets the xlogpos of this Status.
+
+        The current WAL flush location returned by the streaming_conninfo connection   # noqa: E501
+
+        :param xlogpos: The xlogpos of this Status.
+        :type xlogpos: str
+        """
+
+        self._xlogpos = xlogpos
