@@ -48,6 +48,7 @@ class ServerConfig(Model):
         incoming_wals_directory=None,
         msg_list=None,
         name=None,
+        primary_conninfo=None,
         ssh_command=None,
         streaming_conninfo=None,
         streaming_wals_directory=None,
@@ -138,6 +139,8 @@ class ServerConfig(Model):
         :type msg_list: List[str]
         :param name: The name of this ServerConfig.  # noqa: E501
         :type name: str
+        :param primary_conninfo: The primary_conninfo of this ServerConfig.  # noqa: E501
+        :type primary_conninfo: str
         :param ssh_command: The ssh_command of this ServerConfig.  # noqa: E501
         :type ssh_command: str
         :param streaming_conninfo: The streaming_conninfo of this ServerConfig.  # noqa: E501
@@ -284,6 +287,7 @@ class ServerConfig(Model):
             "incoming_wals_directory": str,
             "msg_list": List[str],
             "name": str,
+            "primary_conninfo": str,
             "ssh_command": str,
             "streaming_conninfo": str,
             "streaming_wals_directory": str,
@@ -364,6 +368,7 @@ class ServerConfig(Model):
             "incoming_wals_directory": "incoming_wals_directory",
             "msg_list": "msg_list",
             "name": "name",
+            "primary_conninfo": "primary_conninfo",
             "ssh_command": "ssh_command",
             "streaming_conninfo": "streaming_conninfo",
             "streaming_wals_directory": "streaming_wals_directory",
@@ -443,6 +448,7 @@ class ServerConfig(Model):
         self._incoming_wals_directory = incoming_wals_directory
         self._msg_list = msg_list
         self._name = name
+        self._primary_conninfo = primary_conninfo
         self._ssh_command = ssh_command
         self._streaming_conninfo = streaming_conninfo
         self._streaming_wals_directory = streaming_wals_directory
@@ -751,6 +757,29 @@ class ServerConfig(Model):
         """
 
         self._name = name
+
+    @property
+    def primary_conninfo(self):
+        """Gets the primary_conninfo of this ServerConfig.
+
+        Connection string used by Barman to connect to the primary PostgreSQL server server when conninfo is pointing to a standby   # noqa: E501
+
+        :return: The primary_conninfo of this ServerConfig.
+        :rtype: str
+        """
+        return self._primary_conninfo
+
+    @primary_conninfo.setter
+    def primary_conninfo(self, primary_conninfo):
+        """Sets the primary_conninfo of this ServerConfig.
+
+        Connection string used by Barman to connect to the primary PostgreSQL server server when conninfo is pointing to a standby   # noqa: E501
+
+        :param primary_conninfo: The primary_conninfo of this ServerConfig.
+        :type primary_conninfo: str
+        """
+
+        self._primary_conninfo = primary_conninfo
 
     @property
     def ssh_command(self):
