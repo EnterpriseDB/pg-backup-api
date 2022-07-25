@@ -102,6 +102,12 @@ components:
         name:
           description: The name of this server as configured in Barman
           type: string
+        primary_conninfo:
+          description: >
+            Connection string used by Barman to connect to the primary PostgreSQL server
+            server when conninfo is pointing to a standby
+          nullable: true
+          type: string
         ssh_command:
           description: Command used by Barman to login to the PostgreSQL server via ssh
           nullable: true
