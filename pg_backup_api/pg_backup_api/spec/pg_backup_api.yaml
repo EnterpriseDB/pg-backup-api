@@ -831,9 +831,6 @@ components:
         max_wal_senders:
           description: The current value of max_wal_senders on the PostgreSQL server
           type: string
-        pgespresso_installed:
-          description: Whether the PostgreSQL server has Pgespresso installed
-          type: boolean
         postgresql_systemid:
           description: The system identifier of the PostgreSQL server
           type: string
