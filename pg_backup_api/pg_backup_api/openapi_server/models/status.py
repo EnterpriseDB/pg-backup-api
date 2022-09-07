@@ -65,7 +65,6 @@ class Status(Model):
         last_failed_wal=None,
         max_replication_slots=None,
         max_wal_senders=None,
-        pgespresso_installed=None,
         postgresql_systemid=None,
         replication_slot=None,
         replication_slot_support=None,
@@ -133,8 +132,6 @@ class Status(Model):
         :type max_replication_slots: str
         :param max_wal_senders: The max_wal_senders of this Status.  # noqa: E501
         :type max_wal_senders: str
-        :param pgespresso_installed: The pgespresso_installed of this Status.  # noqa: E501
-        :type pgespresso_installed: bool
         :param postgresql_systemid: The postgresql_systemid of this Status.  # noqa: E501
         :type postgresql_systemid: str
         :param replication_slot: The replication_slot of this Status.  # noqa: E501
@@ -184,7 +181,6 @@ class Status(Model):
             "last_failed_wal": str,
             "max_replication_slots": str,
             "max_wal_senders": str,
-            "pgespresso_installed": bool,
             "postgresql_systemid": str,
             "replication_slot": List[object],
             "replication_slot_support": bool,
@@ -225,7 +221,6 @@ class Status(Model):
             "last_failed_wal": "last_failed_wal",
             "max_replication_slots": "max_replication_slots",
             "max_wal_senders": "max_wal_senders",
-            "pgespresso_installed": "pgespresso_installed",
             "postgresql_systemid": "postgresql_systemid",
             "replication_slot": "replication_slot",
             "replication_slot_support": "replication_slot_support",
@@ -265,7 +260,6 @@ class Status(Model):
         self._last_failed_wal = last_failed_wal
         self._max_replication_slots = max_replication_slots
         self._max_wal_senders = max_wal_senders
-        self._pgespresso_installed = pgespresso_installed
         self._postgresql_systemid = postgresql_systemid
         self._replication_slot = replication_slot
         self._replication_slot_support = replication_slot_support
@@ -936,29 +930,6 @@ class Status(Model):
         """
 
         self._max_wal_senders = max_wal_senders
-
-    @property
-    def pgespresso_installed(self):
-        """Gets the pgespresso_installed of this Status.
-
-        Whether the PostgreSQL server has Pgespresso installed  # noqa: E501
-
-        :return: The pgespresso_installed of this Status.
-        :rtype: bool
-        """
-        return self._pgespresso_installed
-
-    @pgespresso_installed.setter
-    def pgespresso_installed(self, pgespresso_installed):
-        """Sets the pgespresso_installed of this Status.
-
-        Whether the PostgreSQL server has Pgespresso installed  # noqa: E501
-
-        :param pgespresso_installed: The pgespresso_installed of this Status.
-        :type pgespresso_installed: bool
-        """
-
-        self._pgespresso_installed = pgespresso_installed
 
     @property
     def postgresql_systemid(self):
