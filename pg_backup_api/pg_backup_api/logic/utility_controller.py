@@ -23,10 +23,13 @@ from barman import diagnose, output
 from barman.server import Server
 from pg_backup_api.openapi_server.util import deserialize_model
 from pg_backup_api.openapi_server.models.diagnose_output import DiagnoseOutput
+from pg_backup_api.utils import load_barman_config
 
 
 class UtilityController:
     def diagnose(self):
+        # Reload the barman config so that any changes are picked up
+        load_barman_config()
         # Get every server (both inactive and temporarily disabled)
         servers = barman.__config__.server_names()
 

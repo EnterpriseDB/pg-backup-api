@@ -24,9 +24,9 @@ from logging.config import dictConfig
 import requests
 from requests.exceptions import ConnectionError
 
-import barman
-from barman import config, output
+from barman import output
 from pg_backup_api.openapi_server import encoder
+from pg_backup_api.utils import load_barman_config
 
 
 LOG_FILENAME = "/var/log/barman/barman-api.log"  # TODO make configurable
@@ -38,9 +38,7 @@ def serve(args):
     """
     # TODO determine backup tool setup based on config
     # load barman configs/setup barman for the app
-    cfg = config.Config("/etc/barman.conf")
-    barman.__config__ = cfg
-    cfg.load_configuration_files_directory()
+    load_barman_config()
     output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
 
     # setup and run the app
