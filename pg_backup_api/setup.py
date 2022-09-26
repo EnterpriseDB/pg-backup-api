@@ -34,6 +34,7 @@ with open("./version.txt", "r") as f:
 REQUIRES = [
     "barman>=3.0.0",
     "connexion>=2.0.2",
+    "gunicorn==20.1.0",
     "jsonschema==3.2.0",
     "pyrsistent==0.16.1",
     "python_dateutil>=2.6.0",

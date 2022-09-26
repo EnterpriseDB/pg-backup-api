@@ -18,32 +18,10 @@
 
 import connexion
 
-import barman
-from barman import config
-
+from barman import output
 from pg_backup_api.openapi_server import encoder
+from pg_backup_api.utils import create_app, load_barman_config
 
-CONFIG_FILENAME = "/etc/barman.conf"
-
-
-def create_app():
-    """
-    Create the connexion app with the required API.
-    """
-    app = connexion.App(__name__, specification_dir="./spec/")
-    app.app.json_encoder = encoder.JSONEncoder
-    app.add_api(
-        "pg_backup_api.yaml",
-        arguments={"title": "Postgres Backup API"},
-        pythonic_params=True,
-    )
-    return app
-
-
-def load_barman_config():
-    """
-    Load the Barman config into barman.__config__.
-    """
-    cfg = config.Config(CONFIG_FILENAME)
-    barman.__config__ = cfg
-    cfg.load_configuration_files_directory()
+load_barman_config()
+output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
+application = create_app()
