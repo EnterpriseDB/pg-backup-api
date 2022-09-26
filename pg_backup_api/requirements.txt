@@ -8,6 +8,7 @@ clickclick==20.10.2
 connexion==2.10.0
 dataclasses>=0.6
 Flask==2.0.2
+gunicorn==20.1.0
 idna==3.3
 importlib-metadata==4.8.3
 inflection==0.5.1

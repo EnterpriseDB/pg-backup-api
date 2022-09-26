@@ -25,8 +25,7 @@ import requests
 from requests.exceptions import ConnectionError
 
 from barman import output
-from pg_backup_api.openapi_server import encoder
-from pg_backup_api.utils import load_barman_config
+from pg_backup_api.utils import create_app, load_barman_config
 
 
 LOG_FILENAME = "/var/log/barman/barman-api.log"  # TODO make configurable
@@ -42,11 +41,7 @@ def serve(args):
     output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
 
     # setup and run the app
-    app = connexion.App(__name__, specification_dir="./spec/")
-    app.app.json_encoder = encoder.JSONEncoder
-    app.add_api(
-        "pg_backup_api.yaml", arguments={"title": "Postgres Backup API"}, pythonic_params=True
-    )
+    app = create_app()
 
     # bc currently only the PEM agent will be connecting, only run on localhost
     app.run(host="127.0.0.1", port=args.port)
