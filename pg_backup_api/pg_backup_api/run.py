@@ -20,15 +20,11 @@
 import argparse
 import connexion
 import logging
-from logging.config import dictConfig
 import requests
 from requests.exceptions import ConnectionError
 
 from barman import output
-from pg_backup_api.utils import create_app, load_barman_config
-
-
-LOG_FILENAME = "/var/log/barman/barman-api.log"  # TODO make configurable
+from pg_backup_api.utils import create_app, load_barman_config, setup_logging
 
 
 def serve(args):
@@ -59,26 +55,7 @@ def main():
     """
     Main method of the Postgres Backup API API app
     """
-    # setup logging
-    dictConfig(
-        {
-            "version": 1,
-            "formatters": {
-                "default": {
-                    "format": "[%(asctime)s] %(levelname)s:%(module)s: %(message)s",
-                }
-            },
-            "handlers": {
-                "wsgi": {
-                    "class": "logging.FileHandler",
-                    "filename": LOG_FILENAME,
-                    "formatter": "default",
-                }
-            },
-            "root": {"level": "INFO", "handlers": ["wsgi"]},
-        }
-    )
-    logger = logging.getLogger(__name__)
+    setup_logging()
 
     p = argparse.ArgumentParser(epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)")
 

@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
+from logging.config import dictConfig
+
 import connexion
 
 import barman
@@ -24,6 +26,7 @@ from barman import config
 from pg_backup_api.openapi_server import encoder
 
 CONFIG_FILENAME = "/etc/barman.conf"
+LOG_FILENAME = "/var/log/barman/barman-api.log"
 
 
 def create_app():
@@ -47,3 +50,27 @@ def load_barman_config():
     cfg = config.Config(CONFIG_FILENAME)
     barman.__config__ = cfg
     cfg.load_configuration_files_directory()
+
+
+def setup_logging():
+    """
+    Configure logging.
+    """
+    dictConfig(
+        {
+            "version": 1,
+            "formatters": {
+                "default": {
+                    "format": "[%(asctime)s] %(levelname)s:%(module)s: %(message)s",
+                }
+            },
+            "handlers": {
+                "wsgi": {
+                    "class": "logging.FileHandler",
+                    "filename": LOG_FILENAME,
+                    "formatter": "default",
+                }
+            },
+            "root": {"level": "INFO", "handlers": ["wsgi"]},
+        }
+    )
