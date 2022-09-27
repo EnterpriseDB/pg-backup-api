@@ -20,8 +20,9 @@ import connexion
 
 from barman import output
 from pg_backup_api.openapi_server import encoder
-from pg_backup_api.utils import create_app, load_barman_config
+from pg_backup_api.utils import create_app, load_barman_config, setup_logging
 
 load_barman_config()
+setup_logging()
 output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
 application = create_app()
