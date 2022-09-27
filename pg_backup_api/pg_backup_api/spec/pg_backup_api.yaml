@@ -879,9 +879,7 @@ components:
           nullable: true
           type: string
         replication_slot:
-          nullable: true
-          allOf:
-            - $ref: "#/components/schemas/ReplicationSlot"
+          $ref: "#/components/schemas/ReplicationSlot"
         replication_slot_support:
           description: Whether the PostgreSQL server supports replication slots
           nullable: true
@@ -954,6 +952,7 @@ components:
         of the replication slot. The third item MUST be a string containing the LSN
         of the oldest WAL which still might be required by the consumer of this slot.
       type: array
+      nullable: true
       # The best we can do here is to use the any type. OpenAPI 3.0.0 does not let us
       # specify an ordered array of types and openapi-generator does not support
       # workarounds such as using oneOf.
