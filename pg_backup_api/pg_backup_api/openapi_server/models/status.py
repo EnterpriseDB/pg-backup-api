@@ -158,7 +158,7 @@ class Status(Model):
         :param postgresql_systemid: The postgresql_systemid of this Status.  # noqa: E501
         :type postgresql_systemid: str
         :param replication_slot: The replication_slot of this Status.  # noqa: E501
-        :type replication_slot: List
+        :type replication_slot: List[object]
         :param replication_slot_support: The replication_slot_support of this Status.  # noqa: E501
         :type replication_slot_support: bool
         :param server_txt_version: The server_txt_version of this Status.  # noqa: E501
@@ -221,7 +221,7 @@ class Status(Model):
             "pg_receivexlog_synchronous": bool,
             "pg_receivexlog_version": str,
             "postgresql_systemid": str,
-            "replication_slot": List,
+            "replication_slot": List[object],
             "replication_slot_support": bool,
             "server_txt_version": str,
             "stats_reset": str,
@@ -1162,9 +1162,10 @@ class Status(Model):
     def replication_slot(self):
         """Gets the replication_slot of this Status.
 
+        Details of the replication slot being used by Barman on this PostgreSQL server in the form of an ordered array. The first item MUST be a string containing the slot_name. The second item MUST be a boolean reflecting the active state of the replication slot. The third item MUST be a string containing the LSN of the oldest WAL which still might be required by the consumer of this slot.   # noqa: E501
 
         :return: The replication_slot of this Status.
-        :rtype: List
+        :rtype: List[object]
         """
         return self._replication_slot
 
@@ -1172,10 +1173,19 @@ class Status(Model):
     def replication_slot(self, replication_slot):
         """Sets the replication_slot of this Status.
 
+        Details of the replication slot being used by Barman on this PostgreSQL server in the form of an ordered array. The first item MUST be a string containing the slot_name. The second item MUST be a boolean reflecting the active state of the replication slot. The third item MUST be a string containing the LSN of the oldest WAL which still might be required by the consumer of this slot.   # noqa: E501
 
         :param replication_slot: The replication_slot of this Status.
-        :type replication_slot: List
+        :type replication_slot: List[object]
         """
+        if replication_slot is not None and len(replication_slot) > 3:
+            raise ValueError(
+                "Invalid value for `replication_slot`, number of items must be less than or equal to `3`"
+            )  # noqa: E501
+        if replication_slot is not None and len(replication_slot) < 3:
+            raise ValueError(
+                "Invalid value for `replication_slot`, number of items must be greater than or equal to `3`"
+            )  # noqa: E501
 
         self._replication_slot = replication_slot
 
