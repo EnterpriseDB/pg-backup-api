@@ -63,5 +63,6 @@ def setup_logging():
                 }
             },
             "root": {"level": "INFO", "handlers": ["wsgi"]},
+            "disable_existing_loggers": False,
         }
     )
