@@ -66,3 +66,10 @@ def setup_logging():
             "disable_existing_loggers": False,
         }
     )
+
+
+def get_server_by_name(server_name):
+    servers = barman.__config__.server_names()
+    for server in servers:
+        conf = barman.__config__.get_server(server)
+        if server == server_name: return conf
