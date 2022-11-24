@@ -16,15 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import json
+import subprocess
 
-from flask import jsonify
+from flask import abort, jsonify, request
 
 import barman
 from barman import diagnose as barman_diagnose, output
 from barman.server import Server
 
-from pg_backup_api.utils import load_barman_config
+from pg_backup_api.utils import load_barman_config, get_server_by_name
 
 from pg_backup_api.run import app
 
@@ -63,3 +65,47 @@ def diagnose():
 @app.route("/status", methods=["GET"])
 def status():
     return '"OK"'  # If this app isn't running, we obviously won't return!
+
+
+@app.errorhandler(404)
+def resource_not_found(error):
+    return jsonify(error=str(error)), 404
+
+
+@app.route("/servers/<server_name>/operations/<operation_id>")
+def servers_operation_id_get(server_name, operation_id):
+    abort(404, description="Resource not found")
+
+
+@app.route("/servers/<server_name>/operations")
+def servers_operations_get(server_name):
+    message_404 = "'{}' does not exist".format(server_name)
+    abort(404, description=message_404)
+
+
+def servers_operations_post(server_name):
+    backup_id = None
+    request_body = request.get_json()
+    server = get_server_by_name(server_name)
+
+    if server:
+        server_object = Server(server)
+        backup_id = server_object.get_backup(backup_id)
+
+    if not server or not backup_id:
+        message_404 = "Server '{}' and/or Backup '{}' does not exist"\
+                .format(server_name, backup_id)
+        abort(404, description=message_404)
+
+    operation_id = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+    cmd = "pg-backup-api recovery --server-name {} --operation-id {}".format(
+            server_name,
+            operation_id)
+    subprocess.Popen(cmd.split())
+    return { "operation_id": operation_id }
+
+
+@app.route("/servers/<server_name>/operations", methods=('GET', 'POST'))
+def server_operation(server_name):
+    if request.method == 'POST':
+        return servers_operations_post(server_name)
