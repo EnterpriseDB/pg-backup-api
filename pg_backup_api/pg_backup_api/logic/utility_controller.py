@@ -29,6 +29,7 @@ from barman.server import Server
 from pg_backup_api.utils import load_barman_config, get_server_by_name
 
 from pg_backup_api.run import app
+from pg_backup_api.server_operation import ServerOperation, ServerOperationConfigError
 
 
 @app.route("/diagnose", methods=["GET"])
@@ -74,38 +75,62 @@ def resource_not_found(error):
 
 @app.route("/servers/<server_name>/operations/<operation_id>")
 def servers_operation_id_get(server_name, operation_id):
-    abort(404, description="Resource not found")
+    try:
+        operation = ServerOperation(server_name, operation_id)
+        status = operation.get_status_by_operation_id()
+        response = {"recovery_id": operation_id, "status": status}
+
+        return jsonify(response)
+    except ServerOperationConfigError as e:
+        abort(404, description=str(e))
+    except Exception:
+        abort(404, description="Resource not found")
 
 
-@app.route("/servers/<server_name>/operations")
-def servers_operations_get(server_name):
-    message_404 = "'{}' does not exist".format(server_name)
-    abort(404, description=message_404)
-
-
-def servers_operations_post(server_name):
-    backup_id = None
+def servers_operations_post(server_name, request):
     request_body = request.get_json()
+    if not request_body:
+        message_400 = "Minimum barman options not met for server '{}'".format(
+            server_name
+        )
+        abort(400, description=message_400)
+
     server = get_server_by_name(server_name)
 
-    if server:
-        server_object = Server(server)
-        backup_id = server_object.get_backup(backup_id)
+    if not server:
+        message_404 = "Server '{}' does not exist".format(server_name)
+        abort(404, description=message_404)
 
-    if not server or not backup_id:
-        message_404 = "Server '{}' and/or Backup '{}' does not exist"\
-                .format(server_name, backup_id)
+    backup_id = request_body["backup_id"]
+    server_object = Server(server)
+    if not server_object.get_backup(backup_id):
+        message_404 = "Backup '{}' does not exist".format(server_name)
         abort(404, description=message_404)
 
     operation_id = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+    operation = ServerOperation(server_name, operation_id=operation_id)
+
+    try:
+        operation.write_jobs_files(request_body)
+    except KeyError:
+        message_400 = "Make sure all options/arguments are met and try again"
+        abort(400, description=message_400)
+
     cmd = "pg-backup-api recovery --server-name {} --operation-id {}".format(
-            server_name,
-            operation_id)
+        server_name, operation_id
+    )
     subprocess.Popen(cmd.split())
-    return { "operation_id": operation_id }
+    return {"operation_id": operation_id}
 
 
-@app.route("/servers/<server_name>/operations", methods=('GET', 'POST'))
+@app.route("/servers/<server_name>/operations", methods=("GET", "POST"))
 def server_operation(server_name):
-    if request.method == 'POST':
-        return servers_operations_post(server_name)
+    if request.method == "POST":
+        return jsonify(servers_operations_post(server_name, request)), 202
+
+    try:
+        operation = ServerOperation(server_name)
+        available_operations = {"operations": operation.get_operations_list()}
+        return jsonify(available_operations)
+    except ServerOperationConfigError as e:
+        abort(404, description=str(e))
