@@ -23,6 +23,8 @@ from flask import Flask
 import barman
 from barman import config
 
+API_CONFIG = {"supported_options": ("remote_ssh_command",)}
+
 CONFIG_FILENAME = "/etc/barman.conf"
 LOG_FILENAME = "/var/log/barman/barman-api.log"
 
@@ -72,4 +74,5 @@ def get_server_by_name(server_name):
     servers = barman.__config__.server_names()
     for server in servers:
         conf = barman.__config__.get_server(server)
-        if server == server_name: return conf
+        if server == server_name:
+            return conf
