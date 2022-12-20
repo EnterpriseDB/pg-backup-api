@@ -3,6 +3,21 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "1.1.0"
+    date: "20230127"
+    changes:
+      Notable changes:
+        - "Adding two new endpoints to perform recoveries with barman."
+        - |
+          The baseurl is /servers/<server_name>/operations and it can be used
+          to display all operations and to create new ones.
+          An <operation_id> can be added to get the status of an operation
+          created as in /servers/<server_name>/operations/<operation_id>
+        - |
+          `recovery` as option was added to the command line in order to run
+          barman recovery
+          `pg-backup-api recovery --server-name SERVER_NAME --operation-id ID`
+
   - version: "1.0.0"
     date: "20221013"
     changes:

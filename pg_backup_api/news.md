@@ -2,6 +2,20 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2022 - All rights reserved.
 
+## 1.1.0 (2023-01-27)
+
+### Notable changes
+
+- Adding two new endpoints to perform recoveries with barman.
+
+- The baseurl is /servers/<server_name>/operations and it can be used to
+  display all operations and to create new ones. An <operation_id> can be added
+  to get the status of an operation created as in
+  /servers/<server_name>/operations/<operation_id>
+
+- `recovery` as option was added to the command line in order to run barman
+  recovery `pg-backup-api recovery --server-name SERVER_NAME --operation-id ID`
+
 ## 1.0.0 (2022-10-13)
 
 ### Notable changes
