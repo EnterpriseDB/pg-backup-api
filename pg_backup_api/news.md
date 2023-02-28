@@ -2,6 +2,12 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2022 - All rights reserved.
 
+## 1.1.1 (2023-03-01)
+
+### Notable changes
+
+- Displaying the right message when pg-backup-api received no args.
+
 ## 1.1.0 (2023-01-27)
 
 ### Notable changes
