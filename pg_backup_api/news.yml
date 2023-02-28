@@ -3,6 +3,12 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "1.1.1"
+    date: "20230301"
+    changes:
+      Notable changes:
+        - "Displaying the right message when pg-backup-api received no args."
+
   - version: "1.1.0"
     date: "20230127"
     changes:
