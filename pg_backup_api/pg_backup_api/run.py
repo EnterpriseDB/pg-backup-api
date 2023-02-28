@@ -126,7 +126,10 @@ def main():
     p_ops.set_defaults(func=recovery_operation)
 
     args = p.parse_args()
-    return args.func(args)
+    if hasattr(args, "func") is False:
+        p.print_help()
+    else:
+        return args.func(args)
 
 
 if __name__ == "__main__":
