@@ -41,7 +41,8 @@ jobs:
       id: sbom-report
       shell: bash
       run: |
-       ./.github/workflows/blackduck/get_bd_sbom.sh ${{ secrets.BLACKDUCK_URL }} ${{ secrets.BLACKDUCK_API_TOKEN }} ${{ github.event.repository.name }} ${{ github.ref_type }}/${{ github.ref_name }}
+        chmod +x ./.github/workflows/blackduck/get_bd_sbom.sh
+        ./.github/workflows/blackduck/get_bd_sbom.sh ${{ secrets.BLACKDUCK_URL }} ${{ secrets.BLACKDUCK_API_TOKEN }} ${{ github.event.repository.name }} ${{ github.ref_type }}/${{ github.ref_name }}
 
     - name: Set current date as env variable
       id: get-date
@@ -61,7 +62,7 @@ jobs:
       run: |
         cd /tmp/reports/ ;
         mv ${{ env.pdf-name }} ${{ env.NOW }}-${{ env.pdf-name }};
-        mv sbom.zip ${{ env.NOW }}-${{ github.event.repository.name }}-${{ github.ref_name }}-sbom.zip;
+        mv sbom.zip ${{ env.NOW }}-${{ github.event.repository.name }}-`echo ${{ github.ref_name }}| sed -e 's/\//-/g'`-sbom.zip;
 
     - name: Create report artifact
       id: create-report-artifact
