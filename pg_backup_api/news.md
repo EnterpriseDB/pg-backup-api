@@ -2,6 +2,13 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2023 - All rights reserved.
 
+## 1.2.0 (2023-03-29)
+
+### Notable changes
+
+- Drop support for python 2.7. The earliest python version supported is now
+  3.6.
+
 ## 1.1.1 (2023-03-01)
 
 ### Notable changes

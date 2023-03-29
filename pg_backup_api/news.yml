@@ -3,6 +3,14 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "1.2.0"
+    date: "20230329"
+    changes:
+      Notable changes:
+        - |
+          Drop support for python 2.7. The earliest python version supported
+          is now 3.6.
+
   - version: "1.1.1"
     date: "20230301"
     changes:
