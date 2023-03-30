@@ -104,7 +104,7 @@ def servers_operations_post(server_name, request):
     server_object = Server(server)
     backup_id = parse_backup_id(server_object, request_body["backup_id"])
     if not backup_id:
-        message_404 = "Backup '{}' does not exist".format(server_name)
+        message_404 = "Backup '{}' does not exist".format(backup_id)
         abort(404, description=message_404)
 
     operation_id = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
