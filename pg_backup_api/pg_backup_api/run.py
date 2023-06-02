@@ -29,7 +29,6 @@ from pg_backup_api.utils import (
     API_CONFIG,
     create_app,
     load_barman_config,
-    setup_logging,
 )
 from pg_backup_api.server_operation import ServerOperation
 
@@ -104,8 +103,6 @@ def main():
     """
     Main method of the Postgres Backup API API app
     """
-    setup_logging()
-
     p = argparse.ArgumentParser(
         epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)"
     )

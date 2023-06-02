@@ -45,7 +45,7 @@ def load_barman_config():
     cfg.load_configuration_files_directory()
 
 
-def setup_logging():
+def setup_logging_for_wsgi_server():
     """
     Configure logging.
     """
