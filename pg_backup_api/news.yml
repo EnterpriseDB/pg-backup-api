@@ -3,6 +3,16 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "1.3.0"
+    date: "20230713"
+    changes:
+      Notable changes:
+        - Ability to parse and recognise Barman shortcuts like `latest` or `oldest`.
+        - |
+          Access to barman-api.log is now only required when running under a WSGI
+          server. This means pg-backup-api commands like status will no longer fail
+          if they are executed by a user that cannot access barman-api.log.`
+
   - version: "1.2.0"
     date: "20230329"
     changes:
