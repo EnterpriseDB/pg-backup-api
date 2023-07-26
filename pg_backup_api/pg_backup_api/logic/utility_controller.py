@@ -26,7 +26,7 @@ import barman
 from barman import diagnose as barman_diagnose, output
 from barman.server import Server
 
-from pg_backup_api.utils import load_barman_config, get_server_by_name
+from pg_backup_api.utils import load_barman_config, get_server_by_name, parse_backup_id
 
 from pg_backup_api.run import app
 from pg_backup_api.server_operation import ServerOperation, ServerOperationConfigError
@@ -101,9 +101,9 @@ def servers_operations_post(server_name, request):
         message_404 = "Server '{}' does not exist".format(server_name)
         abort(404, description=message_404)
 
-    backup_id = request_body["backup_id"]
     server_object = Server(server)
-    if not server_object.get_backup(backup_id):
+    backup_id = parse_backup_id(server_object, request_body["backup_id"])
+    if not backup_id:
         message_404 = "Backup '{}' does not exist".format(backup_id)
         abort(404, description=message_404)
 

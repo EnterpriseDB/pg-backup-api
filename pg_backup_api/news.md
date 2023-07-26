@@ -2,6 +2,16 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2023 - All rights reserved.
 
+## 1.3.0 (2023-07-13)
+
+### Notable changes
+
+- Ability to parse and recognise Barman shortcuts like `latest` or `oldest`.
+
+- Access to barman-api.log is now only required when running under a WSGI
+  server. This means pg-backup-api commands like status will no longer fail
+  if they are executed by a user that cannot access barman-api.log.`
+
 ## 1.2.0 (2023-03-29)
 
 ### Notable changes

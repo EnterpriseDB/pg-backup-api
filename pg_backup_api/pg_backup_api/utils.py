@@ -22,6 +22,7 @@ from flask import Flask
 
 import barman
 from barman import config
+from barman.infofile import BackupInfo
 
 API_CONFIG = {"supported_options": ("remote_ssh_command",)}
 
@@ -45,7 +46,7 @@ def load_barman_config():
     cfg.load_configuration_files_directory()
 
 
-def setup_logging():
+def setup_logging_for_wsgi_server():
     """
     Configure logging.
     """
@@ -76,3 +77,14 @@ def get_server_by_name(server_name):
         conf = barman.__config__.get_server(server)
         if server == server_name:
             return conf
+
+
+def parse_backup_id(server, backup_id):
+    if backup_id in ("latest", "last"):
+        backup_id = server.get_last_backup_id()
+    elif backup_id in ("oldest", "first"):
+        backup_id = server.get_first_backup_id()
+    elif args.backup_id in ("last-failed"):
+        backup_id = server.get_last_backup_id([BackupInfo.FAILED])
+
+    return server.get_backup(backup_id)
