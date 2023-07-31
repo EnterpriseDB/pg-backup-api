@@ -20,6 +20,7 @@
 import argparse
 import requests
 import subprocess
+import sys
 
 from requests.exceptions import ConnectionError
 
@@ -45,15 +46,18 @@ def serve(args):
     output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
 
     # bc currently only the PEM agent will be connecting, only run on localhost
-    app.run(host="127.0.0.1", port=args.port)
+    run = app.run(host="127.0.0.1", port=args.port)
+    return (run, True)
 
 
 def status(args):
+    message = "OK"
     try:
         requests.get("http://127.0.0.1:{args.port}/status".format(args=args))
     except ConnectionError:
-        return "The Postgres Backup API does not appear to be available."
-    return "OK"
+        message = "The Postgres Backup API does not appear to be available."
+
+    return (message, True if message == "OK" else False)
 
 
 def run_and_return_barman_recover(options, barman_args):
@@ -96,7 +100,7 @@ def recovery_operation(args):
     content["end_time"] = end_time
     content["output"] = output.decode() if isinstance(output, bytes) else output
 
-    server_ops.create_output_file(content)
+    return (server_ops.create_output_file(content), success)
 
 
 def main():
@@ -125,9 +129,13 @@ def main():
     args = p.parse_args()
     if hasattr(args, "func") is False:
         p.print_help()
+        ret = True
     else:
-        return args.func(args)
+        output, ret = args.func(args)
+
+    return ret
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = 0 if main() is True else -1
+    sys.exit(exit_code)
