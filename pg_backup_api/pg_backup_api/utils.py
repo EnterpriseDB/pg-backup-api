@@ -73,8 +73,7 @@ def setup_logging_for_wsgi_server():
 
 
 def get_server_by_name(server_name):
-    servers = barman.__config__.server_names()
-    for server in servers:
+    for server in barman.__config__.server_names():
         conf = barman.__config__.get_server(server)
         if server == server_name:
             return conf
