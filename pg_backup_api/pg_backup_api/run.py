@@ -60,7 +60,8 @@ def status(args):
 
 def run_and_return_barman_recover(options, barman_args):
     cmd = "barman recover".split() + options + barman_args
-    process = subprocess.Popen(cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+    process = subprocess.Popen(cmd, stderr=subprocess.STDOUT,
+                               stdout=subprocess.PIPE)
     stdout, _ = process.communicate()
 
     return (stdout, process.returncode)
@@ -89,6 +90,7 @@ def recovery_operation(args):
     barman_args.append(content["destination_directory"])
 
     output, retcode = run_and_return_barman_recover(options, barman_args)
+    output = output.decode() if isinstance(output, bytes) else output
     success = True
     if retcode:
         success = False
@@ -96,6 +98,6 @@ def recovery_operation(args):
     end_time = server_ops.time_event_now()
     content["success"] = success
     content["end_time"] = end_time
-    content["output"] = output.decode() if isinstance(output, bytes) else output
+    content["output"] = output
 
     return (server_ops.create_output_file(content), success)
