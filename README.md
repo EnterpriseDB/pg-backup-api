@@ -63,8 +63,8 @@ from the [pg-backup-api-packaging repo](https://github.com/EnterpriseDB/pg-backu
 If you have installed the `pg-backup-api` package, the package installation puts
 the service and configuration files in the right place for you.
 
-Once the systemd services are in the right place, run the following command to
-enable `pg-backup-api` startup on machine boot, and immediatelly start it:
+Once the systemd services are in place, run the following command to enable
+`pg-backup-api` startup on machine boot, and immediatelly start it:
 
 ```bash
 systemctl enable pg-backup-api --now
