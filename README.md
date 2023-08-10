@@ -1,6 +1,6 @@
 # pg-backup-api
 
-A server that provides an REST API to interact with Barman.
+A server that provides an REST API to interact with Postgres backups.
 
 ## Installation
 
@@ -52,13 +52,45 @@ the `Service` section.
 
 ### Service
 
-If you intend to run `pg-backup-api` from a local source directory, then you
-need to set up the `pg-backup-api` service. You need to copy a couple files
-from the [pg-backup-api-packaging repo](https://github.com/EnterpriseDB/pg-backup-api-packaging):
+When running `pg-backup-api` as a service we set up the application to run
+through `gunicorn`. Please install `gunicorn` before proceeding if it is missing
+in your environment.
 
-1. Copy `packaging/etc/systemd/system/pg-backup-api.service.in` to
-   `/etc/systemd/system/pg-backup-api.service`
-2. Copy `packaging/etc/pg-backup-api-config.py` to `/etc/pg-backup-api-config.py`
+If you intend to run `pg-backup-api` from a local source directory, then you
+need to set up the `pg-backup-api` service. Follow these steps:
+
+1. Create the gunicorn configuration file at `/etc/pg-backup-api-config.py` with
+the following content:
+
+```ini
+#Log and error access file
+accesslog = "/var/log/barman/barman-api-access.log"
+errorlog = "/var/log/barman/barman-api-error.log"
+
+timeout = 60                    # seconds
+
+bind = "localhost:7480"         # By default the service binds on localhost only
+                                # If you need to change it and listen to in all interfaces,
+                                # you could set "bind 0.0.0.0:7480"
+```
+
+2. Create the systemd unit at `/etc/systemd/system/pg-backup-api.service` with
+   the following content:
+
+```ini
+[Unit]
+Description=Postgres Backup API
+
+[Service]
+Type=simple
+User=barman
+Group=barman
+ExecStart=/usr/bin/gunicorn -c /etc/pg-backup-api-config.py pg_backup_api.app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
 
 If you have installed the `pg-backup-api` package, the package installation puts
 the service and configuration files in the right place for you.
@@ -94,8 +126,3 @@ python3 -m pytest
 
 **Note:** install `pytest` Python module if you don't have it yet in your
 environment.
-
-## Releasing
-
-Follow the process documented in the
-[pg-backup-api-packaging repo](https://github.com/EnterpriseDB/pg-backup-api-packaging).
