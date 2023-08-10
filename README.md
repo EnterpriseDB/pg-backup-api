@@ -46,12 +46,22 @@ pg-backup-api serve
 behavior by passing `--port N` to `serve` command, `N` being the port to listen
 on.
 
+The above comand will start up the REST API as a development server. If you
+want to run the REST API as an WSGI application, use the approach described in
+the `Service` section.
+
 ### Service
 
-If you are running `pg-backup-api` from a local source directory, copy
-`pg-backup-api/packaging/pg-backup-api.service` to `/etc/systemd/system/`. If
-you've installed `pg-backup-api` as a package, installation puts the service
-file in the right place for you.
+If you intend to run `pg-backup-api` from a local source directory, then you
+need to set up the `pg-backup-api` service. You need to copy a couple files
+from the [pg-backup-api-packaging repo](https://github.com/EnterpriseDB/pg-backup-api-packaging):
+
+1. Copy `packaging/etc/systemd/system/pg-backup-api.service.in` to
+   `/etc/systemd/system/pg-backup-api.service`
+2. Copy `packaging/etc/pg-backup-api-config.py` to `/etc/pg-backup-api-config.py`
+
+If you have installed the `pg-backup-api` package, the package installation puts
+the service and configuration files in the right place for you.
 
 Once the systemd services are in the right place, run the following command to
 enable `pg-backup-api` startup on machine boot, and immediatelly start it:
@@ -59,6 +69,9 @@ enable `pg-backup-api` startup on machine boot, and immediatelly start it:
 ```bash
 systemctl enable pg-backup-api --now
 ```
+
+**Note:** by default the `pg-backup-api` service runs on port `7480`. You can
+override that behavior by changing the port in `/etc/pg-backup-api-config.py`.
 
 ### Verify the app
 
