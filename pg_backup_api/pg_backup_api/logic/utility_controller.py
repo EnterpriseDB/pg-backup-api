@@ -109,7 +109,7 @@ def servers_operations_post(server_name, request):
     operation = ServerOperation(server_name, operation_id=operation_id)
 
     try:
-        operation.write_jobs_files(request_body)
+        operation.create_job_file(request_body)
     except KeyError:
         msg_400 = "Make sure all options/arguments are met and try again"
         abort(400, description=msg_400)

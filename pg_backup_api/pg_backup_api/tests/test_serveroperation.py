@@ -50,7 +50,7 @@ def test_instance_methods(monkeypatch):
 
     obj = ServerOperation('arg')
     public_methods = ('get_operations_list', 'get_status_by_operation_id',
-                      'copy_and_validate_options', 'write_jobs_files',
+                      'copy_and_validate_options', 'create_job_file',
                       'create_output_file', 'get_job_file_content',
                       'get_output_file', 'get_job_file')
     for check in public_methods:

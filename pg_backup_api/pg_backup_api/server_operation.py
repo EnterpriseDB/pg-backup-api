@@ -74,15 +74,17 @@ class ServerOperation(Metadata):
 
         return job_data
 
-    def write_jobs_files(self, general_options):
-        for directory in (self.jobs_basedir, self.output_basedir):
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+    def create_job_file(self, general_options):
+        if not os.path.exists(self.jobs_basedir):
+            os.makedirs(self.jobs_basedir)
 
         job_data = self.copy_and_validate_options(general_options)
         self.__create_file(self.jobs_basedir, job_data)
 
     def create_output_file(self, content_file):
+        if not os.path.exists(self.output_basedir):
+            os.makedirs(self.output_basedir)
+
         self.__create_file(self.output_basedir, content_file)
 
     def __create_file(self, file_type, content):
@@ -140,7 +142,7 @@ if __name__ == "__main__":
 
     operations_commands = {
         "list-operations": "get_operations_list",
-        "create-operation": "write_jobs_files",
+        "create-operation": "create_job_file",
         "get-operation": "get_status_by_operation_id",
     }
     parser = argparse.ArgumentParser()
