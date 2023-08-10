@@ -145,10 +145,27 @@ if __name__ == "__main__":
         "create-operation": "create_job_file",
         "get-operation": "get_status_by_operation_id",
     }
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--server-name", required=True)
-    parser.add_argument("--operation-id")
-    parser.add_argument("command", choices=operations_commands.keys())
+    parser = argparse.ArgumentParser(
+        description="Alternative to the REST API, so one can list, create and "
+                    "get information about jobs without a running REST API.",
+    )
+    parser.add_argument(
+        "--server-name", required=True,
+        help="Name of the Barman server related to the recovery "
+             "operation.",
+    )
+    parser.add_argument(
+        "--operation-id",
+        help="ID of the recovery operation, if you are trying to query an "
+             "existing operation."
+    )
+    parser.add_argument(
+        "command",
+        choices=operations_commands.keys(),
+        help="What we should do -- list recovery operations, create a new "
+             "recovery operation, or get info about a specific recovery "
+             "operation.",
+    )
 
     args = parser.parse_args()
     op = ServerOperation(args.server_name, args.operation_id)
