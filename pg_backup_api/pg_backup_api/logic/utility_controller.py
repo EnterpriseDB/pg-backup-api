@@ -48,8 +48,7 @@ def diagnose():
             # Unknown server
             server_dict[server] = None
         else:
-            server_object = Server(conf)
-            server_dict[server] = server_object
+            server_dict[server] = Server(conf)
 
     # errors list with duplicate paths between servers
     errors_list = barman.__config__.servers_msg_list
@@ -101,8 +100,7 @@ def servers_operations_post(server_name, request):
         msg_404 = f"Server '{server_name}' does not exist"
         abort(404, description=msg_404)
 
-    server_object = Server(server)
-    backup_id = parse_backup_id(server_object, request_body["backup_id"])
+    backup_id = parse_backup_id(Server(server), request_body["backup_id"])
     if not backup_id:
         msg_404 = f"Backup '{backup_id}' does not exist"
         abort(404, description=msg_404)
