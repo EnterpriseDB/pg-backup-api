@@ -32,9 +32,9 @@ class Metadata(object):
                 f"No barman config found for '{server_name}'."
             )
 
-        BARMAN_HOME = barman.__config__.barman_home
-        self.jobs_basedir = join(BARMAN_HOME, server_name, JOBS_DIR)
-        self.output_basedir = join(BARMAN_HOME, server_name, OUTPUT_DIR)
+        barman_home = barman.__config__.barman_home
+        self.jobs_basedir = join(barman_home, server_name, JOBS_DIR)
+        self.output_basedir = join(barman_home, server_name, OUTPUT_DIR)
 
 
 class ServerOperation(Metadata):
