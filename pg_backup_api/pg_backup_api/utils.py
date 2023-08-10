@@ -50,12 +50,13 @@ def setup_logging_for_wsgi_server():
     """
     Configure logging.
     """
+    log_format = "[%(asctime)s] %(levelname)s:%(module)s: %(message)s"
     dictConfig(
         {
             "version": 1,
             "formatters": {
                 "default": {
-                    "format": "[%(asctime)s] %(levelname)s:%(module)s: %(message)s",
+                    "format": log_format,
                 }
             },
             "handlers": {
@@ -84,7 +85,7 @@ def parse_backup_id(server, backup_id):
         backup_id = server.get_last_backup_id()
     elif backup_id in ("oldest", "first"):
         backup_id = server.get_first_backup_id()
-    elif args.backup_id in ("last-failed"):
+    elif backup_id in ("last-failed"):
         backup_id = server.get_last_backup_id([BackupInfo.FAILED])
 
     return server.get_backup(backup_id)
