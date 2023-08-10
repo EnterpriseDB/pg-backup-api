@@ -3,10 +3,9 @@ import json
 import logging
 import os
 import sys
-import tempfile
 
 from datetime import datetime
-from os.path import join, exists
+from os.path import join
 
 from pg_backup_api.utils import barman, load_barman_config, get_server_by_name
 
@@ -41,8 +40,9 @@ class Metadata(object):
 class ServerOperation(Metadata):
     def get_operations_list(self):
         jobs_list = []
-        if os.path.exists(self.jobs_basedir):
-            for job in [files for _, _, files in os.walk(self.jobs_basedir)][0]:
+        jobs_basedir = self.jobs_basedir
+        if os.path.exists(jobs_basedir):
+            for job in [files for _, _, files in os.walk(jobs_basedir)][0]:
                 if job.endswith(".json"):
                     operation_id, _ = job.split(".json")
                     jobs_list.append(operation_id)
@@ -128,7 +128,7 @@ def main(callback):
 
     try:
         log.info(callback())
-    except Exception(e):
+    except Exception as e:
         # TODO: we might behave differently depending upon the type here
         log.error(e)
         return -1
