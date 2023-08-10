@@ -17,10 +17,8 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import argparse
 import requests
 import subprocess
-import sys
 
 from requests.exceptions import ConnectionError
 
@@ -101,41 +99,3 @@ def recovery_operation(args):
     content["output"] = output.decode() if isinstance(output, bytes) else output
 
     return (server_ops.create_output_file(content), success)
-
-
-def main():
-    """
-    Main method of the Postgres Backup API API app
-    """
-    p = argparse.ArgumentParser(
-        epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)"
-    )
-
-    subparsers = p.add_subparsers()
-
-    p_serve = subparsers.add_parser("serve")
-    p_serve.add_argument("--port", type=int, default=7480)
-    p_serve.set_defaults(func=serve)
-
-    p_status = subparsers.add_parser("status")
-    p_status.add_argument("--port", type=int, default=7480)
-    p_status.set_defaults(func=status)
-
-    p_ops = subparsers.add_parser("recovery")
-    p_ops.add_argument("--server-name", required=True)
-    p_ops.add_argument("--operation-id", required=True)
-    p_ops.set_defaults(func=recovery_operation)
-
-    args = p.parse_args()
-    if hasattr(args, "func") is False:
-        p.print_help()
-        ret = True
-    else:
-        output, ret = args.func(args)
-
-    return ret
-
-
-if __name__ == "__main__":
-    exit_code = 0 if main() is True else -1
-    sys.exit(exit_code)
