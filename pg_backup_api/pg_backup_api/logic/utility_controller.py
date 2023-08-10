@@ -92,21 +92,19 @@ def servers_operation_id_get(server_name, operation_id):
 def servers_operations_post(server_name, request):
     request_body = request.get_json()
     if not request_body:
-        message_400 = "Minimum barman options not met for server '{}'".format(
-            server_name
-        )
+        message_400 = f"Minimum barman options not met for server '{server_name}'"
         abort(400, description=message_400)
 
     server = get_server_by_name(server_name)
 
     if not server:
-        message_404 = "Server '{}' does not exist".format(server_name)
+        message_404 = f"Server '{server_name}' does not exist"
         abort(404, description=message_404)
 
     server_object = Server(server)
     backup_id = parse_backup_id(server_object, request_body["backup_id"])
     if not backup_id:
-        message_404 = "Backup '{}' does not exist".format(backup_id)
+        message_404 = f"Backup '{backup_id}' does not exist"
         abort(404, description=message_404)
 
     operation_id = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
@@ -118,9 +116,7 @@ def servers_operations_post(server_name, request):
         message_400 = "Make sure all options/arguments are met and try again"
         abort(400, description=message_400)
 
-    cmd = "pg-backup-api recovery --server-name {} --operation-id {}".format(
-        server_name, operation_id
-    )
+    cmd = f"pg-backup-api recovery --server-name {server_name} --operation-id {operation_id}"
     subprocess.Popen(cmd.split())
     return {"operation_id": operation_id}
 

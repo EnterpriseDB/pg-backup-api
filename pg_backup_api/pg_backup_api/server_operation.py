@@ -29,7 +29,7 @@ class Metadata(object):
         self.server_config = get_server_by_name(server_name)
         if not self.server_config:
             raise ServerOperationConfigError(
-                "No barman config found for '{}'.".format(server_name)
+                f"No barman config found for '{server_name}'."
             )
 
         BARMAN_HOME = barman.__config__.barman_home
@@ -89,7 +89,7 @@ class ServerOperation(Metadata):
         if not self.operation_id:
             raise Exception("operation_id is required here")
 
-        file_name = "{}.json".format(self.operation_id)
+        file_name = f"{self.operation_id}.json"
         fpath = join(file_type, file_name)
         if os.path.exists(fpath):
             raise Exception("duplicated operation-id")
@@ -109,13 +109,13 @@ class ServerOperation(Metadata):
 
     def __files_path(self, basedir):
         if not os.path.exists(basedir):
-            msg = "Couldn't find a task for server '{}'".format(self.server_name)
+            msg = f"Couldn't find a task for server '{self.server_name}'"
             raise Exception(msg)
 
         if not self.operation_id:
             raise Exception("operation_id is required here")
 
-        file_name = "{}.json".format(self.operation_id)
+        file_name = f"{self.operation_id}.json"
         fpath = join(basedir, file_name)
         return fpath
 

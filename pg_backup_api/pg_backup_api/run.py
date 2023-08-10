@@ -51,7 +51,7 @@ def serve(args):
 def status(args):
     message = "OK"
     try:
-        requests.get("http://127.0.0.1:{args.port}/status".format(args=args))
+        requests.get(f"http://127.0.0.1:{args.port}/status")
     except ConnectionError:
         message = "The Postgres Backup API does not appear to be available."
 
@@ -73,7 +73,7 @@ def extract_options_from_file(jobfile_content):
     for option_name in API_CONFIG["supported_options"]:
         if option_name in available_keys:
             cmd_option = option_name.replace("_", "-")
-            options.append("--{}".format(cmd_option))
+            options.append(f"--{cmd_option}")
             options.append(jobfile_content[option_name])
     return options
 
