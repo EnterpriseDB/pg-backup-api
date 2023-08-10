@@ -16,4 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
-import pg_backup_api.logic.utility_controller
+import pg_backup_api.logic.utility_controller  # noqa: F401
