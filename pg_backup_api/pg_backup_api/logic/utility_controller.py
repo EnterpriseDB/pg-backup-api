@@ -26,10 +26,12 @@ import barman
 from barman import diagnose as barman_diagnose, output
 from barman.server import Server
 
-from pg_backup_api.utils import load_barman_config, get_server_by_name, parse_backup_id
+from pg_backup_api.utils import (load_barman_config, get_server_by_name,
+                                 parse_backup_id)
 
 from pg_backup_api.run import app
-from pg_backup_api.server_operation import ServerOperation, ServerOperationConfigError
+from pg_backup_api.server_operation import (ServerOperation,
+                                            ServerOperationConfigError)
 
 
 @app.route("/diagnose", methods=["GET"])
