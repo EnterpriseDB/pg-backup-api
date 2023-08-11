@@ -15,3 +15,5 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Turn ``pg_backup_api.logic`` into a Python package."""
