@@ -35,14 +35,14 @@ from pg_backup_api.run import app
 from pg_backup_api.server_operation import (ServerOperation,
                                             ServerOperationConfigError)
 
-if TYPE_CHECKING:  # pramga: no cover
+if TYPE_CHECKING:  # pragma: no cover
     from flask import Request, Response
 
 
 @app.route("/diagnose", methods=["GET"])
-def diagnose() -> Response:
+def diagnose() -> 'Response':
     """
-    ``Handle GET`` request to ``/diagnose``.
+    Handle ``GET`` request to ``/diagnose``.
 
     Get ``barman diagnose`` output.
 
@@ -89,7 +89,7 @@ def status() -> str:
 
 
 @app.errorhandler(404)
-def resource_not_found(error: Any) -> Tuple[Response, int]:
+def resource_not_found(error: Any) -> Tuple['Response', int]:
     """
     Configure a handler for HTTP 404 responses.
 
@@ -103,7 +103,8 @@ def resource_not_found(error: Any) -> Tuple[Response, int]:
 
 
 @app.route("/servers/<server_name>/operations/<operation_id>")
-def servers_operation_id_get(server_name: str, operation_id: str) -> Response:
+def servers_operation_id_get(server_name: str, operation_id: str) \
+        -> 'Response':
     """
     ``GET`` request to ``/servers/*server_name*/operations/*operation_id*``.
 
@@ -114,7 +115,7 @@ def servers_operation_id_get(server_name: str, operation_id: str) -> Response:
         operation.
     :param operation_id: ID of the recovery operation previously created
         through pg-backup-api.
-    :return: if *server_name* and *operation_id* are valid, return an JSON
+    :return: if *server_name* and *operation_id* are valid, return a JSON
         response containing these keys:
 
         * ``recovery_id``: the same as *operation_id*;
@@ -137,7 +138,7 @@ def servers_operation_id_get(server_name: str, operation_id: str) -> Response:
 
 
 def servers_operations_post(server_name: str,
-                            request: Request) -> Dict[str, str]:
+                            request: 'Request') -> Dict[str, str]:
     """
     Handle ``POST`` request to ``/servers/*server_name*/operations``.
 
@@ -147,7 +148,7 @@ def servers_operations_post(server_name: str,
         function. Should contain a JSON body with a ``backup_id`` key,
         containing the ID of the backup to be recovered.
     :return: if *server_name* and the ``backup_id`` informed through the
-        ``POST`` request are valid, return an JSON response containing a key
+        ``POST`` request are valid, return a JSON response containing a key
         ``operation_id`` with the ID of the operation that has been created.
 
         Otherwise, if any issue is identified, return a response with either of
@@ -196,12 +197,12 @@ def servers_operations_post(server_name: str,
 
 @app.route("/servers/<server_name>/operations", methods=("GET", "POST"))
 def server_operation(server_name: str) \
-        -> Union[Tuple[Response, int], Response]:
+        -> Union[Tuple['Response', int], 'Response']:
     """
     Handle ``GET``/``POST`` request to ``/servers/*server_name*/operations``.
 
-    Get a list of recovery operations for *server_name*, if an ``GET`` request,
-    or create a new recovery operation for *server_name*, if an ``POST``
+    Get a list of recovery operations for *server_name*, if a ``GET`` request,
+    or create a new recovery operation for *server_name*, if a ``POST``
     request.
 
     :param server_name: name of the Barman server related to the recovery
@@ -209,10 +210,10 @@ def server_operation(server_name: str) \
 
     :return: the returned response varies:
 
-        * If a successful ``GET`` request, then return an JSON response with
+        * If a successful ``GET`` request, then return a JSON response with
           ``operations`` key containing a list of IDs of recovery operations
           for Barman server *server_name*;
-        * If a successful ``POST`` request, then return an JSON response with
+        * If a successful ``POST`` request, then return a JSON response with
           HTTP status ``202`` containing an ``operation_id`` key with the ID
           of the recovery operation that has been created for the Barman server
           *server_name*;

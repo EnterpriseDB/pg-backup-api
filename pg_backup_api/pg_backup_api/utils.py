@@ -17,7 +17,7 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Utilitary functions and constants used through pg-backup-api code.
+Utility functions and constants used through pg-backup-api code.
 
 :var API_CONFIG: configuration of pg-backup-api. The ``supported_options`` key
     contains a tuple of supported options for ``barman recover`` command.
@@ -43,7 +43,7 @@ CONFIG_FILENAME = "/etc/barman.conf"
 LOG_FILENAME = "/var/log/barman/barman-api.log"
 
 
-def create_app() -> flask.app.Flask:
+def create_app() -> 'flask.app.Flask':
     """
     Create the connexion app with the required API.
 
@@ -92,7 +92,7 @@ def setup_logging_for_wsgi_server() -> None:
     )
 
 
-def get_server_by_name(server_name: str) -> Optional[ServerConfig]:
+def get_server_by_name(server_name: str) -> Optional['ServerConfig']:
     """
     Get configuration of a Barman server based on the *server_name*.
 
@@ -113,7 +113,7 @@ def parse_backup_id(server: barman.server.Server,
 
     :param server: server from which to get a backup.
     :param backup_id: ID of the backup to be retrieved. It accepts a few
-        wildcards:
+        aliases:
 
         * ``latest``/``last``: to get the latest backup;
         * ``oldest``/``first``: to get the oldest backup;

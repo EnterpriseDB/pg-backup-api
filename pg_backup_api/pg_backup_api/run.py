@@ -43,7 +43,7 @@ if TYPE_CHECKING:  # pragma: no cover
 app = create_app()
 
 
-def serve(args: argparse.Namespace) -> Tuple[None, bool]:
+def serve(args: 'argparse.Namespace') -> Tuple[None, bool]:
     """
     Run the Postgres Backup API app.
 
@@ -67,7 +67,7 @@ def serve(args: argparse.Namespace) -> Tuple[None, bool]:
     return (run, True)
 
 
-def status(args: argparse.Namespace) -> Tuple[str, bool]:
+def status(args: 'argparse.Namespace') -> Tuple[str, bool]:
     """
     Check Postgres Backup API app status.
 
@@ -131,7 +131,7 @@ def extract_options_from_file(jobfile_content: Dict[str, str]) -> List[str]:
     return options
 
 
-def recovery_operation(args: argparse.Namespace) -> Tuple[None, bool]:
+def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
     """
     Perform a ``barman recover`` through the pg-backup-api.
 

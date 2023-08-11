@@ -19,8 +19,8 @@
 """
 Used when running pg-backup-api REST API server as an WSGI application.
 
-Load Barman configuration, set up logging for WSGI, and set up an JSON console
-output writter.
+Load Barman configuration, set up logging for WSGI, and set up a JSON console
+output writer.
 
 .. note::
     This is designed for production usage, while the ``pg-backup-api serve``
