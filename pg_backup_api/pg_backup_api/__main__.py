@@ -16,15 +16,22 @@
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Implement pg-backup-api CLI main entry-point."""
 import argparse
 import sys
 
 from pg_backup_api.run import serve, status, recovery_operation
 
 
-def main():
+def main() -> None:
     """
-    Main method of the Postgres Backup API app
+    Main method of the Postgres Backup API app.
+
+    Create the CLI of the tool, which can be used for:
+
+    * Starting the REST API server -- ``pg-backup-api server``;
+    * Checking the REST API server status -- ``pg-backup-api status``;
+    * Running a ``barman recover`` operation -- ``pg-backup-api recovery``.
     """
     p = argparse.ArgumentParser(
         epilog="Postgres Backup API by EnterpriseDB (www.enterprisedb.com)"
@@ -77,4 +84,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

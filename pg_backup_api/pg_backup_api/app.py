@@ -16,6 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Used when running pg-backup-api REST API server as an WSGI application.
+
+Load Barman configuration, set up logging for WSGI, and set up a JSON console
+output writer.
+
+.. note::
+    This is designed for production usage, while the ``pg-backup-api serve``
+    command is designed for development usage.
+
+:var application: the Flask application instance.
+"""
 from barman import output
 
 from pg_backup_api.run import app

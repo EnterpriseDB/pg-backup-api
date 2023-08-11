@@ -16,9 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Implement pg-backup-api CLI commands.
 
+:var app: the Flask application instance.
+"""
 import requests
 import subprocess
+from typing import Dict, List, Tuple, Union, TYPE_CHECKING
 
 from requests.exceptions import ConnectionError
 
@@ -31,12 +36,26 @@ from pg_backup_api.utils import (
 )
 from pg_backup_api.server_operation import ServerOperation
 
+
+if TYPE_CHECKING:  # pragma: no cover
+    import argparse
+
 app = create_app()
 
 
-def serve(args):
+def serve(args: 'argparse.Namespace') -> Tuple[None, bool]:
     """
     Run the Postgres Backup API app.
+
+    Load Barman configuration, set up Barman JSON console output writer and
+    listen to requests on ``127.0.0.1``, on the given port.
+
+    :param args: command-line arguments for ``pg-backup-api serve`` command.
+        Contains the ``port`` to listen on.
+    :return: a tuple consisting of two items:
+
+        * ``None`` -- output of :meth:`flask.app.Flask.run`;
+        * ``True`` to indicate an successful operation.
     """
     # TODO determine backup tool setup based on config
     # load barman configs/setup barman for the app
@@ -48,7 +67,17 @@ def serve(args):
     return (run, True)
 
 
-def status(args):
+def status(args: 'argparse.Namespace') -> Tuple[str, bool]:
+    """
+    Check Postgres Backup API app status.
+
+    :param args: command-line arguments for ``pg-backup-api status`` command.
+        Contains the ``port`` to be checked for app availability.
+    :return: a tuple consisting of two items:
+
+        * status: ``OK`` if up and running, an error message otherwise;
+        * ``True`` is status is ``OK``, ``False`` otherwise
+    """
     message = "OK"
     try:
         requests.get(f"http://127.0.0.1:{args.port}/status")
@@ -58,7 +87,22 @@ def status(args):
     return (message, True if message == "OK" else False)
 
 
-def run_and_return_barman_recover(options, barman_args):
+def run_and_return_barman_recover(options: List[str], barman_args: List[str]) \
+        -> Tuple[Union[bytes, str], int]:
+    """
+    Run ``barman recover`` and wait for it to complete.
+
+    :param options: optional command-line arguments for ``barman recover``
+        command.
+    :param barman_args: positional command-line arguments for
+        ``barman recover`` command (server name, backup ID, and destination
+        directory).
+    :return: a tuple consisting of 2 items related to ``barman recover``
+        execution:
+
+        * Content of ``stdout``/``stderr``;
+        * Exit code.
+    """
     cmd = "barman recover".split() + options + barman_args
     process = subprocess.Popen(cmd, stderr=subprocess.STDOUT,
                                stdout=subprocess.PIPE)
@@ -67,7 +111,16 @@ def run_and_return_barman_recover(options, barman_args):
     return (stdout, process.returncode)
 
 
-def extract_options_from_file(jobfile_content):
+def extract_options_from_file(jobfile_content: Dict[str, str]) -> List[str]:
+    """
+    Get list of options to be used as arguments for ``barman recover``.
+
+    :param jobfile_content: content of the JSON file created by pg-backup-api
+        for an operation parsed as a Python :class:`dict` instance.
+    :return: list of positional arguments to be passed to ``barman recover``
+        command. Only consider options listed in ``supported_options`` key of
+            :data:`pg_backup_api.utils.API_CONFIG`.
+    """
     options = []
     available_keys = jobfile_content.keys()
     for option_name in API_CONFIG["supported_options"]:
@@ -78,7 +131,32 @@ def extract_options_from_file(jobfile_content):
     return options
 
 
-def recovery_operation(args):
+def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
+    """
+    Perform a ``barman recover`` through the pg-backup-api.
+
+    .. note::
+        Can only be run if a recover operation has been previously registered.
+
+    Besides the required positional arguments of ``barman recover``, we can
+    also provide additional options to that command. See
+    :func:`extract_options_from_file`.
+
+    In the end of execution creates an output file through
+    :meth:`pg_backup_api.server_operation.ServerOperation.create_output_file`
+    with the following content:
+
+    * ``success``: if the operation succeeded or not;
+    * ``end_time``: timestamp when the operation finished;
+    * ``output``: ``stdout``/``stderr`` of the operation.
+
+    :param args: command-line arguments for ``pg-backup-api recovery`` command.
+        Contains the name of the Barman server related to the operation.
+    :return: a tuple consisting of two items:
+
+        * ``None`` -- output of :meth:`ServerOperation.create_output_file`;
+        * ``True`` if ``barman recover`` was successful, ``False`` otherwise.
+    """
     server_ops = ServerOperation(args.server_name, args.operation_id)
     content = server_ops.get_job_file_content()
 

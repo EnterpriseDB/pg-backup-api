@@ -16,7 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Utility functions and constants used through pg-backup-api code.
+
+:var API_CONFIG: configuration of pg-backup-api. The ``supported_options`` key
+    contains a tuple of supported options for ``barman recover`` command.
+:var CONFIG_FILENAME: path to the main Barman configuration file.
+:var LOG_FILENAME: path to the file where pg-backup-api logs its messages.
+"""
 from logging.config import dictConfig
+from typing import Optional, TYPE_CHECKING
 
 from flask import Flask
 
@@ -24,31 +33,42 @@ import barman
 from barman import config
 from barman.infofile import BackupInfo
 
+if TYPE_CHECKING:  # pragma: no cover
+    import flask.app
+    from barman.config import ServerConfig
+
 API_CONFIG = {"supported_options": ("remote_ssh_command",)}
 
 CONFIG_FILENAME = "/etc/barman.conf"
 LOG_FILENAME = "/var/log/barman/barman-api.log"
 
 
-def create_app():
+def create_app() -> 'flask.app.Flask':
     """
     Create the connexion app with the required API.
+
+    :return: flask application instance with name ``Postgres Backup API``.
     """
     return Flask("Postgres Backup API")
 
 
-def load_barman_config():
+def load_barman_config() -> None:
     """
-    Load the Barman config into barman.__config__.
+    Load the Barman config into :data:`barman.__config__`.
+
+    Source Barman config is retrieved from file :data:`CONFIG_FILE_NAME`.
     """
     cfg = config.Config(CONFIG_FILENAME)
     barman.__config__ = cfg
     cfg.load_configuration_files_directory()
 
 
-def setup_logging_for_wsgi_server():
+def setup_logging_for_wsgi_server() -> None:
     """
     Configure logging.
+
+    Log records with level :data:`logging.INFO` or higher to file
+    :data:`LOG_FILENAME`.
     """
     log_format = "[%(asctime)s] %(levelname)s:%(module)s: %(message)s"
     dictConfig(
@@ -72,14 +92,36 @@ def setup_logging_for_wsgi_server():
     )
 
 
-def get_server_by_name(server_name):
+def get_server_by_name(server_name: str) -> Optional['ServerConfig']:
+    """
+    Get configuration of a Barman server based on the *server_name*.
+
+    :param server_name: name of the server which we want configuration from.
+    :return: configuration of Barman server *server_name* if that server
+        exists, ``None`` otherwise.
+    """
     for server in barman.__config__.server_names():
         conf = barman.__config__.get_server(server)
         if server == server_name:
             return conf
 
 
-def parse_backup_id(server, backup_id):
+def parse_backup_id(server: barman.server.Server,
+                    backup_id: str) -> Optional[BackupInfo]:
+    """
+    Get backup with ID *backup_id* from *server.
+
+    :param server: server from which to get a backup.
+    :param backup_id: ID of the backup to be retrieved. It accepts a few
+        aliases:
+
+        * ``latest``/``last``: to get the latest backup;
+        * ``oldest``/``first``: to get the oldest backup;
+        * ``last-failed``: to get the last failed backup.
+
+    :return: information about the backup, if *backup_id* can be satisfied,
+        ``None`` otherwise.
+    """
     if backup_id in ("latest", "last"):
         backup_id = server.get_last_backup_id()
     elif backup_id in ("oldest", "first"):
