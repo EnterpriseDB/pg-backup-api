@@ -322,7 +322,7 @@ class OperationServer:
             * ``id``: ID of the operation;
             * ``type``: type of the operation.
         """
-        op_type = op_type.value
+        op_type = op_type.value if op_type else None
         jobs_list = []
 
         for job_file in os.listdir(self.jobs_basedir):
@@ -331,7 +331,8 @@ class OperationServer:
 
             op_id, _ = job_file.split(".json")
 
-            operation_type = self._read_file(job_file).get("operation_type")
+            content = self.read_job_file(op_id)
+            operation_type = content.get("operation_type")
 
             if operation_type == (op_type or operation_type):
                 jobs_list.append({
@@ -366,11 +367,6 @@ class OperationServer:
             raise OperationNotExists(f"Operation '{op_id}' does not exist")
 
 
-class OperationAlreadyRun(RuntimeError):
-    """Raise upon an attempt of running an operation that has already run."""
-    pass
-
-
 class Operation:
     """
     Contain information about an operation of the pg-backup-api.
@@ -387,7 +383,7 @@ class Operation:
     :ivar id: ID of this operation.
     """
 
-    def __init__(self, server_name: str, id: Optional[str]) -> None:
+    def __init__(self, server_name: str, id: Optional[str] = None) -> None:
         """
         Initialize a new instance of :class:`Operation`.
 
@@ -407,7 +403,7 @@ class Operation:
 
         :return: current timestamp in the format ``%Y%m%dT%H%M%S``.
         """
-        return datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+        return datetime.now().strftime("%Y%m%dT%H%M%S")
 
     @staticmethod
     def time_event_now() -> str:
@@ -488,6 +484,7 @@ class Operation:
         """
         return self.server.get_operation_status(self.id)
 
+    @staticmethod
     def _run_subprocess(cmd: List[str]) -> Tuple[Optional[str], int]:
         """
         Run *cmd* as a subprocess.
@@ -502,7 +499,7 @@ class Operation:
         process = subprocess.Popen(cmd, stderr=subprocess.STDOUT,
                                    stdout=subprocess.PIPE)
         stdout, _ = process.communicate()
-        stdout = stdout.decode if isinstance(stdout, bytes) else stdout
+        stdout = stdout.decode() if isinstance(stdout, bytes) else stdout
         return stdout, process.returncode
 
     @abstractmethod
@@ -524,25 +521,15 @@ class Operation:
         """
         Run the operation.
 
+        .. note::
+            Make sure to not call this method twice or more for the same
+            operation.
+
         :return: a tuple consisting of:
 
             * output of the operation;
             * return code of the operation.
-
-        :exc:`OperationAlreadyRun`: if the operation has already been run, as
-            operations were not designed for being ran twice.
         """
-        status = None
-
-        try:
-            status = self.get_status()
-        except OperationNotExists:
-            pass
-
-        if status is not None:
-            msg = f"Operation '{self.id}' is running or has already run"
-            raise OperationAlreadyRun(msg)
-
         return self._run_logic()
 
 
@@ -569,22 +556,12 @@ class RecoveryOperation(Operation):
 
         :raises:
             :exc:`MalformedContent`: if the set of options in *content* is
-                either missing required keys, or contains invalid keys.
+                either missing required keys.
         """
-        missing_args = []
-
-        for arg in cls.REQUIRED_ARGUMENTS:
-            if arg not in content:
-                missing_args.append(arg)
+        missing_args = set(cls.REQUIRED_ARGUMENTS) - set(content.keys())
 
         if missing_args:
             msg = f"Missing required arguments: {', '.join(missing_args)}"
-            raise MalformedContent(msg)
-
-        invalid_args = set(content.keys()) - set(cls.REQUIRED_ARGUMENTS)
-
-        if invalid_args:
-            msg = f"Invalid arguments: {', '.join(invalid_args)}"
             raise MalformedContent(msg)
 
     def write_job_file(self, content: Dict[str, str]) -> None:
