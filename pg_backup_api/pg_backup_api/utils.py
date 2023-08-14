@@ -19,6 +19,8 @@
 """
 Utility functions and constants used through pg-backup-api code.
 
+:var API_CONFIG: configuration of pg-backup-api. The ``supported_options`` key
+    contains a tuple of supported options for ``barman recover`` command.
 :var CONFIG_FILENAME: path to the main Barman configuration file.
 :var LOG_FILENAME: path to the file where pg-backup-api logs its messages.
 """
@@ -31,11 +33,11 @@ import barman
 from barman import config
 from barman.infofile import BackupInfo
 
-
 if TYPE_CHECKING:  # pragma: no cover
     import flask.app
     from barman.config import ServerConfig
 
+API_CONFIG = {"supported_options": ("remote_ssh_command",)}
 
 CONFIG_FILENAME = "/etc/barman.conf"
 LOG_FILENAME = "/var/log/barman/barman-api.log"

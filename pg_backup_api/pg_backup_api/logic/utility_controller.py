@@ -17,6 +17,7 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 """Define the Flask endpoints of the pg-backup-api REST API server."""
+import datetime
 import json
 import subprocess
 from typing import Any, Dict, Tuple, Union, TYPE_CHECKING
@@ -31,12 +32,8 @@ from pg_backup_api.utils import (load_barman_config, get_server_by_name,
                                  parse_backup_id)
 
 from pg_backup_api.run import app
-from pg_backup_api.server_operation import (OperationServer,
-                                            OperationServerConfigError,
-                                            OperationType,
-                                            DEFAULT_OP_TYPE,
-                                            RecoveryOperation,
-                                            MalformedContent)
+from pg_backup_api.server_operation import (ServerOperation,
+                                            ServerOperationConfigError)
 
 if TYPE_CHECKING:  # pragma: no cover
     from flask import Request, Response
@@ -111,29 +108,30 @@ def servers_operation_id_get(server_name: str, operation_id: str) \
     """
     ``GET`` request to ``/servers/*server_name*/operations/*operation_id*``.
 
-    Get status of an operation with ID *operation_id* for Barman server named
-    *server_name*.
+    Get status of a recovery operation with ID *operation_id* for Barman server
+    named *server_name*.
 
-    :param server_name: name of the Barman server related to the operation.
-    :param operation_id: ID of the operation previously created through
-        pg-backup-api.
+    :param server_name: name of the Barman server related to the recovery
+        operation.
+    :param operation_id: ID of the recovery operation previously created
+        through pg-backup-api.
     :return: if *server_name* and *operation_id* are valid, return a JSON
         response containing these keys:
 
-        * ``operation_id``: the same as *operation_id*;
-        * ``status``: status of the operation. Maybe be one among: ``DONE``,
+        * ``recovery_id``: the same as *operation_id*;
+        * ``status``: status of recovery process. Maybe be one among: ``DONE``,
           ``FAILED`` or ``IN_PROGRESS``.
 
         If either *server_name* or *operation_id* is invalid -- or both --
         return a HTTP 400 response with the relevant error message.
     """
     try:
-        op_server = OperationServer(server_name)
-        status = op_server.get_operation_status(operation_id)
-        response = {"operation_id": operation_id, "status": status}
+        operation = ServerOperation(server_name, operation_id)
+        status = operation.get_status_by_operation_id()
+        response = {"recovery_id": operation_id, "status": status}
 
         return jsonify(response)
-    except OperationServerConfigError as e:
+    except ServerOperationConfigError as e:
         abort(404, description=str(e))
     except Exception:
         abort(404, description="Resource not found")
@@ -144,24 +142,12 @@ def servers_operations_post(server_name: str,
     """
     Handle ``POST`` request to ``/servers/*server_name*/operations``.
 
-    :param server_name: name of the Barman server for which a operation will be
-        created.
+    :param server_name: name of the Barman server for which a recovery
+        operation will be created.
     :param request: the flask request that has been received by the routing
-        function.
-
-        Should contain a JSON body with a key ``type``, which identified the
-        type of the operation. The rest of the content depends on the type of
-        operation being requested:
-
-        * ``recovery``:
-
-            * ``backup_id``: ID of the backup to be recovered;
-            * ``destination_directory``: where to restore the backup in the
-              target machine;
-            * ``remote_ssh_command``: SSH command to connect to the target
-              machine.
-
-    :return: if *server_name* and the JSON body informed through the
+        function. Should contain a JSON body with a ``backup_id`` key,
+        containing the ID of the backup to be recovered.
+    :return: if *server_name* and the ``backup_id`` informed through the
         ``POST`` request are valid, return a JSON response containing a key
         ``operation_id`` with the ID of the operation that has been created.
 
@@ -169,11 +155,10 @@ def servers_operations_post(server_name: str,
         the following statuses and the relevant error message:
 
         * ``400``: if any required option is missing in the JSON request body.
-        * ``404``: if either *server_name* or any value in the JSON request
-            body is invalid.
+            Refer to :data:`pg_backup_api.server_operation.REQUIRED_OPTIONS`;
+        * ``404``: if either *server_name* or ``backup_id`` is invalid.
     """
     request_body = request.get_json()
-
     if not request_body:
         msg_400 = f"Minimum barman options not met for server '{server_name}'"
         abort(400, description=msg_400)
@@ -184,37 +169,30 @@ def servers_operations_post(server_name: str,
         msg_404 = f"Server '{server_name}' does not exist"
         abort(404, description=msg_404)
 
-    operation = None
-    op_type = OperationType(request_body.get("type", DEFAULT_OP_TYPE.value))
+    backup_id = parse_backup_id(Server(server), request_body["backup_id"])
+    if not backup_id:
+        msg_404 = f"Backup '{backup_id}' does not exist"
+        abort(404, description=msg_404)
 
-    if op_type == OperationType.RECOVERY:
-        try:
-            backup_id = request_body["backup_id"]
-        except KeyError:
-            msg_400 = "Request body is missing ``backup_id``"
-            abort(400, description=msg_400)
+    operation_id = datetime.datetime.now().strftime("%Y%m%dT%H%M%S")
+    operation = ServerOperation(server_name, operation_id=operation_id)
 
-        backup_id = parse_backup_id(Server(server), backup_id)
+    try:
+        operation.create_job_file(request_body)
+    # If any required option is missing in the request body, then a
+    # KeyError exception is triggered. Refer to
+    # pg_backup_api.server_operation.REQUIRED_OPTIONS and to
+    # pg_backup_api.server_operation.ServerOperation.copy_and_validate_options
+    except KeyError:
+        msg_400 = "Make sure all options/arguments are met and try again"
+        abort(400, description=msg_400)
 
-        if not backup_id:
-            msg_404 = f"Backup '{backup_id}' does not exist"
-            abort(404, description=msg_404)
-
-        operation = RecoveryOperation(server_name)
-
-        try:
-            operation.write_job_file(request_body)
-        except MalformedContent:
-            msg_400 = "Make sure all options/arguments are met and try again"
-            abort(400, description=msg_400)
-
-        cmd = (
-            f"pg-backup-api recovery --server-name {server_name} "
-            f"--operation-id {operation.id}"
-        )
-        subprocess.Popen(cmd.split())
-
-    return {"operation_id": operation.id}
+    cmd = (
+        f"pg-backup-api recovery --server-name {server_name} "
+        f"--operation-id {operation_id}"
+    )
+    subprocess.Popen(cmd.split())
+    return {"operation_id": operation_id}
 
 
 @app.route("/servers/<server_name>/operations", methods=("GET", "POST"))
@@ -223,20 +201,21 @@ def server_operation(server_name: str) \
     """
     Handle ``GET``/``POST`` request to ``/servers/*server_name*/operations``.
 
-    Get a list of operations for *server_name*, if a ``GET`` request, or create
-    a new operation for *server_name*, if a ``POST`` request.
+    Get a list of recovery operations for *server_name*, if a ``GET`` request,
+    or create a new recovery operation for *server_name*, if a ``POST``
+    request.
 
-    :param server_name: name of the Barman server related to the operation(s).
+    :param server_name: name of the Barman server related to the recovery
+        operation(s).
 
     :return: the returned response varies:
 
         * If a successful ``GET`` request, then return a JSON response with
-          ``operations`` key containing a list of operations for Barman server
-          *server_name*. Each item in the list contain the operation ID and the
-          operation type;
+          ``operations`` key containing a list of IDs of recovery operations
+          for Barman server *server_name*;
         * If a successful ``POST`` request, then return a JSON response with
           HTTP status ``202`` containing an ``operation_id`` key with the ID
-          of the operation that has been created for the Barman server
+          of the recovery operation that has been created for the Barman server
           *server_name*;
         * If any issue is faced when processing the request, return an HTTP
           ``400`` or ``404`` response with the relevant error message.
@@ -245,8 +224,8 @@ def server_operation(server_name: str) \
         return jsonify(servers_operations_post(server_name, request)), 202
 
     try:
-        operation = OperationServer(server_name)
+        operation = ServerOperation(server_name)
         available_operations = {"operations": operation.get_operations_list()}
         return jsonify(available_operations)
-    except OperationServerConfigError as e:
+    except ServerOperationConfigError as e:
         abort(404, description=str(e))
