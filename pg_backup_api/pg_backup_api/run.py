@@ -22,19 +22,14 @@ Implement pg-backup-api CLI commands.
 :var app: the Flask application instance.
 """
 import requests
-import subprocess
-from typing import Dict, List, Tuple, Union, TYPE_CHECKING
+from typing import Tuple, TYPE_CHECKING
 
 from requests.exceptions import ConnectionError
 
 from barman import output
 
-from pg_backup_api.utils import (
-    API_CONFIG,
-    create_app,
-    load_barman_config,
-)
-from pg_backup_api.server_operation import ServerOperation
+from pg_backup_api.utils import create_app, load_barman_config
+from pg_backup_api.server_operation import RecoveryOperation
 
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -87,50 +82,6 @@ def status(args: 'argparse.Namespace') -> Tuple[str, bool]:
     return (message, True if message == "OK" else False)
 
 
-def run_and_return_barman_recover(options: List[str], barman_args: List[str]) \
-        -> Tuple[Union[bytes, str], int]:
-    """
-    Run ``barman recover`` and wait for it to complete.
-
-    :param options: optional command-line arguments for ``barman recover``
-        command.
-    :param barman_args: positional command-line arguments for
-        ``barman recover`` command (server name, backup ID, and destination
-        directory).
-    :return: a tuple consisting of 2 items related to ``barman recover``
-        execution:
-
-        * Content of ``stdout``/``stderr``;
-        * Exit code.
-    """
-    cmd = "barman recover".split() + options + barman_args
-    process = subprocess.Popen(cmd, stderr=subprocess.STDOUT,
-                               stdout=subprocess.PIPE)
-    stdout, _ = process.communicate()
-
-    return (stdout, process.returncode)
-
-
-def extract_options_from_file(jobfile_content: Dict[str, str]) -> List[str]:
-    """
-    Get list of options to be used as arguments for ``barman recover``.
-
-    :param jobfile_content: content of the JSON file created by pg-backup-api
-        for an operation parsed as a Python :class:`dict` instance.
-    :return: list of positional arguments to be passed to ``barman recover``
-        command. Only consider options listed in ``supported_options`` key of
-            :data:`pg_backup_api.utils.API_CONFIG`.
-    """
-    options = []
-    available_keys = jobfile_content.keys()
-    for option_name in API_CONFIG["supported_options"]:
-        if option_name in available_keys:
-            cmd_option = option_name.replace("_", "-")
-            options.append(f"--{cmd_option}")
-            options.append(jobfile_content[option_name])
-    return options
-
-
 def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
     """
     Perform a ``barman recover`` through the pg-backup-api.
@@ -138,13 +89,9 @@ def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
     .. note::
         Can only be run if a recover operation has been previously registered.
 
-    Besides the required positional arguments of ``barman recover``, we can
-    also provide additional options to that command. See
-    :func:`extract_options_from_file`.
-
     In the end of execution creates an output file through
-    :meth:`pg_backup_api.server_operation.ServerOperation.create_output_file`
-    with the following content:
+    :meth:`pg_backup_api.server_operation.RecoveryOperation.write_output_file`
+    with the following content, to indicate the operation has finished:
 
     * ``success``: if the operation succeeded or not;
     * ``end_time``: timestamp when the operation finished;
@@ -154,28 +101,17 @@ def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
         Contains the name of the Barman server related to the operation.
     :return: a tuple consisting of two items:
 
-        * ``None`` -- output of :meth:`ServerOperation.create_output_file`;
+        * ``None`` -- output of :meth:`RecoveryOperation.write_output_file`;
         * ``True`` if ``barman recover`` was successful, ``False`` otherwise.
     """
-    server_ops = ServerOperation(args.server_name, args.operation_id)
-    content = server_ops.get_job_file_content()
+    operation = RecoveryOperation(args.server_name, args.operation_id)
+    output, retcode = operation.run()
+    success = not retcode
+    end_time = operation.time_event_now()
 
-    options = extract_options_from_file(content)
-
-    barman_args = []
-    barman_args.append(args.server_name)
-    barman_args.append(content["backup_id"])
-    barman_args.append(content["destination_directory"])
-
-    output, retcode = run_and_return_barman_recover(options, barman_args)
-    output = output.decode() if isinstance(output, bytes) else output
-    success = True
-    if retcode:
-        success = False
-
-    end_time = server_ops.time_event_now()
+    content = operation.read_job_file()
     content["success"] = success
     content["end_time"] = end_time
     content["output"] = output
 
-    return (server_ops.create_output_file(content), success)
+    return (operation.write_output_file(content), success)
