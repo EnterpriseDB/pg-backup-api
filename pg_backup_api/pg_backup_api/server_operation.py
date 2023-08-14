@@ -210,8 +210,8 @@ class OperationServer:
 
         if missing_keys:
             msg = (
-                f"Job file for operation '{self.id}' is missing required "
-                f"keys: {', '.join(missing_keys)}"
+                f"Job file for operation '{op_id}' is missing required "
+                f"keys: {', '.join(sorted(missing_keys))}"
             )
             raise MalformedContent(msg)
 
@@ -244,8 +244,8 @@ class OperationServer:
 
         if missing_keys:
             msg = (
-                f"Output file for operation '{self.id}' is missing required "
-                f"keys: {', '.join(missing_keys)}"
+                f"Output file for operation '{op_id}' is missing required "
+                f"keys: {', '.join(sorted(missing_keys))}"
             )
             raise MalformedContent(msg)
 
@@ -284,7 +284,7 @@ class OperationServer:
         try:
             return self._read_file(self.get_job_file_path(op_id))
         except FileNotFoundError:
-            msg = f"Job file for operation '{id}' does not exist"
+            msg = f"Job file for operation '{op_id}' does not exist"
             raise FileNotFoundError(msg)
 
     def read_output_file(self, op_id: str) -> Dict[str, str]:
@@ -302,7 +302,7 @@ class OperationServer:
         try:
             return self._read_file(self.get_output_file_path(op_id))
         except FileNotFoundError:
-            msg = f"Output file for operation '{id}' does not exist"
+            msg = f"Output file for operation '{op_id}' does not exist"
             raise FileNotFoundError(msg)
 
     def get_operations_list(self, op_type: Optional[OperationType] = None) \
