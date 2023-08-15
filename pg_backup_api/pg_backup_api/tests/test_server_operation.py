@@ -9,6 +9,7 @@ from pg_backup_api.server_operation import (
     OperationType,
     OperationNotExists,
     Operation,
+    RecoveryOperation,
 )
 
 
@@ -151,7 +152,7 @@ class TestOperationServer(TestCase):
         id = "SOME_OP_ID"
         content = {}
 
-        # Ensure exception is raised if content is missing keys -- test 1
+        # Ensure exception is raised if content is missing keys -- test 1.
         with self.assertRaises(MalformedContent) as exc:
             self.server.write_job_file(id, content)
 
@@ -161,7 +162,7 @@ class TestOperationServer(TestCase):
             f"keys: operation_type, start_time",
         )
 
-        # Ensure exception is raised if content is missing keys -- test 2
+        # Ensure exception is raised if content is missing keys -- test 2.
         content["operation_type"] = "SOME_OPERATION_TYPE"
 
         with self.assertRaises(MalformedContent) as exc:
@@ -173,7 +174,7 @@ class TestOperationServer(TestCase):
             f"keys: start_time",
         )
 
-        # Ensure exception is raised if file already exists
+        # Ensure exception is raised if file already exists.
         content["start_time"] = "SOME_START_TIME"
 
         with patch.object(self.server, "_write_file") as mock:
@@ -187,7 +188,7 @@ class TestOperationServer(TestCase):
                 f"Job file for operation '{id}' already exists",
             )
 
-        # Ensure file is written if everything is fine
+        # Ensure file is written if everything is fine.
         with patch.object(self.server, "_write_file") as mock:
             self.server.write_job_file(id, content)
 
@@ -200,7 +201,7 @@ class TestOperationServer(TestCase):
         id = "SOME_OP_ID"
         content = {}
 
-        # Ensure exception is raised if content is missing keys -- test 1
+        # Ensure exception is raised if content is missing keys -- test 1.
         with self.assertRaises(MalformedContent) as exc:
             self.server.write_output_file(id, content)
 
@@ -210,7 +211,7 @@ class TestOperationServer(TestCase):
             f"keys: end_time, output, success",
         )
 
-        # Ensure exception is raised if content is missing keys -- test 2
+        # Ensure exception is raised if content is missing keys -- test 2.
         content["end_time"] = "SOME_END_TIME"
 
         with self.assertRaises(MalformedContent) as exc:
@@ -222,7 +223,7 @@ class TestOperationServer(TestCase):
             f"keys: output, success",
         )
 
-        # Ensure exception is raised if content is missing keys -- test 3
+        # Ensure exception is raised if content is missing keys -- test 3.
         content["output"] = "SOME_OUTPUT"
 
         with self.assertRaises(MalformedContent) as exc:
@@ -234,7 +235,7 @@ class TestOperationServer(TestCase):
             f"keys: success",
         )
 
-        # Ensure exception is raised if file already exists
+        # Ensure exception is raised if file already exists.
         content["success"] = "SOME_SUCCESS"
 
         with patch.object(self.server, "_write_file") as mock:
@@ -600,3 +601,110 @@ class TestOperation(TestCase):
         with patch.object(self.operation, "_run_logic") as mock:
             self.operation.run()
             mock.assert_called_once()
+
+@patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+class TestRecoveryOperation(TestCase):
+    
+    @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+    def setUp(self):
+        self.operation = RecoveryOperation(_BARMAN_SERVER)
+
+    def test__validate_job_content(self):
+        content = {}
+        # Ensure exception is raised if content is missing keys -- test 1.
+        with self.assertRaises(MalformedContent) as exc:
+            self.operation._validate_job_content(content)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Missing required arguments: backup_id, destination_directory, "
+            "remote_ssh_command",
+        )
+
+        # Ensure exception is raised if content is missing keys -- test 2.
+        content["backup_id"] = "SOME_BACKUP_ID"
+
+        with self.assertRaises(MalformedContent) as exc:
+            self.operation._validate_job_content(content)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Missing required arguments: destination_directory, "
+            "remote_ssh_command",
+        )
+
+        # Ensure exception is raised if content is missing keys -- test 3.
+        content["destination_directory"] = "SOME_DESTINATION_DIRECTORY"
+
+        with self.assertRaises(MalformedContent) as exc:
+            self.operation._validate_job_content(content)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Missing required arguments: remote_ssh_command",
+        )
+
+        # Ensure execution is fine if everything is filled.
+        content["remote_ssh_command"] = "SOME_REMOTE_SSH_COMMAND"
+        self.operation._validate_job_content(content)
+
+    @patch("pg_backup_api.server_operation.Operation.time_event_now")
+    @patch("pg_backup_api.server_operation.Operation.write_job_file")
+    def test_write_job_file(self, mock_write_job_file, mock_time_event_now):
+        # Ensure underlying methods are called as expected.
+        content = {
+            "SOME": "CONTENT",
+        }
+        extended_content = {
+            "SOME": "CONTENT",
+            "operation_type": OperationType.RECOVERY.value,
+            "start_time": "SOME_TIMESTAMP",
+        }
+
+        with patch.object(self.operation, "_validate_job_content") as mock:
+            mock_time_event_now.return_value = "SOME_TIMESTAMP"
+
+            self.operation.write_job_file(content)
+
+            mock_time_event_now.assert_called_once()
+            mock.assert_called_once_with(extended_content)
+            mock_write_job_file.assert_called_once_with(extended_content)
+
+    def test__get_args(self):
+        # Ensure it returns the correct arguments for 'barman recover'.
+        with patch.object(self.operation, "read_job_file") as mock:
+            mock.return_value = {
+                "backup_id": "SOME_BACKUP_ID",
+                "destination_directory": "SOME_DESTINATION_DIRECTORY",
+                "remote_ssh_command": "SOME_REMOTE_SSH_COMMAND",
+            }
+
+            self.assertEqual(
+                self.operation._get_args(),
+                [
+                    self.operation.server.name,
+                    "SOME_BACKUP_ID",
+                    "SOME_DESTINATION_DIRECTORY",
+                    "--remote-ssh-command",
+                    "SOME_REMOTE_SSH_COMMAND",
+                ]
+            )
+
+    @patch("pg_backup_api.server_operation.Operation._run_subprocess")
+    @patch("pg_backup_api.server_operation.RecoveryOperation._get_args")
+    def test__run_logic(self, mock_get_args, mock_run_subprocess):
+        arguments = ["SOME", "ARGUMENTS"]
+        output = ("SOME OUTPUT", 0)
+
+        mock_get_args.return_value = arguments
+        mock_run_subprocess.return_value = output
+
+        self.assertEqual(
+            self.operation._run_logic(),
+            output,
+        )
+
+        mock_get_args.assert_called_once()
+        mock_run_subprocess.assert_called_once_with(
+            ["barman", "recover"] + arguments,
+        )

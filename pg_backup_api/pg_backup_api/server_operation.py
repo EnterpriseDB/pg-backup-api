@@ -561,7 +561,10 @@ class RecoveryOperation(Operation):
         missing_args = set(cls.REQUIRED_ARGUMENTS) - set(content.keys())
 
         if missing_args:
-            msg = f"Missing required arguments: {', '.join(missing_args)}"
+            msg = (
+                "Missing required arguments: "
+                f"{', '.join(sorted(missing_args))}"
+            )
             raise MalformedContent(msg)
 
     def write_job_file(self, content: Dict[str, str]) -> None:
@@ -578,7 +581,7 @@ class RecoveryOperation(Operation):
             * ``operation_type``: ``recovery``;
             * ``start_time``: current timestamp.
         """
-        content["operation_type"] = self.TYPE.value,
+        content["operation_type"] = self.TYPE.value
         content["start_time"] = self.time_event_now()
         self._validate_job_content(content)
         super().write_job_file(content)
