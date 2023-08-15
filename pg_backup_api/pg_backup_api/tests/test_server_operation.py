@@ -1,4 +1,5 @@
 import os
+import subprocess
 from unittest import TestCase
 from unittest.mock import Mock, MagicMock, call, patch
 
@@ -478,3 +479,124 @@ class TestOperationServer(TestCase):
 
         mock_read_job_file.assert_called_once_with(id)
         mock_read_output_file.assert_called_once_with(id)
+
+
+@patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+class TestOperation(TestCase):
+
+    @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+    def setUp(self):
+        self.operation = Operation(_BARMAN_SERVER)
+
+    def test___init__(self):
+        # Ensure ID is automatically generated, if no custom one is given.
+        id = "AUTO_ID"
+
+        with patch.object(Operation, "_generate_id") as mock:
+            mock.return_value = id
+            operation = Operation(_BARMAN_SERVER)
+            self.assertEqual(operation.id, id)
+            mock.assert_called_once()
+
+        # Ensure custom ID is considered, if a custom one is given.
+        id = "CUSTOM_OP_ID"
+
+        with patch.object(Operation, "_generate_id") as mock:
+            operation = Operation(_BARMAN_SERVER, id)
+            self.assertEqual(operation.id, id)
+            mock.assert_not_called()
+
+    def test__generate_id(self):
+        # Ensure generates ID based on current timestamp.
+        with patch("pg_backup_api.server_operation.datetime") as mock:
+            mock.now.return_value = MagicMock()
+            self.operation._generate_id()
+            mock.now.return_value.strftime.assert_called_once_with(
+                "%Y%m%dT%H%M%S",
+            )
+
+    def test_time_even_now(self):
+        # Ensure timestamp is generated in the expected format.
+        with patch("pg_backup_api.server_operation.datetime") as mock:
+            mock.now.return_value = MagicMock()
+            self.operation.time_event_now()
+            mock.now.return_value.strftime.assert_called_once_with(
+                "%Y-%m-%dT%H:%M:%S.%f",
+            )
+
+    def test_job_file(self):
+        # Ensure get_job_file_path is called to satisfy job_file propety.
+        self.operation.job_file
+        self.operation.server.get_job_file_path.assert_called_once_with(
+            self.operation.id,
+        )
+
+    def test_output_file(self):
+        # Ensure get_output_file_path is called to satisfy output_file propety.
+        self.operation.output_file
+        self.operation.server.get_output_file_path.assert_called_once_with(
+            self.operation.id,
+        )
+
+    def test_read_job_file(self):
+        # Ensure OperationServer.read_job_file is called as expected.
+        self.operation.read_job_file()
+        self.operation.server.read_job_file.assert_called_once_with(
+            self.operation.id,
+        )
+    
+    def test_read_output_file(self):
+        # Ensure OperationServer.read_output_file is called as expected.
+        self.operation.read_output_file()
+        self.operation.server.read_output_file.assert_called_once_with(
+            self.operation.id,
+        )
+    
+    def test_write_job_file(self):
+        # Ensure OperationServer.write_job_file is called as expected.
+        content = {"SOME": "CONTENT"}
+        self.operation.write_job_file(content)
+        self.operation.server.write_job_file.assert_called_once_with(
+            self.operation.id,
+            content,
+        )
+    
+    def test_write_output_file(self):
+        # Ensure OperationServer.write_output_file is called as expected.
+        content = {"SOME": "CONTENT"}
+        self.operation.write_output_file(content)
+        self.operation.server.write_output_file.assert_called_once_with(
+            self.operation.id,
+            content,
+        )
+    
+    def test_get_status(self):
+        # Ensure OperationServer.get_operation_status is called as expected.
+        self.operation.get_status()
+        self.operation.server.get_operation_status.assert_called_once_with(
+            self.operation.id,
+        )
+
+    def test__run_subprocess(self):
+        # Ensure expected interactions with subprocess module.
+        cmd = ["SOME", "COMMAND"]
+        stdout = "SOME OUTPUT"
+        return_code = 0
+
+        with patch("subprocess.Popen", MagicMock()) as mock:
+            mock.return_value.communicate.return_value = (stdout, None)
+            mock.return_value.returncode = return_code
+
+            self.assertEqual(
+                self.operation._run_subprocess(cmd),
+                (stdout, return_code),
+            )
+
+            mock.assert_called_once_with(cmd, stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT)
+
+    def test_run(self):
+        # Ensure _run_logic is called.
+        with patch.object(self.operation, "_run_logic") as mock:
+            self.operation.run()
+            mock.assert_called_once()
