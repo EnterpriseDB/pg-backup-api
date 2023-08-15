@@ -30,12 +30,16 @@ import logging
 import os
 import subprocess
 import sys
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import (Any, Callable, Dict, List, Optional, Set, Tuple,
+                    TYPE_CHECKING)
 
 from datetime import datetime
 from os.path import join
 
 from pg_backup_api.utils import barman, load_barman_config, get_server_by_name
+
+if TYPE_CHECKING:  # pragma: no cover
+    from barman.config import Config as BarmanConfig
 
 load_barman_config()
 
@@ -113,6 +117,9 @@ class OperationServer:
                 f"No barman config found for '{name}'."
             )
 
+        if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(barman.__config__, BarmanConfig)
+
         barman_home = barman.__config__.barman_home
 
         self.jobs_basedir = join(barman_home, name, self._JOBS_DIR_NAME)
@@ -169,7 +176,7 @@ class OperationServer:
         return os.path.join(self.output_basedir, f"{op_id}.json")
 
     @staticmethod
-    def _write_file(file_path: str, content: Dict[str, str]) \
+    def _write_file(file_path: str, content: Dict[str, Any]) \
             -> None:
         """
         Write a file to *file_path* with *content*.
@@ -188,7 +195,7 @@ class OperationServer:
         with open(file_path, "w") as fd:
             json.dump(content, fd)
 
-    def write_job_file(self, op_id: str, content: Dict[str, str]) -> None:
+    def write_job_file(self, op_id: str, content: Dict[str, Any]) -> None:
         """
         Create a job file to represent a requested operation.
 
@@ -206,7 +213,8 @@ class OperationServer:
             :exc:`FileExistsError`: if the path to the file to be written
                 already exists.
         """
-        missing_keys = set(self._REQUIRED_JOB_KEYS) - set(content.keys())
+        required_keys: Set[str] = set(self._REQUIRED_JOB_KEYS)
+        missing_keys = required_keys - set(content.keys())
 
         if missing_keys:
             msg = (
@@ -221,7 +229,7 @@ class OperationServer:
             msg = f"Job file for operation '{op_id}' already exists"
             raise FileExistsError(msg)
 
-    def write_output_file(self, op_id: str, content: Dict[str, str]) -> None:
+    def write_output_file(self, op_id: str, content: Dict[str, Any]) -> None:
         """
         Create an output file to represent the output of an operation.
 
@@ -240,7 +248,8 @@ class OperationServer:
             :exc:`FileExistsError`: if the path to the file to be written
                 already exists.
         """
-        missing_keys = set(self._REQUIRED_OUTPUT_KEYS) - set(content.keys())
+        required_keys: Set[str] = set(self._REQUIRED_OUTPUT_KEYS)
+        missing_keys = required_keys - set(content.keys())
 
         if missing_keys:
             msg = (
@@ -256,7 +265,7 @@ class OperationServer:
             raise FileExistsError(msg)
 
     @staticmethod
-    def _read_file(file_path: str) -> Dict[str, str]:
+    def _read_file(file_path: str) -> Dict[str, Any]:
         """
         Read file pointed by *file_path*.
 
@@ -269,7 +278,7 @@ class OperationServer:
         with open(file_path) as fd:
             return json.load(fd)
 
-    def read_job_file(self, op_id: str) -> Dict[str, str]:
+    def read_job_file(self, op_id: str) -> Dict[str, Any]:
         """
         Read the job file of operation *op_id*.
 
@@ -287,7 +296,7 @@ class OperationServer:
             msg = f"Job file for operation '{op_id}' does not exist"
             raise FileNotFoundError(msg)
 
-    def read_output_file(self, op_id: str) -> Dict[str, str]:
+    def read_output_file(self, op_id: str) -> Dict[str, Any]:
         """
         Read the output file of operation *op_id*.
 
@@ -306,7 +315,7 @@ class OperationServer:
             raise FileNotFoundError(msg)
 
     def get_operations_list(self, op_type: Optional[OperationType] = None) \
-            -> List[Dict[str, str]]:
+            -> List[Dict[str, Any]]:
         """
         Get the list of operations of this Barman server.
 
@@ -322,7 +331,7 @@ class OperationServer:
             * ``id``: ID of the operation;
             * ``type``: type of the operation.
         """
-        op_type = op_type.value if op_type else None
+        op_type_aux: Optional[str] = op_type.value if op_type else None
         jobs_list = []
 
         for job_file in os.listdir(self.jobs_basedir):
@@ -334,7 +343,7 @@ class OperationServer:
             content = self.read_job_file(op_id)
             operation_type = content.get("operation_type")
 
-            if operation_type == (op_type or operation_type):
+            if operation_type == (op_type_aux or operation_type):
                 jobs_list.append({
                     "id": op_id,
                     "type": operation_type,
@@ -417,14 +426,14 @@ class Operation:
     @property
     def job_file(self) -> str:
         """Path to the job file of this operation."""
-        self.server.get_job_file_path(self.id)
+        return self.server.get_job_file_path(self.id)
 
     @property
     def output_file(self) -> str:
         """Path to the output file of this operation."""
-        self.server.get_output_file_path(self.id)
+        return self.server.get_output_file_path(self.id)
 
-    def read_job_file(self) -> Dict[str, str]:
+    def read_job_file(self) -> Dict[str, Any]:
         """
         Read the job file of this operation.
 
@@ -436,7 +445,7 @@ class Operation:
         """
         return self.server.read_job_file(self.id)
 
-    def read_output_file(self) -> Dict[str, str]:
+    def read_output_file(self) -> Dict[str, Any]:
         """
         Read the output file of this operation.
 
@@ -448,7 +457,7 @@ class Operation:
         """
         return self.server.read_output_file(self.id)
 
-    def write_job_file(self, content: Dict[str, str]) -> None:
+    def write_job_file(self, content: Dict[str, Any]) -> None:
         """
         Write the job file of this operation.
 
@@ -460,7 +469,7 @@ class Operation:
         """
         self.server.write_job_file(self.id, content)
 
-    def write_output_file(self, content: Dict[str, str]) -> None:
+    def write_output_file(self, content: Dict[str, Any]) -> None:
         """
         Write the output file of this operation.
 
@@ -547,7 +556,7 @@ class RecoveryOperation(Operation):
     TYPE = OperationType.RECOVERY
 
     @classmethod
-    def _validate_job_content(cls, content: Dict[str, str]) -> None:
+    def _validate_job_content(cls, content: Dict[str, Any]) -> None:
         """
         Validate the content of the job file before creating it.
 
@@ -558,7 +567,8 @@ class RecoveryOperation(Operation):
             :exc:`MalformedContent`: if the set of options in *content* is
                 either missing required keys.
         """
-        missing_args = set(cls.REQUIRED_ARGUMENTS) - set(content.keys())
+        required_args: Set[str] = set(cls.REQUIRED_ARGUMENTS)
+        missing_args = required_args - set(content.keys())
 
         if missing_args:
             msg = (
@@ -567,7 +577,7 @@ class RecoveryOperation(Operation):
             )
             raise MalformedContent(msg)
 
-    def write_job_file(self, content: Dict[str, str]) -> None:
+    def write_job_file(self, content: Dict[str, Any]) -> None:
         """
         Write the job file with *content*.
 
@@ -594,12 +604,21 @@ class RecoveryOperation(Operation):
         """
         job_content = self.read_job_file()
 
+        backup_id = job_content.get("backup_id")
+        destination_directory = job_content.get("destination_directory")
+        remote_ssh_command = job_content.get("remote_ssh_command")
+
+        if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(backup_id, str)
+            assert isinstance(destination_directory, str)
+            assert isinstance(remote_ssh_command, str)
+
         return [
             self.server.name,
-            job_content.get("backup_id"),
-            job_content.get("destination_directory"),
+            backup_id,
+            destination_directory,
             "--remote-ssh-command",
-            job_content.get("remote_ssh_command"),
+            remote_ssh_command,
         ]
 
     def _run_logic(self) -> Tuple[Optional[str], int]:
@@ -696,5 +715,5 @@ if __name__ == "__main__":
         callback = op_server.get_operation_status
         callback_args = (args.operation_id,)
 
-    retval = main(callback, callback_args)
+    retval = main(callback, callback_args)  # pyright: ignore
     sys.exit(retval)
