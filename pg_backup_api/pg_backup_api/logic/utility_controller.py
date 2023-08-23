@@ -226,14 +226,28 @@ def server_operation(server_name: str) \
     Get a list of operations for *server_name*, if a ``GET`` request, or create
     a new operation for *server_name*, if a ``POST`` request.
 
+    If a ``GET`` request, may contain the following query parameters:
+
+    * ``verbose``: control the structure of the returned JSON response:
+
+        * If ``false``, then return a list of operation IDs;
+        * If ``true``, then return a list of dicitonaries with these keys:
+
+            * ``id``: operation ID;
+            * ``type``: operation type.
+
+        If omitted, default is ``false``.
+
+    * ``type``: use to filter operations of this type. If omitted, query all
+      operations independent of their type.
+
     :param server_name: name of the Barman server related to the operation(s).
 
     :return: the returned response varies:
 
         * If a successful ``GET`` request, then return a JSON response with
           ``operations`` key containing a list of operations for Barman server
-          *server_name*. Each item in the list contain the operation ID and the
-          operation type;
+          *server_name*.
         * If a successful ``POST`` request, then return a JSON response with
           HTTP status ``202`` containing an ``operation_id`` key with the ID
           of the operation that has been created for the Barman server
@@ -245,8 +259,45 @@ def server_operation(server_name: str) \
         return jsonify(servers_operations_post(server_name, request)), 202
 
     try:
-        operation = OperationServer(server_name)
-        available_operations = {"operations": operation.get_operations_list()}
-        return jsonify(available_operations)
+        op_server = OperationServer(server_name)
     except OperationServerConfigError as e:
         abort(404, description=str(e))
+
+    if TYPE_CHECKING:  # pragma: no cover
+        assert isinstance(op_server, OperationServer)
+
+    # Validate "type" query param, if available.
+    op_type = request.args.get("type", default=None, type=str)
+
+    if op_type is not None:
+        try:
+            op_type = OperationType[op_type.upper()]
+        except KeyError:
+            valid_keys = ', '.join([key.name for key in OperationType])
+            msg_400 = (
+                f"Value of 'type' query parameter is invalid: '{op_type}'. "
+                f"Valid values: {valid_keys}."
+            )
+            abort(400, msg_400)
+
+    # Validate "verbose" query param, if available.
+    verbose = request.args.get("verbose", default="false", type=str)
+    verbose = verbose.lower()
+
+    if verbose not in ["true", "false"]:
+        msg_400 = (
+            f"Value of 'verbose' query parameter is invalid: '{verbose}'. "
+            "It should be either 'true' or 'false'."
+        )
+        abort(400, msg_400)
+
+    verbose = verbose == "true"
+
+    # Get list of operations.
+    operations = op_server.get_operations_list(op_type)
+
+    # Transform to a list of IDs only, if not a verbose request.
+    if not verbose:
+        operations = [op["id"] for op in operations]
+
+    return jsonify({"operations": operations})
