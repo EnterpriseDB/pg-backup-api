@@ -2,6 +2,33 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2023 - All rights reserved.
 
+## 2.0.0 (2023-10-03)
+
+### Notable changes
+
+- BREAKING: The `/servers/server_name/operations` endpoint now returns a list
+  of dictionaries containing keys `id` and `type` instead of the list of
+  operation IDs which was returned by previous versions.
+
+- BREAKING: The `/servers/server_name/operations/operation_id` endpoint now
+  returns `operation_id` and `status` instead of `recovery_id` and `status`
+  which were returned by previous versions.
+
+### Minor changes
+
+- Improved help strings and documentation for command line options.
+
+### Bugfixes
+
+- Allow pg-backup-api subcommands such as `status` to work regardless of
+  whether pg-backup-api was installed from source or from packages.
+
+- Fix exit code for `pg-backup-api status` so that it is zero if the command
+  completes successfully and non-zero otherwise.
+
+- Fix the `Backup <BACKUP> does not exist` error message so it includes the ID
+  of the requested backup.
+
 ## 1.3.0 (2023-07-13)
 
 ### Notable changes
