@@ -30,6 +30,7 @@ from pg_backup_api.server_operation import (
     OperationNotExists,
     Operation,
     RecoveryOperation,
+    ConfigSwitchOperation,
 )
 
 
@@ -868,4 +869,111 @@ class TestRecoveryOperation:
         mock_get_args.assert_called_once()
         mock_run_subprocess.assert_called_once_with(
             ["barman", "recover"] + arguments,
+        )
+
+
+@patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+class TestConfigSwitchOperation(TestCase):
+
+    @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+    def setUp(self):
+        self.operation = ConfigSwitchOperation(_BARMAN_SERVER)
+
+    def test__validate_job_content(self):
+        content = {}
+        # Ensure exception is raised if content is missing keys -- test 1.
+        with self.assertRaises(MalformedContent) as exc:
+            self.operation._validate_job_content(content)
+
+        # TODO: adjust the arguments in this test
+        self.assertEqual(
+            str(exc.exception),
+            "Missing required arguments: be, defined, to",
+        )
+
+        # Ensure exception is raised if content is missing keys -- test 2.
+        content["to"] = "TO_VALUE"
+
+        with self.assertRaises(MalformedContent) as exc:
+            self.operation._validate_job_content(content)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Missing required arguments: be, defined",
+        )
+
+        # Ensure exception is raised if content is missing keys -- test 3.
+        content["be"] = "BE_VALUE"
+
+        with self.assertRaises(MalformedContent) as exc:
+            self.operation._validate_job_content(content)
+
+        self.assertEqual(
+            str(exc.exception),
+            "Missing required arguments: defined",
+        )
+
+        # Ensure execution is fine if everything is filled.
+        content["defined"] = "DEFINED_VALUE"
+        self.operation._validate_job_content(content)
+
+    @patch("pg_backup_api.server_operation.Operation.time_event_now")
+    @patch("pg_backup_api.server_operation.Operation.write_job_file")
+    def test_write_job_file(self, mock_write_job_file, mock_time_event_now):
+        # Ensure underlying methods are called as expected.
+        content = {
+            "SOME": "CONTENT",
+        }
+        extended_content = {
+            "SOME": "CONTENT",
+            "operation_type": OperationType.CONFIG_SWITCH.value,
+            "start_time": "SOME_TIMESTAMP",
+        }
+
+        with patch.object(self.operation, "_validate_job_content") as mock:
+            mock_time_event_now.return_value = "SOME_TIMESTAMP"
+
+            self.operation.write_job_file(content)
+
+            mock_time_event_now.assert_called_once()
+            mock.assert_called_once_with(extended_content)
+            mock_write_job_file.assert_called_once_with(extended_content)
+
+    def test__get_args(self):
+        # Ensure it returns the correct arguments for 'barman recover'.
+        with patch.object(self.operation, "read_job_file") as mock:
+            # TODO: adjust the arguments in the test
+            mock.return_value = {
+                "to": "TO_VALUE",
+                "be": "BE_VALUE",
+                "defined": "DEFINED_VALUE",
+            }
+
+            self.assertEqual(
+                self.operation._get_args(),
+                [
+                    self.operation.server.name,
+                    "TO_VALUE",
+                    "BE_VALUE",
+                    "DEFINED_VALUE",
+                ]
+            )
+
+    @patch("pg_backup_api.server_operation.Operation._run_subprocess")
+    @patch("pg_backup_api.server_operation.ConfigSwitchOperation._get_args")
+    def test__run_logic(self, mock_get_args, mock_run_subprocess):
+        arguments = ["SOME", "ARGUMENTS"]
+        output = ("SOME OUTPUT", 0)
+
+        mock_get_args.return_value = arguments
+        mock_run_subprocess.return_value = output
+
+        self.assertEqual(
+            self.operation._run_logic(),
+            output,
+        )
+
+        mock_get_args.assert_called_once()
+        mock_run_subprocess.assert_called_once_with(
+            ["barman", "config", "switch"] + arguments,
         )
