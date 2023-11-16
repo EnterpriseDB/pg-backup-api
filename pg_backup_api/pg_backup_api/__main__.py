@@ -20,7 +20,8 @@
 import argparse
 import sys
 
-from pg_backup_api.run import serve, status, recovery_operation
+from pg_backup_api.run import (serve, status, recovery_operation,
+                               config_switch_operation)
 
 
 def main() -> None:
@@ -67,6 +68,19 @@ def main() -> None:
     p_ops.add_argument("--operation-id", required=True,
                        help="ID of the operation in the 'pg-backup-api'.")
     p_ops.set_defaults(func=recovery_operation)
+
+    p_ops = subparsers.add_parser(
+        "config-switch",
+        description="Perform a 'barman config switch' through the "
+                    "'pg-backup-api'. Can only be run if a config switch "
+                    "operation has been previously registered."
+    )
+    p_ops.add_argument("--server-name", required=True,
+                       help="Name of the Barman server which config should be "
+                            "switched.")
+    p_ops.add_argument("--operation-id", required=True,
+                       help="ID of the operation in the 'pg-backup-api'.")
+    p_ops.set_defaults(func=config_switch_operation)
 
     args = p.parse_args()
     if hasattr(args, "func") is False:

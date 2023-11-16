@@ -36,6 +36,7 @@ from pg_backup_api.server_operation import (OperationServer,
                                             OperationType,
                                             DEFAULT_OP_TYPE,
                                             RecoveryOperation,
+                                            ConfigSwitchOperation,
                                             MalformedContent)
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -167,6 +168,12 @@ def servers_operations_post(server_name: str,
             * ``remote_ssh_command``: SSH command to connect to the target
               machine.
 
+        * ``config_switch`` -- TODO: update arguments:
+
+            * ``to``: some argument;
+            * ``be``: some other argument;
+            * ``defined``: some other argument.
+
     :return: if *server_name* and the JSON body informed through the
         ``POST`` request are valid, return a JSON response containing a key
         ``operation_id`` with the ID of the operation that has been created.
@@ -191,6 +198,7 @@ def servers_operations_post(server_name: str,
         abort(404, description=msg_404)
 
     operation = None
+    cmd = None
     op_type = OperationType(request_body.get("type", DEFAULT_OP_TYPE.value))
 
     if op_type == OperationType.RECOVERY:
@@ -207,21 +215,24 @@ def servers_operations_post(server_name: str,
             abort(404, description=msg_404)
 
         operation = RecoveryOperation(server_name)
-
-        try:
-            operation.write_job_file(request_body)
-        except MalformedContent:
-            msg_400 = "Make sure all options/arguments are met and try again"
-            abort(400, description=msg_400)
-
-        cmd = (
-            f"pg-backup-api recovery --server-name {server_name} "
-            f"--operation-id {operation.id}"
-        )
-        subprocess.Popen(cmd.split())
+        cmd = f"pg-backup-api recovery --server-name {server_name}"
+    elif op_type == OperationType.CONFIG_SWITCH:
+        # TODO: define the logic for performing a config switch operation
+        operation = ConfigSwitchOperation(server_name)
+        cmd = f"pg-backup-api config-switch --server-name {server_name}"
 
     if TYPE_CHECKING:  # pragma: no cover
         assert isinstance(operation, Operation)
+        assert isinstance(cmd, str)
+
+    try:
+        operation.write_job_file(request_body)
+    except MalformedContent:
+        msg_400 = "Make sure all options/arguments are met and try again"
+        abort(400, description=msg_400)
+
+    cmd += f" --operation-id {operation.id}"
+    subprocess.Popen(cmd.split())
 
     return {"operation_id": operation.id}
 

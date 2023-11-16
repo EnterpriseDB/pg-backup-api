@@ -19,8 +19,8 @@
 """
 Logic for performing operations through the pg-backup-api.
 
-:var DEFAULT_OP_TYPE: default operation to be performed (``recovery``), if none
-is specified.
+:data DEFAULT_OP_TYPE: default operation to be performed (``recovery``), if
+none is specified.
 """
 from abc import abstractmethod
 import argparse
@@ -48,6 +48,7 @@ log = logging.getLogger()
 class OperationType(Enum):
     """Describe operations that can be performed through pg-backup-api."""
     RECOVERY = "recovery"
+    CONFIG_SWITCH = "config_switch"
 
 
 DEFAULT_OP_TYPE = OperationType.RECOVERY
@@ -74,9 +75,9 @@ class OperationServer:
 
     :ivar name: name of the Barman server.
     :ivar config: Barman configuration of the Barman server.
-    :ivar jobs_basedir: directory where to save files of recovery operations
-        that have been created for this Barman server.
-    :ivar output_basedir: directory where to save files with output of recovery
+    :ivar jobs_basedir: directory where to save files of operations that have
+        been created for this Barman server.
+    :ivar output_basedir: directory where to save files with output of
         operations that have been finished for this Barman server -- both for
         failed and successful executions.
     """
@@ -641,6 +642,103 @@ class RecoveryOperation(Operation):
         return self._run_subprocess(cmd)
 
 
+class ConfigSwitchOperation(Operation):
+    """
+    Contain information and logic to process a config switch operation.
+
+    :cvar REQUIRED_ARGUMENTS: required arguments when creating a config switch
+        operation.
+    :cvar TYPE: enum type of this operation.
+    """
+
+    # TODO: define which arguments will be required
+    REQUIRED_ARGUMENTS = ("to", "be", "defined",)
+    TYPE = OperationType.CONFIG_SWITCH
+
+    @classmethod
+    def _validate_job_content(cls, content: Dict[str, Any]) -> None:
+        """
+        Validate the content of the job file before creating it.
+
+        :param content: Python dictionary representing the JSON content of the
+            job file.
+
+        :raises:
+            :exc:`MalformedContent`: if the set of options in *content* is
+                either missing required keys.
+        """
+        required_args: Set[str] = set(cls.REQUIRED_ARGUMENTS)
+        missing_args = required_args - set(content.keys())
+
+        if missing_args:
+            msg = (
+                "Missing required arguments: "
+                f"{', '.join(sorted(missing_args))}"
+            )
+            raise MalformedContent(msg)
+
+    def write_job_file(self, content: Dict[str, Any]) -> None:
+        """
+        Write the job file with *content*.
+
+        .. note::
+            See :meth:`Operation.write_job_file` for more details.
+
+        :param content: Python dictionary representing the JSON content of the
+            job file. Besides what is contained in *content*, this method adds
+            the following keys:
+
+            * ``operation_type``: ``config_switch``;
+            * ``start_time``: current timestamp.
+        """
+        content["operation_type"] = self.TYPE.value
+        content["start_time"] = self.time_event_now()
+        self._validate_job_content(content)
+        super().write_job_file(content)
+
+    def _get_args(self) -> List[str]:
+        """
+        Get arguments for running ``barman config switch`` command.
+
+        :return: list of arguments for ``barman config switch`` command.
+        """
+        job_content = self.read_job_file()
+
+        # TODO: define which arguments will be used
+        to = job_content.get("to")
+        be = job_content.get("be")
+        defined = job_content.get("defined")
+
+        if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(to, str)
+            assert isinstance(be, str)
+            assert isinstance(defined, str)
+
+        return [
+            self.server.name,
+            to,
+            be,
+            defined,
+        ]
+
+    def _run_logic(self) -> \
+            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
+        """
+        Logic to be ran when executing the config switch operation.
+
+        Run ``barman config switch`` command with the configured arguments.
+
+        Will be called when running :meth:`Operation.run`.
+
+        :return: a tuple consisting of:
+
+            * ``stdout``/``stderr`` of ``barman config switch``;
+            * exit code of ``barman config switch``.
+        """
+        cmd = ["barman", "config", "switch"] + self._get_args()
+        return self._run_subprocess(cmd)
+
+
 def main(callback: Callable[..., Any], *args: Tuple[Any, ...]) -> int:
     """
     Execute *callback* with *args* and log its output as an ``INFO`` message.
@@ -674,12 +772,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--server-name", required=True,
-        help="Name of the Barman server related to the recovery "
-             "operation.",
+        help="Name of the Barman server related to the operation.",
     )
     parser.add_argument(
         "--operation-type",
         choices=[op_type.value for op_type in OperationType],
+        default=OperationType.RECOVERY.value,
         help="Type of the operation. Optional for 'list-operations' command. "
              "Defaults to 'recovery' for 'get-operation' command."
     )
@@ -691,8 +789,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "command",
         choices=["list-operations", "get-operation"],
-        help="What we should do -- list recovery operations, or get info "
-             "about a specific operation.",
+        help="What we should do -- list operations, or get info about a "
+             "specific operation.",
     )
 
     args = parser.parse_args()
