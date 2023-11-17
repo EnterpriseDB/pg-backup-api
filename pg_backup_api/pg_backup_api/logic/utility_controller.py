@@ -189,15 +189,15 @@ def servers_operations_post(server_name: str,
 
     if op_type == OperationType.RECOVERY:
         try:
-            backup_id = request_body["backup_id"]
+            msg_backup_id = request_body["backup_id"]
         except KeyError:
             msg_400 = "Request body is missing ``backup_id``"
             abort(400, description=msg_400)
 
-        backup_id = parse_backup_id(Server(server), backup_id)
+        backup_id = parse_backup_id(Server(server), msg_backup_id)
 
         if not backup_id:
-            msg_404 = f"Backup '{backup_id}' does not exist"
+            msg_404 = f"Backup '{msg_backup_id}' does not exist"
             abort(404, description=msg_404)
 
         operation = RecoveryOperation(server_name)
