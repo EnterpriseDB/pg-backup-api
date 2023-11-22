@@ -40,6 +40,8 @@ from pg_backup_api.server_operation import (OperationServer,
 
 if TYPE_CHECKING:  # pragma: no cover
     from flask import Request, Response
+    from barman.config import Config as BarmanConfig
+    from pg_backup_api.server_operation import Operation
 
 
 @app.route("/diagnose", methods=["GET"])
@@ -53,11 +55,15 @@ def diagnose() -> 'Response':
     """
     # Reload the barman config so that any changes are picked up
     load_barman_config()
+
+    if TYPE_CHECKING:  # pragma: no cover
+        assert isinstance(barman.__config__, BarmanConfig)
+
     # Get every server (both inactive and temporarily disabled)
     servers = barman.__config__.server_names()
 
     server_dict = {}
-    for server in servers:
+    for server in servers:  # pyright: ignore
         conf = barman.__config__.get_server(server)
         if conf is None:
             # Unknown server
@@ -213,6 +219,9 @@ def servers_operations_post(server_name: str,
             f"--operation-id {operation.id}"
         )
         subprocess.Popen(cmd.split())
+
+    if TYPE_CHECKING:  # pragma: no cover
+        assert isinstance(operation, Operation)
 
     return {"operation_id": operation.id}
 
