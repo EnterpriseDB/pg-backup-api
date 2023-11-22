@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 from setuptools import setup, find_packages
 
 NAME = "pg-backup-api"
@@ -31,7 +30,8 @@ with open("./version.txt", "r") as f:
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-REQUIRES = ["barman>=2.19,<4.0.0", "Flask>=0.10.1,<3.0.0", "requests>=2.0.0,<3.0.0"]
+REQUIRES = ["barman>=2.19,<4.0.0", "Flask>=0.10.1,<3.0.0",
+            "requests>=2.0.0,<3.0.0"]
 
 setup(
     name=NAME,
@@ -45,7 +45,9 @@ setup(
     install_requires=REQUIRES,
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
-    entry_points={"console_scripts": ["pg-backup-api=pg_backup_api.__main__:main"]},
+    entry_points={
+        "console_scripts": ["pg-backup-api=pg_backup_api.__main__:main"],
+    },
     license="GPL-3.0",
     long_description="""\
     A server that provides an HTTP API to interact with Postgres backups
