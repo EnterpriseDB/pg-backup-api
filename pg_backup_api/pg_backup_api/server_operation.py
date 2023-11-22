@@ -41,8 +41,6 @@ from pg_backup_api.utils import barman, load_barman_config, get_server_by_name
 if TYPE_CHECKING:  # pragma: no cover
     from barman.config import Config as BarmanConfig
 
-load_barman_config()
-
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 log = logging.getLogger()
 
@@ -116,6 +114,8 @@ class OperationServer:
             raise OperationServerConfigError(
                 f"No barman config found for '{name}'."
             )
+
+        load_barman_config()
 
         if TYPE_CHECKING:  # pragma: no cover
             assert isinstance(barman.__config__, BarmanConfig)
