@@ -117,12 +117,61 @@ The command returns `"OK"` if the app is up and running.
 
 ## Testing
 
-You can run unit tests through `pytest`:
+The repository contains a `tox.ini` file which declares a set of test
+environments that are available.
+
+In the following sub-sections you will find more information about how to
+manually run each of the tests. All of them assume you are inside the
+`pg_backup_api` folder which can be found in the repository root directory.
+
+**Note:** install `tox` Python module if you don't have it yet in your
+environment.
+
+### Lint
+
+You can run the `flake8` linter over the code by running this command:
 
 ```bash
-cd pg-backup-api/pg_backup_api
-python3 -m pytest
+tox -e lint
 ```
 
-**Note:** install `pytest` Python module if you don't have it yet in your
+It will check the source code, tests, and `setup.py`.
+
+### Dependency checking
+
+You can run the dependency checker `pipdeptree` by running this command:
+
+```bash
+tox -e dep
+```
+
+It will print the tree of Python modules used by `pg-backup-api`, which can be
+helpful in solving conflicts..
+
+### Unit tests
+
+You can run unit tests by running this command:
+
+```bash
+tox -m test
+```
+
+It will run unit tests using `pytest` module and `pytest-cov` plugin for
+coverage report.
+
+**Note:** the command will take care of running the tests using all Python
+versions which are supported by `pg-backup-api` and that are available in your
 environment.
+
+### Static type checking
+
+You can run the static type checker `pyright` over the source code by running
+this command:
+
+```bash
+tox -m type
+```
+
+**Note:** the command will take care of running the static type checker using
+all Python versions which are supported by `pg-backup-api` and that are
+available in your environment.

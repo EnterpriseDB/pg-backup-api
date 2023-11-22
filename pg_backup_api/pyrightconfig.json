@@ -1,0 +1,9 @@
+{
+    "include": [
+      "pg_backup_api"
+    ],
+    
+    "exclude": [
+      "pg_backup_api/tests"
+    ],
+}
