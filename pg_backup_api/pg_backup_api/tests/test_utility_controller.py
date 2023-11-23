@@ -17,9 +17,12 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 """Unit tests for the REST API endpoints."""
+from distutils.version import StrictVersion
 import json
+import sys
 from unittest.mock import Mock, MagicMock, patch
 
+import flask
 import pytest
 
 from pg_backup_api.server_operation import (OperationServerConfigError,
@@ -252,8 +255,20 @@ class TestUtilityController:
 
         response = client.post(path, data={})
 
-        assert response.status_code == 415
-        assert b"Unsupported Media Type" in response.data
+        expected_status_code = 415
+        expected_data = b"Unsupported Media Type"
+        version = sys.version_info
+
+        # This is an issue which was detected while running tests through
+        # GitHub Actions when using Python 3.7 and Flask 2.2.5. We might want
+        # to remove this once we remove support for Python 3.7
+        if version.major <= 3 and version.minor <= 7 and \
+                StrictVersion(flask.__version__) <= StrictVersion("2.2.5"):
+            expected_status_code = 400
+            expected_data = b"Bad Request"
+
+        assert response.status_code == expected_status_code
+        assert expected_data in response.data
 
     @patch("pg_backup_api.logic.utility_controller.OperationServer", Mock())
     @patch("pg_backup_api.logic.utility_controller.get_server_by_name")
