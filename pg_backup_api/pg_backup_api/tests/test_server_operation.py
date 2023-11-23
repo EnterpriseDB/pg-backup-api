@@ -873,54 +873,71 @@ class TestRecoveryOperation:
 
 
 @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
-class TestConfigSwitchOperation(TestCase):
+class TestConfigSwitchOperation:
+    """Run tests for :class:`ConfigSwitchOperation`."""
 
+    @pytest.fixture
     @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
-    def setUp(self):
-        self.operation = ConfigSwitchOperation(_BARMAN_SERVER)
+    def operation(self):
+        """Create a :class:`ConfigSwitchOperation` instance for testing.
 
-    def test__validate_job_content(self):
-        content = {}
-        # Ensure exception is raised if content is missing keys -- test 1.
-        with self.assertRaises(MalformedContent) as exc:
-            self.operation._validate_job_content(content)
+        :return: a new instance of :class:`ConfigSwitchOperation` for testing.
+        """
+        return ConfigSwitchOperation(_BARMAN_SERVER)
 
-        # TODO: adjust the arguments in this test
-        self.assertEqual(
-            str(exc.exception),
-            "Missing required arguments: be, defined, to",
-        )
+    # TODO: adjust the parameter names once the final design is defined
+    @pytest.mark.parametrize("content,missing_keys", [
+        ({}, "be, defined, to",),
+        ({"to": "SOME_TO"},
+         "be, defined"),
+        ({"be": "SOME_BE"},
+         "defined, to",),
+        ({"defined": "SOME_DEFINED"},
+         "be, to",),
+        ({"to": "SOME_TO",
+          "be": "SOME_BE"},
+         "defined"),
+        ({"to": "SOME_TO",
+          "defined": "SOME_DEFINED"},
+         "be"),
+        ({"be": "SOME_BE",
+          "defined": "SOME_DEFINED"},
+         "to"),
+    ])
+    def test__validate_job_content_content_missing_keys(self, content,
+                                                        missing_keys,
+                                                        operation):
+        """Test :meth:`ConfigSwitchOperation._validate_job_content`.
 
-        # Ensure exception is raised if content is missing keys -- test 2.
-        content["to"] = "TO_VALUE"
+        Ensure and exception is raised if the content is missing keys.
+        """
+        with pytest.raises(MalformedContent) as exc:
+            operation._validate_job_content(content)
 
-        with self.assertRaises(MalformedContent) as exc:
-            self.operation._validate_job_content(content)
+        assert str(exc.value) == f"Missing required arguments: {missing_keys}"
 
-        self.assertEqual(
-            str(exc.exception),
-            "Missing required arguments: be, defined",
-        )
+    def test__validate_job_content_ok(self, operation):
+        """Test :meth:`ConfigSwitchOperation._validate_job_content`.
 
-        # Ensure exception is raised if content is missing keys -- test 3.
-        content["be"] = "BE_VALUE"
-
-        with self.assertRaises(MalformedContent) as exc:
-            self.operation._validate_job_content(content)
-
-        self.assertEqual(
-            str(exc.exception),
-            "Missing required arguments: defined",
-        )
-
-        # Ensure execution is fine if everything is filled.
-        content["defined"] = "DEFINED_VALUE"
-        self.operation._validate_job_content(content)
+        Ensure execution is fine if everything is filled as expected.
+        """
+        # TODO: adjust the parameter names once the final design is defined
+        content = {
+            "to": "SOME_TO",
+            "be": "SOME_BE",
+            "defined": "SOME_DEFINED",
+        }
+        operation._validate_job_content(content)
 
     @patch("pg_backup_api.server_operation.Operation.time_event_now")
     @patch("pg_backup_api.server_operation.Operation.write_job_file")
-    def test_write_job_file(self, mock_write_job_file, mock_time_event_now):
-        # Ensure underlying methods are called as expected.
+    def test_write_job_file(self, mock_write_job_file, mock_time_event_now,
+                            operation):
+        """Test :meth:`ConfigSwitchOperation.write_job_file`.
+
+        Ensure the underlying methods are called as expected.
+        """
+        # TODO: adjust the parameter names once the final design is defined
         content = {
             "SOME": "CONTENT",
         }
@@ -930,48 +947,50 @@ class TestConfigSwitchOperation(TestCase):
             "start_time": "SOME_TIMESTAMP",
         }
 
-        with patch.object(self.operation, "_validate_job_content") as mock:
+        with patch.object(operation, "_validate_job_content") as mock:
             mock_time_event_now.return_value = "SOME_TIMESTAMP"
 
-            self.operation.write_job_file(content)
+            operation.write_job_file(content)
 
             mock_time_event_now.assert_called_once()
             mock.assert_called_once_with(extended_content)
             mock_write_job_file.assert_called_once_with(extended_content)
 
-    def test__get_args(self):
-        # Ensure it returns the correct arguments for 'barman recover'.
-        with patch.object(self.operation, "read_job_file") as mock:
-            # TODO: adjust the arguments in the test
+    def test__get_args(self, operation):
+        """Test :meth:`ConfigSwitchOperation._get_args`.
+
+        Ensure it returns the correct arguments for ``barman recover``.
+        """
+        # TODO: adjust the parameter names once the final design is defined
+        with patch.object(operation, "read_job_file") as mock:
             mock.return_value = {
-                "to": "TO_VALUE",
-                "be": "BE_VALUE",
-                "defined": "DEFINED_VALUE",
+                "to": "SOME_TO",
+                "be": "SOME_BE",
+                "defined": "SOME_DEFINED",
             }
 
-            self.assertEqual(
-                self.operation._get_args(),
-                [
-                    self.operation.server.name,
-                    "TO_VALUE",
-                    "BE_VALUE",
-                    "DEFINED_VALUE",
-                ]
-            )
+            expected = [
+                operation.server.name,
+                "SOME_TO",
+                "SOME_BE",
+                "SOME_DEFINED",
+            ]
+            assert operation._get_args() == expected
 
     @patch("pg_backup_api.server_operation.Operation._run_subprocess")
     @patch("pg_backup_api.server_operation.ConfigSwitchOperation._get_args")
-    def test__run_logic(self, mock_get_args, mock_run_subprocess):
+    def test__run_logic(self, mock_get_args, mock_run_subprocess, operation):
+        """Test :meth:`ConfigSwitchOperation._run_logic`.
+
+        Ensure the underlying calls occur as expected.
+        """
         arguments = ["SOME", "ARGUMENTS"]
         output = ("SOME OUTPUT", 0)
 
         mock_get_args.return_value = arguments
         mock_run_subprocess.return_value = output
 
-        self.assertEqual(
-            self.operation._run_logic(),
-            output,
-        )
+        assert operation._run_logic() == output
 
         mock_get_args.assert_called_once()
         mock_run_subprocess.assert_called_once_with(

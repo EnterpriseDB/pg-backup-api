@@ -310,16 +310,14 @@ class TestUtilityController:
     @patch("pg_backup_api.logic.utility_controller.Server")
     @patch("pg_backup_api.logic.utility_controller.RecoveryOperation")
     @patch("subprocess.Popen")
-    def test_server_operation_post_server_does_not_exist(self, mock_popen,
-                                                         mock_rec_op,
-                                                         mock_server,
-                                                         mock_parse_id,
-                                                         mock_op_type,
-                                                         mock_get_server,
-                                                         client):
+    def test_server_operation_post_server_rec_op_does_not_exist(
+        self, mock_popen, mock_rec_op, mock_server, mock_parse_id,
+        mock_op_type, mock_get_server, client
+    ):
         """Test ``/servers/<SERVER_NAME>/operations`` endpoint.
 
-        Ensure ``POST`` request returns ``404`` if Barman server doesn't exist.
+        Ensure ``POST`` request returns ``404`` if Barman server doesn't exist
+        when requesting a recovery operation.
         """
         path = "/servers/SOME_SERVER_NAME/operations"
 
@@ -352,14 +350,17 @@ class TestUtilityController:
     @patch("pg_backup_api.logic.utility_controller.Server")
     @patch("pg_backup_api.logic.utility_controller.RecoveryOperation")
     @patch("subprocess.Popen")
-    def test_server_operation_post_backup_id_missing(self, mock_popen,
-                                                     mock_rec_op, mock_server,
-                                                     mock_parse_id,
-                                                     mock_op_type,
-                                                     mock_get_server, client):
+    def test_server_operation_post_rec_op_backup_id_missing(self, mock_popen,
+                                                            mock_rec_op,
+                                                            mock_server,
+                                                            mock_parse_id,
+                                                            mock_op_type,
+                                                            mock_get_server,
+                                                            client):
         """Test ``/servers/<SERVER_NAME>/operations`` endpoint.
 
-        Ensure ``POST`` request returns ``400`` if ``backup_id`` is missing.
+        Ensure ``POST`` request returns ``400`` if ``backup_id`` is missing
+        when requesting a recovery operation.
         """
         path = "/servers/SOME_SERVER_NAME/operations"
         json_data = {
@@ -387,16 +388,14 @@ class TestUtilityController:
     @patch("pg_backup_api.logic.utility_controller.Server")
     @patch("pg_backup_api.logic.utility_controller.RecoveryOperation")
     @patch("subprocess.Popen")
-    def test_server_operation_post_backup_does_not_exist(self, mock_popen,
-                                                         mock_rec_op,
-                                                         mock_server,
-                                                         mock_parse_id,
-                                                         mock_op_type,
-                                                         mock_get_server,
-                                                         client):
+    def test_server_operation_post_rec_op_backup_does_not_exist(
+        self, mock_popen, mock_rec_op, mock_server, mock_parse_id,
+        mock_op_type, mock_get_server, client
+    ):
         """Test ``/servers/<SERVER_NAME>/operations`` endpoint.
 
-        Ensure ``POST`` request returns ``404`` if backup does not exist.
+        Ensure ``POST`` request returns ``404`` if backup does not exist when
+        requesting a recovery operation.
         """
         path = "/servers/SOME_SERVER_NAME/operations"
         json_data = {
@@ -431,13 +430,17 @@ class TestUtilityController:
     @patch("pg_backup_api.logic.utility_controller.Server")
     @patch("pg_backup_api.logic.utility_controller.RecoveryOperation")
     @patch("subprocess.Popen")
-    def test_server_operation_post_missing_options(self, mock_popen,
-                                                   mock_rec_op, mock_server,
-                                                   mock_parse_id, mock_op_type,
-                                                   mock_get_server, client):
+    def test_server_operation_post_rec_op_missing_options(self, mock_popen,
+                                                          mock_rec_op,
+                                                          mock_server,
+                                                          mock_parse_id,
+                                                          mock_op_type,
+                                                          mock_get_server,
+                                                          client):
         """Test ``/servers/<SERVER_NAME>/operations`` endpoint.
 
-        Ensure ``POST`` request returns ``400`` if any option is missing.
+        Ensure ``POST`` request returns ``400`` if any option is missing when
+        requesting a recovery operation.
         """
         path = "/servers/SOME_SERVER_NAME/operations"
         json_data = {
@@ -469,17 +472,55 @@ class TestUtilityController:
     @patch("pg_backup_api.logic.utility_controller.OperationServer", Mock())
     @patch("pg_backup_api.logic.utility_controller.get_server_by_name")
     @patch("pg_backup_api.logic.utility_controller.OperationType")
+    @patch("pg_backup_api.logic.utility_controller.ConfigSwitchOperation")
+    @patch("subprocess.Popen")
+    def test_server_operation_post_cs_op_missing_options(self, mock_popen,
+                                                         mock_cs_op,
+                                                         mock_op_type,
+                                                         mock_get_server,
+                                                         client):
+        """Test ``/servers/<SERVER_NAME>/operations`` endpoint.
+
+        Ensure ``POST`` request returns ``400`` if any option is missing when
+        requesting a config switch operation.
+        """
+        path = "/servers/SOME_SERVER_NAME/operations"
+        json_data = {
+            "type": "config_switch",
+        }
+
+        mock_op_type.return_value = mock_op_type.CONFIG_SWITCH
+        mock_cs_op.return_value.id = "SOME_OP_ID"
+        mock_write_job = mock_cs_op.return_value.write_job_file
+        mock_write_job.side_effect = MalformedContent("SOME_ERROR")
+
+        response = client.post(path, json=json_data)
+
+        mock_get_server.assert_called_once_with("SOME_SERVER_NAME")
+        mock_op_type.assert_called_once_with("config_switch")
+        mock_cs_op.assert_called_once_with("SOME_SERVER_NAME")
+        mock_write_job.assert_called_once_with(json_data)
+        mock_popen.assert_not_called()
+
+        assert response.status_code == 400
+        expected = b"Make sure all options/arguments are met and try again"
+        assert expected in response.data
+
+    @patch("pg_backup_api.logic.utility_controller.OperationServer", Mock())
+    @patch("pg_backup_api.logic.utility_controller.get_server_by_name")
+    @patch("pg_backup_api.logic.utility_controller.OperationType")
     @patch("pg_backup_api.logic.utility_controller.parse_backup_id")
     @patch("pg_backup_api.logic.utility_controller.Server")
     @patch("pg_backup_api.logic.utility_controller.RecoveryOperation")
     @patch("subprocess.Popen")
-    def test_server_operation_post_ok(self, mock_popen, mock_rec_op,
-                                      mock_server, mock_parse_id, mock_op_type,
-                                      mock_get_server, client):
+    def test_server_operation_post_rec_op_ok(self, mock_popen, mock_rec_op,
+                                             mock_server, mock_parse_id,
+                                             mock_op_type, mock_get_server,
+                                             client):
         """Test ``/servers/<SERVER_NAME>/operations`` endpoint.
 
-        Ensure ``POST`` request returns ``202`` if everything is ok, and ensure
-        the subprocess is started.
+        Ensure ``POST`` request returns ``202`` if everything is ok when
+        requesting a recovery operation, and ensure the subprocess is started.
         """
         path = "/servers/SOME_SERVER_NAME/operations"
         json_data = {
@@ -502,6 +543,44 @@ class TestUtilityController:
         mock_rec_op.assert_called_once_with("SOME_SERVER_NAME")
         mock_write_job.assert_called_once_with(json_data)
         mock_popen.assert_called_once_with(["pg-backup-api", "recovery",
+                                            "--server-name",
+                                            "SOME_SERVER_NAME",
+                                            "--operation-id",
+                                            "SOME_OP_ID"])
+
+        assert response.status_code == 202
+        assert response.data == b'{"operation_id":"SOME_OP_ID"}\n'
+
+    @patch("pg_backup_api.logic.utility_controller.OperationServer", Mock())
+    @patch("pg_backup_api.logic.utility_controller.get_server_by_name")
+    @patch("pg_backup_api.logic.utility_controller.OperationType")
+    @patch("pg_backup_api.logic.utility_controller.ConfigSwitchOperation")
+    @patch("subprocess.Popen")
+    def test_server_operation_post_cs_op_ok(self, mock_popen, mock_cs_op,
+                                            mock_op_type, mock_get_server,
+                                            client):
+        """Test ``/servers/<SERVER_NAME>/operations`` endpoint.
+
+        Ensure ``POST`` request returns ``202`` if everything is ok when
+        requesting a config switch operation, and ensure the subprocess is
+        started.
+        """
+        path = "/servers/SOME_SERVER_NAME/operations"
+        json_data = {
+            "type": "config_switch",
+        }
+
+        mock_op_type.return_value = mock_op_type.CONFIG_SWITCH
+        mock_cs_op.return_value.id = "SOME_OP_ID"
+
+        response = client.post(path, json=json_data)
+
+        mock_write_job = mock_cs_op.return_value.write_job_file
+        mock_get_server.assert_called_once_with("SOME_SERVER_NAME")
+        mock_op_type.assert_called_once_with("config_switch")
+        mock_cs_op.assert_called_once_with("SOME_SERVER_NAME")
+        mock_write_job.assert_called_once_with(json_data)
+        mock_popen.assert_called_once_with(["pg-backup-api", "config-switch",
                                             "--server-name",
                                             "SOME_SERVER_NAME",
                                             "--operation-id",
