@@ -17,6 +17,7 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 """Unit tests for the CLI."""
+import sys
 from textwrap import dedent
 from unittest.mock import MagicMock, patch
 
@@ -32,7 +33,7 @@ _HELP_OUTPUT = {
         positional arguments:
           {serve,status,recovery}
 
-        options:
+        optional arguments:
           -h, --help            show this help message and exit
 
         Postgres Backup API by EnterpriseDB (www.enterprisedb.com)
@@ -41,9 +42,10 @@ _HELP_OUTPUT = {
     "pg-backup-api serve --help": dedent("""\
         usage: pg-backup-api serve [-h] [--port PORT]
 
-        Start the REST API server. Listen for requests on '127.0.0.1', on the given port.
+        Start the REST API server. Listen for requests on '127.0.0.1', on the given
+        port.
 
-        options:
+        optional arguments:
           -h, --help   show this help message and exit
           --port PORT  Port to bind to.
 \
@@ -53,17 +55,19 @@ _HELP_OUTPUT = {
 
         Check if the REST API server is up and running
 
-        options:
+        optional arguments:
           -h, --help   show this help message and exit
           --port PORT  Port to be checked.
 \
     """),  # noqa: E501
     "pg-backup-api recovery --help": dedent("""\
-        usage: pg-backup-api recovery [-h] --server-name SERVER_NAME --operation-id OPERATION_ID
+        usage: pg-backup-api recovery [-h] --server-name SERVER_NAME --operation-id
+                                      OPERATION_ID
 
-        Perform a 'barman recover' through the 'pg-backup-api'. Can only be run if a recover operation has been previously registered.
+        Perform a 'barman recover' through the 'pg-backup-api'. Can only be run if a
+        recover operation has been previously registered.
 
-        options:
+        optional arguments:
           -h, --help            show this help message and exit
           --server-name SERVER_NAME
                                 Name of the Barman server to be recovered.
@@ -81,17 +85,27 @@ _COMMAND_FUNC = {
 
 
 @pytest.mark.parametrize("command", _HELP_OUTPUT.keys())
-def test_main_helper(command, capsys):
+@patch("shutil.get_terminal_size")
+def test_main_helper(mock_term_size, command, capsys):
     """Test :func:`main`.
 
     Ensure all the ``--help`` calls print the expected content to the console.
     """
+    # Get a predictable print size
+    mock_term_size.return_value.columns = 80
+
     with patch("sys.argv", command.split()), pytest.raises(SystemExit) as exc:
         main()
 
     assert str(exc.value) == "0"
 
-    assert capsys.readouterr().out == _HELP_OUTPUT[command]
+    expected = _HELP_OUTPUT[command]
+    version = sys.version_info
+
+    if version.major >= 3 and version.minor >= 10:
+        expected = expected.replace("optional arguments:", "options:")
+
+    assert capsys.readouterr().out == expected
 
 
 @pytest.mark.parametrize("command", _COMMAND_FUNC.keys())

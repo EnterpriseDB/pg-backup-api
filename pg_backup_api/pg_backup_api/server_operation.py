@@ -30,7 +30,7 @@ import logging
 import os
 import subprocess
 import sys
-from typing import (Any, Callable, Dict, List, Optional, Set, Tuple,
+from typing import (Any, Callable, Dict, List, Optional, Set, Tuple, Union,
                     TYPE_CHECKING)
 
 from datetime import datetime
@@ -494,7 +494,8 @@ class Operation:
         return self.server.get_operation_status(self.id)
 
     @staticmethod
-    def _run_subprocess(cmd: List[str]) -> Tuple[Optional[str], int]:
+    def _run_subprocess(cmd: List[str]) -> \
+            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Run *cmd* as a subprocess.
 
@@ -512,7 +513,8 @@ class Operation:
         return stdout, process.returncode
 
     @abstractmethod
-    def _run_logic(self) -> Tuple[Optional[str], int]:
+    def _run_logic(self) -> \
+            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Logic to be ran when executing the operation.
 
@@ -526,7 +528,7 @@ class Operation:
         """
         pass
 
-    def run(self) -> Tuple[Optional[str], int]:
+    def run(self) -> Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Run the operation.
 
@@ -621,7 +623,8 @@ class RecoveryOperation(Operation):
             remote_ssh_command,
         ]
 
-    def _run_logic(self) -> Tuple[Optional[str], int]:
+    def _run_logic(self) -> \
+            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Logic to be ran when executing the recovery operation.
 

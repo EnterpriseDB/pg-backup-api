@@ -34,7 +34,8 @@ from barman.infofile import BackupInfo
 
 if TYPE_CHECKING:  # pragma: no cover
     import flask.app
-    from barman.config import ServerConfig
+    from barman.config import Config as BarmanConfig, ServerConfig
+    import barman.server
 
 
 CONFIG_FILENAME = "/etc/barman.conf"
@@ -98,7 +99,10 @@ def get_server_by_name(server_name: str) -> Optional['ServerConfig']:
     :return: configuration of Barman server *server_name* if that server
         exists, ``None`` otherwise.
     """
-    for server in barman.__config__.server_names():
+    if TYPE_CHECKING:  # pragma: no cover
+        assert isinstance(barman.__config__, BarmanConfig)
+
+    for server in barman.__config__.server_names():  # pyright: ignore
         conf = barman.__config__.get_server(server)
         if server == server_name:
             return conf
@@ -120,11 +124,13 @@ def parse_backup_id(server: barman.server.Server,
     :return: information about the backup, if *backup_id* can be satisfied,
         ``None`` otherwise.
     """
-    if backup_id in ("latest", "last"):
-        backup_id = server.get_last_backup_id()
-    elif backup_id in ("oldest", "first"):
-        backup_id = server.get_first_backup_id()
-    elif backup_id in ("last-failed"):
-        backup_id = server.get_last_backup_id([BackupInfo.FAILED])
+    parsed_backup_id = backup_id
 
-    return server.get_backup(backup_id)
+    if backup_id in ("latest", "last"):
+        parsed_backup_id = server.get_last_backup_id()
+    elif backup_id in ("oldest", "first"):
+        parsed_backup_id = server.get_first_backup_id()
+    elif backup_id in ("last-failed"):
+        parsed_backup_id = server.get_last_backup_id([BackupInfo.FAILED])
+
+    return server.get_backup(parsed_backup_id)
