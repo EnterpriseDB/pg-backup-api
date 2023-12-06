@@ -378,7 +378,7 @@ class TestOperationServer:
     def test_read_output_file_file_does_not_exist(self, op_server):
         """Test :meth:`OperationServer._read_output_file`.
 
-        Ensure and exception is raised if the file does not exist.
+        Ensure an exception is raised if the file does not exist.
         """
         id = "SOME_OP_ID"
 
@@ -785,7 +785,7 @@ class TestRecoveryOperation:
                                                         operation):
         """Test :meth:`RecoveryOperation._validate_job_content`.
 
-        Ensure and exception is raised if the content is missing keys.
+        Ensure an exception is raised if the content is missing keys.
         """
         with pytest.raises(MalformedContent) as exc:
             operation._validate_job_content(content)
@@ -885,49 +885,93 @@ class TestConfigSwitchOperation:
         """
         return ConfigSwitchOperation(_BARMAN_SERVER)
 
-    # TODO: adjust the parameter names once the final design is defined
-    @pytest.mark.parametrize("content,missing_keys", [
-        ({}, "be, defined, to",),
-        ({"to": "SOME_TO"},
-         "be, defined"),
-        ({"be": "SOME_BE"},
-         "defined, to",),
-        ({"defined": "SOME_DEFINED"},
-         "be, to",),
-        ({"to": "SOME_TO",
-          "be": "SOME_BE"},
-         "defined"),
-        ({"to": "SOME_TO",
-          "defined": "SOME_DEFINED"},
-         "be"),
-        ({"be": "SOME_BE",
-          "defined": "SOME_DEFINED"},
-         "to"),
-    ])
-    def test__validate_job_content_content_missing_keys(self, content,
-                                                        missing_keys,
-                                                        operation):
+    def test__validate_job_content_content_missing_both_keys(self, operation):
         """Test :meth:`ConfigSwitchOperation._validate_job_content`.
 
-        Ensure and exception is raised if the content is missing keys.
+        Ensure an exception is raised if the content is missing both
+        ``model_name`` and ``reset`` keys.
         """
         with pytest.raises(MalformedContent) as exc:
-            operation._validate_job_content(content)
+            operation._validate_job_content({})
 
-        assert str(exc.value) == f"Missing required arguments: {missing_keys}"
+        assert str(exc.value) == (
+            "One among the following arguments must be specified: "
+            "model_name, reset"
+        )
 
-    def test__validate_job_content_ok(self, operation):
+    def test__validate_job_content_content_contains_both_keys(self, operation):
         """Test :meth:`ConfigSwitchOperation._validate_job_content`.
 
-        Ensure execution is fine if everything is filled as expected.
+        Ensure an exception is raised if the content has both ``model_name``
+        and ``reset`` keys.
         """
-        # TODO: adjust the parameter names once the final design is defined
-        content = {
-            "to": "SOME_TO",
-            "be": "SOME_BE",
-            "defined": "SOME_DEFINED",
-        }
-        operation._validate_job_content(content)
+        with pytest.raises(MalformedContent) as exc:
+            operation._validate_job_content({
+                "model_name": "SOME_MODEL",
+                "reset": True,
+            })
+
+        assert str(exc.value) == (
+            "Only one among the following arguments should be specified: "
+            "model_name, reset"
+        )
+
+    @pytest.mark.parametrize("model_name", [1, 1.0, True, None])
+    def test__validate_job_content_invalid_model_name_type(self, model_name,
+                                                           operation):
+        """Test :meth:`ConfigSwitchOperation._validate_job_content`.
+
+        Ensure an exception is raised if ``model_name`` has a value of an
+        invalid type.
+        """
+        with pytest.raises(MalformedContent) as exc:
+            operation._validate_job_content({"model_name": model_name})
+
+        assert str(exc.value) == (
+            f"`model_name` is expected to be a `{str}`, but a "
+            f"`{type(model_name)}` was found instead: `{model_name}`."
+        )
+
+    @pytest.mark.parametrize("reset", [1, 1.0, "true", None])
+    def test__validate_job_content_invalid_reset_type(self, reset, operation):
+        """Test :meth:`ConfigSwitchOperation._validate_job_content`.
+
+        Ensure an exception is raised if ``reset`` has a value of an
+        invalid type.
+        """
+        with pytest.raises(MalformedContent) as exc:
+            operation._validate_job_content({"reset": reset})
+
+        assert str(exc.value) == (
+            f"`reset` is expected to be a `{bool}`, but a "
+            f"`{type(reset)}` was found instead: `{reset}`."
+        )
+
+    def test__validate_job_content_invalid_reset_value(self, operation):
+        """Test :meth:`ConfigSwitchOperation._validate_job_content`.
+
+        Ensure an exception is raised if ``reset`` has an invalid value.
+        """
+        with pytest.raises(MalformedContent) as exc:
+            operation._validate_job_content({"reset": False})
+
+        assert str(exc.value) == (
+            "Value of `reset` key, if present, can only be `True`"
+        )
+
+    def test__validate_job_content_apply_model_ok(self, operation):
+        """Test :meth:`ConfigSwitchOperation._validate_job_content`.
+
+        Ensure execution is fine if only a valid ``model_name`` is given.
+        """
+        operation._validate_job_content({"model_name": "SOME_MODEL"})
+
+    def test__validate_job_content_reset_model_ok(self, operation):
+        """Test :meth:`ConfigSwitchOperation._validate_job_content`.
+
+        Ensure execution is fine if only a valid ``reset`` is given.
+        """
+        operation._validate_job_content({"reset": True})
 
     @patch("pg_backup_api.server_operation.Operation.time_event_now")
     @patch("pg_backup_api.server_operation.Operation.write_job_file")
@@ -937,7 +981,6 @@ class TestConfigSwitchOperation:
 
         Ensure the underlying methods are called as expected.
         """
-        # TODO: adjust the parameter names once the final design is defined
         content = {
             "SOME": "CONTENT",
         }
@@ -956,25 +999,28 @@ class TestConfigSwitchOperation:
             mock.assert_called_once_with(extended_content)
             mock_write_job_file.assert_called_once_with(extended_content)
 
-    def test__get_args(self, operation):
+    def test__get_args_apply_model(self, operation):
         """Test :meth:`ConfigSwitchOperation._get_args`.
 
-        Ensure it returns the correct arguments for ``barman recover``.
+        Ensure it returns the correct arguments for ``barman config-switch``
+        when ``model_name`` is given.
         """
-        # TODO: adjust the parameter names once the final design is defined
         with patch.object(operation, "read_job_file") as mock:
-            mock.return_value = {
-                "to": "SOME_TO",
-                "be": "SOME_BE",
-                "defined": "SOME_DEFINED",
-            }
+            mock.return_value = {"model_name": "SOME_MODEL"}
 
-            expected = [
-                operation.server.name,
-                "SOME_TO",
-                "SOME_BE",
-                "SOME_DEFINED",
-            ]
+            expected = [operation.server.name, "SOME_MODEL"]
+            assert operation._get_args() == expected
+
+    def test__get_args_reset_model(self, operation):
+        """Test :meth:`ConfigSwitchOperation._get_args`.
+
+        Ensure it returns the correct arguments for ``barman config-switch``
+        when ``reset`` is given.
+        """
+        with patch.object(operation, "read_job_file") as mock:
+            mock.return_value = {"reset": True}
+
+            expected = [operation.server.name, "--reset"]
             assert operation._get_args() == expected
 
     @patch("pg_backup_api.server_operation.Operation._run_subprocess")
@@ -994,5 +1040,5 @@ class TestConfigSwitchOperation:
 
         mock_get_args.assert_called_once()
         mock_run_subprocess.assert_called_once_with(
-            ["barman", "config", "switch"] + arguments,
+            ["barman", "config-switch"] + arguments,
         )

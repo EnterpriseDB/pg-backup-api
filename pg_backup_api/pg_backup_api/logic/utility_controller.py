@@ -156,7 +156,7 @@ def servers_operations_post(server_name: str,
     :param request: the flask request that has been received by the routing
         function.
 
-        Should contain a JSON body with a key ``type``, which identified the
+        Should contain a JSON body with a key ``type``, which identifies the
         type of the operation. The rest of the content depends on the type of
         operation being requested:
 
@@ -168,11 +168,10 @@ def servers_operations_post(server_name: str,
             * ``remote_ssh_command``: SSH command to connect to the target
               machine.
 
-        * ``config_switch`` -- TODO: update arguments:
+        * ``config_switch``:
 
-            * ``to``: some argument;
-            * ``be``: some other argument;
-            * ``defined``: some other argument.
+            * ``model_name``: the name of the model to be applied; or
+            * ``reset``: if you want to unapply a currently active model.
 
     :return: if *server_name* and the JSON body informed through the
         ``POST`` request are valid, return a JSON response containing a key
@@ -217,7 +216,6 @@ def servers_operations_post(server_name: str,
         operation = RecoveryOperation(server_name)
         cmd = f"pg-backup-api recovery --server-name {server_name}"
     elif op_type == OperationType.CONFIG_SWITCH:
-        # TODO: define the logic for performing a config switch operation
         operation = ConfigSwitchOperation(server_name)
         cmd = f"pg-backup-api config-switch --server-name {server_name}"
 

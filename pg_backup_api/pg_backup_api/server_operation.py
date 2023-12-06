@@ -646,13 +646,12 @@ class ConfigSwitchOperation(Operation):
     """
     Contain information and logic to process a config switch operation.
 
-    :cvar REQUIRED_ARGUMENTS: required arguments when creating a config switch
+    :cvar POSSIBLE_ARGUMENTS: possible arguments when creating a config switch
         operation.
     :cvar TYPE: enum type of this operation.
     """
 
-    # TODO: define which arguments will be required
-    REQUIRED_ARGUMENTS = ("to", "be", "defined",)
+    POSSIBLE_ARGUMENTS = ("model_name", "reset",)
     TYPE = OperationType.CONFIG_SWITCH
 
     @classmethod
@@ -664,17 +663,37 @@ class ConfigSwitchOperation(Operation):
             job file.
 
         :raises:
-            :exc:`MalformedContent`: if the set of options in *content* is
-                either missing required keys.
+            :exc:`MalformedContent`: if the set of options in *content* is not
+                compliant with the supported options and how to use them.
         """
-        required_args: Set[str] = set(cls.REQUIRED_ARGUMENTS)
-        missing_args = required_args - set(content.keys())
-
-        if missing_args:
+        # One of :attr:`POSSIBLE_ARGUMENTS` must be specified, but not both
+        if not any(arg in content for arg in cls.POSSIBLE_ARGUMENTS):
             msg = (
-                "Missing required arguments: "
-                f"{', '.join(sorted(missing_args))}"
+                "One among the following arguments must be specified: "
+                f"{', '.join(sorted(cls.POSSIBLE_ARGUMENTS))}"
             )
+            raise MalformedContent(msg)
+        elif all(arg in content for arg in cls.POSSIBLE_ARGUMENTS):
+            msg = (
+                "Only one among the following arguments should be specified: "
+                f"{', '.join(sorted(cls.POSSIBLE_ARGUMENTS))}"
+            )
+            raise MalformedContent(msg)
+
+        for key, type_ in [
+            ("model_name", str,),
+            ("reset", bool,),
+        ]:
+            if key in content and not isinstance(content[key], type_):
+                msg = (
+                    f"`{key}` is expected to be a `{type_}`, but a "
+                    f"`{type(content[key])}` was found instead: "
+                    f"`{content[key]}`."
+                )
+                raise MalformedContent(msg)
+
+        if "reset" in content and content["reset"] is False:
+            msg = "Value of `reset` key, if present, can only be `True`"
             raise MalformedContent(msg)
 
     def write_job_file(self, content: Dict[str, Any]) -> None:
@@ -698,44 +717,43 @@ class ConfigSwitchOperation(Operation):
 
     def _get_args(self) -> List[str]:
         """
-        Get arguments for running ``barman config switch`` command.
+        Get arguments for running ``barman config-switch`` command.
 
-        :return: list of arguments for ``barman config switch`` command.
+        :return: list of arguments for ``barman config-switch`` command.
         """
         job_content = self.read_job_file()
 
-        # TODO: define which arguments will be used
-        to = job_content.get("to")
-        be = job_content.get("be")
-        defined = job_content.get("defined")
+        model_name = job_content.get("model_name")
+        reset = job_content.get("reset")
 
         if TYPE_CHECKING:  # pragma: no cover
-            assert isinstance(to, str)
-            assert isinstance(be, str)
-            assert isinstance(defined, str)
+            assert model_name is None or isinstance(model_name, str)
+            assert reset is None or isinstance(reset, bool)
 
-        return [
-            self.server.name,
-            to,
-            be,
-            defined,
-        ]
+        ret = [self.server.name]
+
+        if model_name:
+            ret.append(model_name)
+        elif reset:
+            ret.append("--reset")
+
+        return ret
 
     def _run_logic(self) -> \
             Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Logic to be ran when executing the config switch operation.
 
-        Run ``barman config switch`` command with the configured arguments.
+        Run ``barman config-switch`` command with the configured arguments.
 
         Will be called when running :meth:`Operation.run`.
 
         :return: a tuple consisting of:
 
-            * ``stdout``/``stderr`` of ``barman config switch``;
-            * exit code of ``barman config switch``.
+            * ``stdout``/``stderr`` of ``barman config-switch``;
+            * exit code of ``barman config-switch``.
         """
-        cmd = ["barman", "config", "switch"] + self._get_args()
+        cmd = ["barman", "config-switch"] + self._get_args()
         return self._run_subprocess(cmd)
 
 
