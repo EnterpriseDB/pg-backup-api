@@ -28,10 +28,10 @@ from pg_backup_api.__main__ import main
 
 _HELP_OUTPUT = {
     "pg-backup-api --help": dedent("""\
-        usage: pg-backup-api [-h] {serve,status,recovery} ...
+        usage: pg-backup-api [-h] {serve,status,recovery,config-switch} ...
 
         positional arguments:
-          {serve,status,recovery}
+          {serve,status,recovery,config-switch}
 
         optional arguments:
           -h, --help            show this help message and exit
@@ -75,12 +75,29 @@ _HELP_OUTPUT = {
                                 ID of the operation in the 'pg-backup-api'.
 \
     """),  # noqa: E501
+    "pg-backup-api config-switch --help": dedent("""\
+        usage: pg-backup-api config-switch [-h] --server-name SERVER_NAME
+                                           --operation-id OPERATION_ID
+
+        Perform a 'barman config switch' through the 'pg-backup-api'. Can only be run
+        if a config switch operation has been previously registered.
+
+        optional arguments:
+          -h, --help            show this help message and exit
+          --server-name SERVER_NAME
+                                Name of the Barman server which config should be
+                                switched.
+          --operation-id OPERATION_ID
+                                ID of the operation in the 'pg-backup-api'.
+\
+    """),  # noqa: E501
 }
 
 _COMMAND_FUNC = {
     "pg-backup-api serve": "serve",
     "pg-backup-api status": "status",
     "pg-backup-api recovery --server-name SOME_SERVER --operation-id SOME_OP_ID": "recovery_operation",  # noqa: E501
+    "pg-backup-api config-switch --server-name SOME_SERVER --operation-id SOME_OP_ID": "config_switch_operation",  # noqa: E501
 }
 
 

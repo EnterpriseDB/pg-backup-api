@@ -29,10 +29,12 @@ from requests.exceptions import ConnectionError
 from barman import output
 
 from pg_backup_api.utils import create_app, load_barman_config
-from pg_backup_api.server_operation import RecoveryOperation
+from pg_backup_api.server_operation import (RecoveryOperation,
+                                            ConfigSwitchOperation)
 
 
 if TYPE_CHECKING:  # pragma: no cover
+    from pg_backup_api.server_operation import Operation
     import argparse
 
 app = create_app()
@@ -82,29 +84,27 @@ def status(args: 'argparse.Namespace') -> Tuple[str, bool]:
     return (message, True if message == "OK" else False)
 
 
-def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
+def _run_operation(operation: 'Operation') -> Tuple[None, bool]:
     """
-    Perform a ``barman recover`` through the pg-backup-api.
+    Perform an operation through the pg-backup-api.
 
     .. note::
-        Can only be run if a recover operation has been previously registered.
+        Can only be run if an operation has been previously registered.
 
-    In the end of execution creates an output file through
-    :meth:`pg_backup_api.server_operation.RecoveryOperation.write_output_file`
-    with the following content, to indicate the operation has finished:
+    In the end of execution creates an output file through *operation*'s
+    ``write_output_file`` method with the following content, to indicate the
+    operation has finished:
 
     * ``success``: if the operation succeeded or not;
     * ``end_time``: timestamp when the operation finished;
     * ``output``: ``stdout``/``stderr`` of the operation.
 
-    :param args: command-line arguments for ``pg-backup-api recovery`` command.
-        Contains the name of the Barman server related to the operation.
+    :param operation: a subclass of :class:`Operation` which should be run.
     :return: a tuple consisting of two items:
 
-        * ``None`` -- output of :meth:`RecoveryOperation.write_output_file`;
-        * ``True`` if ``barman recover`` was successful, ``False`` otherwise.
+        * ``None`` -- output of *operation*'s ``write_output_file`` method;
+        * ``True`` operation executed successfully, ``False`` otherwise.
     """
-    operation = RecoveryOperation(args.server_name, args.operation_id)
     output, retcode = operation.run()
     success = not retcode
     end_time = operation.time_event_now()
@@ -115,3 +115,41 @@ def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
     content["output"] = output
 
     return (operation.write_output_file(content), success)
+
+
+def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
+    """
+    Perform a ``barman recover`` through the pg-backup-api.
+
+    .. note::
+        See :func:`_run_operation` for more details.
+
+    :param args: command-line arguments for ``pg-backup-api recovery`` command.
+        Contains the name of the Barman server related to the operation.
+    :return: a tuple consisting of two items:
+
+        * ``None`` -- output of :meth:`RecoveryOperation.write_output_file`;
+        * ``True`` if ``barman recover`` was successful, ``False`` otherwise.
+    """
+    return _run_operation(RecoveryOperation(args.server_name,
+                                            args.operation_id))
+
+
+def config_switch_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
+    """
+    Perform a ``barman config switch`` through the pg-backup-api.
+
+    .. note::
+        See :func:`_run_operation` for more details.
+
+    :param args: command-line arguments for ``pg-backup-api config-switch``
+        command. Contains the name of the Barman server related to the
+        operation.
+    :return: a tuple consisting of two items:
+
+        * ``None`` -- output of :meth:`ConfigSwitchOperation.write_output_file`
+        * ``True`` if ``barman config-switch`` was successful, ``False``
+            otherwise.
+    """
+    return _run_operation(ConfigSwitchOperation(args.server_name,
+                                                args.operation_id))

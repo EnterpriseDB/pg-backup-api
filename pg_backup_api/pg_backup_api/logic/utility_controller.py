@@ -36,6 +36,7 @@ from pg_backup_api.server_operation import (OperationServer,
                                             OperationType,
                                             DEFAULT_OP_TYPE,
                                             RecoveryOperation,
+                                            ConfigSwitchOperation,
                                             MalformedContent)
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -155,7 +156,7 @@ def servers_operations_post(server_name: str,
     :param request: the flask request that has been received by the routing
         function.
 
-        Should contain a JSON body with a key ``type``, which identified the
+        Should contain a JSON body with a key ``type``, which identifies the
         type of the operation. The rest of the content depends on the type of
         operation being requested:
 
@@ -166,6 +167,11 @@ def servers_operations_post(server_name: str,
               target machine;
             * ``remote_ssh_command``: SSH command to connect to the target
               machine.
+
+        * ``config_switch``:
+
+            * ``model_name``: the name of the model to be applied; or
+            * ``reset``: if you want to unapply a currently active model.
 
     :return: if *server_name* and the JSON body informed through the
         ``POST`` request are valid, return a JSON response containing a key
@@ -191,6 +197,7 @@ def servers_operations_post(server_name: str,
         abort(404, description=msg_404)
 
     operation = None
+    cmd = None
     op_type = OperationType(request_body.get("type", DEFAULT_OP_TYPE.value))
 
     if op_type == OperationType.RECOVERY:
@@ -207,21 +214,23 @@ def servers_operations_post(server_name: str,
             abort(404, description=msg_404)
 
         operation = RecoveryOperation(server_name)
-
-        try:
-            operation.write_job_file(request_body)
-        except MalformedContent:
-            msg_400 = "Make sure all options/arguments are met and try again"
-            abort(400, description=msg_400)
-
-        cmd = (
-            f"pg-backup-api recovery --server-name {server_name} "
-            f"--operation-id {operation.id}"
-        )
-        subprocess.Popen(cmd.split())
+        cmd = f"pg-backup-api recovery --server-name {server_name}"
+    elif op_type == OperationType.CONFIG_SWITCH:
+        operation = ConfigSwitchOperation(server_name)
+        cmd = f"pg-backup-api config-switch --server-name {server_name}"
 
     if TYPE_CHECKING:  # pragma: no cover
         assert isinstance(operation, Operation)
+        assert isinstance(cmd, str)
+
+    try:
+        operation.write_job_file(request_body)
+    except MalformedContent:
+        msg_400 = "Make sure all options/arguments are met and try again"
+        abort(400, description=msg_400)
+
+    cmd += f" --operation-id {operation.id}"
+    subprocess.Popen(cmd.split())
 
     return {"operation_id": operation.id}
 
