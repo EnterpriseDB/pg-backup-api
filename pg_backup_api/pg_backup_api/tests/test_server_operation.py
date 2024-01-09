@@ -41,34 +41,44 @@ _BARMAN_SERVER = "BARMAR_SERVER"
 class TestOperationServer:
     """Run tests for :class:`OperationServer`."""
 
-    @pytest.fixture
+    @pytest.fixture(params=[_BARMAN_SERVER, None])
     @patch("pg_backup_api.server_operation.get_server_by_name", Mock())
     @patch("pg_backup_api.server_operation.load_barman_config", Mock())
     @patch.object(OperationServer, "_create_dir", Mock())
-    def op_server(self):
+    def op_server(self, request):
         """Create a :class:`OperationServer` instance for testing.
 
         :return: :class:`OperationServer` instance for testing.
         """
         with patch("barman.__config__") as mock_config:
             mock_config.barman_home = _BARMAN_HOME
-            return OperationServer(_BARMAN_SERVER)
+            return OperationServer(request.param)
 
     def test___init__(self, op_server):
         """Test :meth:`OperationServer.__init__`.
 
         Ensure its attributes are set as expected.
         """
+        # Handle the 2 possible fixtures, one for server operations and another
+        # for instance operations
+        expected_name = None
+        expected_jobs = os.path.join(_BARMAN_HOME, "jobs")
+        expected_output = os.path.join(_BARMAN_HOME, "output")
+
+        if op_server.name is not None:
+            expected_name = _BARMAN_SERVER
+            expected_jobs = os.path.join(_BARMAN_HOME, _BARMAN_SERVER, "jobs")
+            expected_output = os.path.join(_BARMAN_HOME, _BARMAN_SERVER,
+                                           "output")
+
         # Ensure name is as expected.
-        assert op_server.name == _BARMAN_SERVER
+        assert op_server.name == expected_name
 
         # Ensure "jobs" directory is created in expected path.
-        expected = os.path.join(_BARMAN_HOME, _BARMAN_SERVER, "jobs")
-        assert op_server.jobs_basedir == expected
+        assert op_server.jobs_basedir == expected_jobs
 
         # Ensure "output" directory is created in the expected path.
-        expected = os.path.join(_BARMAN_HOME, _BARMAN_SERVER, "output")
-        assert op_server.output_basedir == expected
+        assert op_server.output_basedir == expected_output
 
     @patch("os.path.isdir")
     @patch("os.path.exists")
@@ -586,14 +596,14 @@ class TestOperationServer:
 class TestOperation:
     """Run tests for :class:`Operation`."""
 
-    @pytest.fixture
-    @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
-    def operation(self):
+    @pytest.fixture(params=[_BARMAN_SERVER, None])
+    @patch("pg_backup_api.server_operation.OperationServer")
+    def operation(self, mock_op_server, request):
         """Create an :class:`Operation` instance for testing.
 
         :return: a new instance of :class:`Operation` for testing.
         """
-        return Operation(_BARMAN_SERVER)
+        return Operation(request.param)
 
     def test___init___auto_id(self, operation):
         """Test :meth:`Operation.__init__`.
@@ -604,7 +614,7 @@ class TestOperation:
 
         with patch.object(Operation, "_generate_id") as mock_generate_id:
             mock_generate_id.return_value = id
-            operation = Operation(_BARMAN_SERVER)
+            operation = Operation(operation.server.name)
             assert operation.id == id
             mock_generate_id.assert_called_once()
 
@@ -616,7 +626,7 @@ class TestOperation:
         id = "CUSTOM_OP_ID"
 
         with patch.object(Operation, "_generate_id") as mock_generate_id:
-            operation = Operation(_BARMAN_SERVER, id)
+            operation = Operation(operation.server.name, id)
             assert operation.id == id
             mock_generate_id.assert_not_called()
 
