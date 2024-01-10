@@ -30,7 +30,8 @@ from barman import output
 
 from pg_backup_api.utils import create_app, load_barman_config
 from pg_backup_api.server_operation import (RecoveryOperation,
-                                            ConfigSwitchOperation)
+                                            ConfigSwitchOperation,
+                                            ConfigModelOperation)
 
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -153,3 +154,21 @@ def config_switch_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
     """
     return _run_operation(ConfigSwitchOperation(args.server_name,
                                                 args.operation_id))
+
+
+def config_model_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
+    """
+    Perform a ``barman config-model`` through the pg-backup-api.
+
+    .. note::
+        See :func:`_run_operation` for more details.
+
+    :param args: command-line arguments for ``pg-backup-api config-model``
+        command. Contains the operation ID to be run.
+    :return: a tuple consisting of two items:
+
+        * ``None`` -- output of :meth:`ConfigModelOperation.write_output_file`
+        * ``True`` if ``barman config-model`` was successful, ``False``
+            otherwise.
+    """
+    return _run_operation(ConfigModelOperation(args.operation_id))

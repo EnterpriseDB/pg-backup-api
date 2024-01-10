@@ -49,6 +49,7 @@ class OperationType(Enum):
     """Describe operations that can be performed through pg-backup-api."""
     RECOVERY = "recovery"
     CONFIG_SWITCH = "config_switch"
+    CONFIG_MODEL = "config_model"
 
 
 DEFAULT_OP_TYPE = OperationType.RECOVERY
@@ -770,6 +771,103 @@ class ConfigSwitchOperation(Operation):
             * exit code of ``barman config-switch``.
         """
         cmd = ["barman", "config-switch"] + self._get_args()
+        return self._run_subprocess(cmd)
+
+
+class ConfigModelOperation(Operation):
+    """
+    Contain information and logic to process a config model operation.
+
+    :cvar POSSIBLE_ARGUMENTS: possible arguments when creating a config model
+        operation.
+    :cvar TYPE: enum type of this operation.
+    """
+
+    POSSIBLE_ARGUMENTS = ("todo_to", "todo_be", "todo_defined",)
+    TYPE = OperationType.CONFIG_MODEL
+
+    @classmethod
+    def _validate_job_content(cls, content: Dict[str, Any]) -> None:
+        """
+        Validate the content of the job file before creating it.
+
+        :param content: Python dictionary representing the JSON content of the
+            job file.
+
+        :raises:
+            :exc:`MalformedContent`: if the set of options in *content* is not
+                compliant with the supported options and how to use them.
+        """
+        for key, type_ in [
+            ("todo_to", str,),
+            ("todo_be", str,),
+            ("todo_defined", str),
+        ]:
+            if key in content and not isinstance(content[key], type_):
+                msg = (
+                    f"`{key}` is expected to be a `{type_}`, but a "
+                    f"`{type(content[key])}` was found instead: "
+                    f"`{content[key]}`."
+                )
+                raise MalformedContent(msg)
+
+    def write_job_file(self, content: Dict[str, Any]) -> None:
+        """
+        Write the job file with *content*.
+
+        .. note::
+            See :meth:`Operation.write_job_file` for more details.
+
+        :param content: Python dictionary representing the JSON content of the
+            job file. Besides what is contained in *content*, this method adds
+            the following keys:
+
+            * ``operation_type``: ``config_model``;
+            * ``start_time``: current timestamp.
+        """
+        content["operation_type"] = self.TYPE.value
+        content["start_time"] = self.time_event_now()
+        self._validate_job_content(content)
+        super().write_job_file(content)
+
+    def _get_args(self) -> List[str]:
+        """
+        Get arguments for running ``barman config-model`` command.
+
+        :return: list of arguments for ``barman config-model`` command.
+        """
+        job_content = self.read_job_file()
+
+        todo_to = job_content.get("todo_to")
+        todo_be = job_content.get("todo_be")
+        todo_defined = job_content.get("todo_defined")
+
+        if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(todo_to, str)
+            assert isinstance(todo_be, str)
+            assert isinstance(todo_defined, str)
+
+        return [
+            todo_to,
+            todo_be,
+            todo_defined,
+        ]
+
+    def _run_logic(self) -> \
+            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
+        """
+        Logic to be ran when executing the config model operation.
+
+        Run ``barman config-model`` command with the configured arguments.
+
+        Will be called when running :meth:`Operation.run`.
+
+        :return: a tuple consisting of:
+
+            * ``stdout``/``stderr`` of ``barman config-model``;
+            * exit code of ``barman config-model``.
+        """
+        cmd = ["barman", "config-model"] + self._get_args()
         return self._run_subprocess(cmd)
 
 
