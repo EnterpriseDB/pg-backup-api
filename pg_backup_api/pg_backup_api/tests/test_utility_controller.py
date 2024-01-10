@@ -193,6 +193,62 @@ class TestUtilityController:
         self._ensure_http_methods_not_allowed(_HTTP_METHODS - {"GET"}, path,
                                               client)
 
+    @pytest.mark.parametrize("status", ["IN_PROGRESS", "DONE", "FAILED"])
+    @patch("pg_backup_api.logic.utility_controller.OperationServer")
+    def test_instance_operation_id_get_ok(self, mock_op_server, status,
+                                          client):
+        """Test ``/operations/<OPERATION_ID>`` endpoint.
+
+        Ensure a ``GET`` request returns ``200`` and the expected JSON output
+        according to the status of the operation.
+        """
+        path = "/operations/SOME_OPERATION_ID"
+
+        mock_op_server.return_value.config = object()
+        mock_get_status = mock_op_server.return_value.get_operation_status
+
+        mock_get_status.return_value = status
+
+        response = client.get(path)
+
+        mock_op_server.assert_called_once_with(None)
+        mock_get_status.assert_called_once_with("SOME_OPERATION_ID")
+
+        assert response.status_code == 200
+        expected = (
+            '{"operation_id":"SOME_OPERATION_ID",'
+            f'"status":"{status}"}}\n'
+        ).encode()
+        assert response.data == expected
+
+    @patch("pg_backup_api.logic.utility_controller.OperationServer")
+    def test_instance_operation_id_get_operation_does_not_exist(self,
+                                                                mock_op_server,
+                                                                client):
+        """Test ``/operations/<OPERATION_ID>`` endpoint.
+
+        Ensure ``GET`` returns ``404`` if the operation doesn't exist.
+        """
+        path = "/operations/SOME_OPERATION_ID"
+
+        mock_get_status = mock_op_server.return_value.get_operation_status
+        mock_op_server.return_value.config = object()
+        mock_get_status.side_effect = OperationNotExists("NOT_FOUND")
+
+        response = client.get(path)
+        assert response.status_code == 404
+        expected = b'{"error":"404 Not Found: Resource not found"}\n'
+        assert response.data == expected
+
+    def test_instance_operation_id_get_not_allowed(self, client):
+        """Test ``/operations/<OPERATION_ID>`` endpoint.
+
+        Ensure all other HTTP request methods return an error.
+        """
+        path = "/operations/SOME_OPERATION_ID"
+        self._ensure_http_methods_not_allowed(_HTTP_METHODS - {"GET"}, path,
+                                              client)
+
     @patch("pg_backup_api.logic.utility_controller.OperationServer")
     def test_server_operation_get_ok(self, mock_op_server, client):
         """Test ``/servers/<SERVER_NAME>/operations`` endpoint.
@@ -640,6 +696,109 @@ class TestUtilityController:
         Ensure all other HTTP request methods return an error.
         """
         path = "/servers/SOME_SERVER_NAME/operations"
+
+        self._ensure_http_methods_not_allowed(_HTTP_METHODS - {"GET", "POST"},
+                                              path, client)
+
+    @patch("pg_backup_api.logic.utility_controller.OperationServer")
+    def test_instance_operation_get_ok(self, mock_op_server, client):
+        """Test ``/operations`` endpoint.
+
+        Ensure a ``GET`` request returns ``200`` and the expected JSON output.
+        """
+        path = "/operations"
+
+        mock_op_server.return_value.config = object()
+        mock_get_ops = mock_op_server.return_value.get_operations_list
+        mock_get_ops.return_value = [
+            {
+                "id": "SOME_ID_1",
+                "type": "SOME_TYPE_1",
+            },
+            {
+                "id": "SOME_ID_2",
+                "type": "SOME_TYPE_2",
+            },
+        ]
+
+        response = client.get(path)
+
+        mock_op_server.assert_called_once_with(None)
+        mock_get_ops.assert_called_once_with()
+
+        assert response.status_code == 200
+        data = json.dumps({"operations": mock_get_ops.return_value})
+        data = data.replace(" ", "") + "\n"
+        expected = data.encode()
+        assert response.data == expected
+
+    def test_instance_operation_post_not_json(self, client):
+        """Test ``/operations`` endpoint.
+
+        Ensure ``POST`` request won't work without data in JSON format.
+        """
+        path = "/operations"
+
+        response = client.post(path, data={})
+
+        expected_status_code = 415
+        expected_data = b"Unsupported Media Type"
+        version = sys.version_info
+
+        # This is an issue which was detected while running tests through
+        # GitHub Actions when using Python 3.7 and Flask 2.2.5. We might want
+        # to remove this once we remove support for Python 3.7
+        if version.major <= 3 and version.minor <= 7 and \
+                StrictVersion(flask.__version__) <= StrictVersion("2.2.5"):
+            expected_status_code = 400
+            expected_data = b"Bad Request"
+
+        assert response.status_code == expected_status_code
+        assert expected_data in response.data
+
+    @patch("pg_backup_api.logic.utility_controller.OperationServer", Mock())
+    @patch("pg_backup_api.logic.utility_controller.OperationType")
+    @patch("subprocess.Popen")
+    def test_instance_operation_post_empty_json(self, mock_popen, mock_op_type,
+                                                client):
+        """Test ``/operations`` endpoint.
+
+        Ensure ``POST`` request returns ``400`` if JSON data is empty.
+        """
+        path = "/operations"
+
+        response = client.post(path, json={})
+
+        assert response.status_code == 400
+        expected = b"Minimum barman options not met for instance operation"
+        assert expected in response.data
+
+        mock_op_type.assert_not_called()
+        mock_popen.assert_not_called()
+
+    @patch("pg_backup_api.logic.utility_controller.OperationServer", Mock())
+    def test_server_operation_post_ok(self, client):
+        """Test ``/operations`` endpoint.
+
+        Ensure ``POST`` request returns ``202`` if everything is ok when
+        requesting an instance operation.
+        """
+        path = "/operations"
+        json_data = {
+            "SOME": "THING",
+        }
+
+        response = client.post(path, json=json_data)
+
+        assert response.status_code == 202
+        assert response.data == b'{"operation_id":"DUMMY"}\n'
+
+    def test_instance_operation_not_allowed(self, client):
+        """Test ``/operations`` endpoint.
+
+        Ensure all other HTTP request methods return an error.
+        """
+        path = "/operations"
 
         self._ensure_http_methods_not_allowed(_HTTP_METHODS - {"GET", "POST"},
                                               path, client)
