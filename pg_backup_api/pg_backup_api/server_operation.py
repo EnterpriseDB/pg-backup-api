@@ -626,6 +626,7 @@ class RecoveryOperation(Operation):
         remote_ssh_command = job_content.get("remote_ssh_command")
 
         if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(self.server.name, str)
             assert isinstance(backup_id, str)
             assert isinstance(destination_directory, str)
             assert isinstance(remote_ssh_command, str)
@@ -741,6 +742,7 @@ class ConfigSwitchOperation(Operation):
         reset = job_content.get("reset")
 
         if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(self.server.name, str)
             assert model_name is None or isinstance(model_name, str)
             assert reset is None or isinstance(reset, bool)
 
