@@ -21,7 +21,8 @@ import argparse
 import sys
 
 from pg_backup_api.run import (serve, status, recovery_operation,
-                               config_switch_operation, config_update_operation)
+                               config_switch_operation,
+                               config_update_operation)
 
 
 def main() -> None:

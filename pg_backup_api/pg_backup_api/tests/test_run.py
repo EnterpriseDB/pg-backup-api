@@ -166,7 +166,7 @@ def test_config_switch_operation(mock_cs_op, server_name, operation_id, rc):
 @pytest.mark.parametrize("operation_id", ["OPERATION_1", "OPERATION_2"])
 @pytest.mark.parametrize("rc", [0, 1])
 @patch("pg_backup_api.run.ConfigUpdateOperation")
-def test_config_switch_operation(mock_cu_op, operation_id, rc):
+def test_config_update_operation(mock_cu_op, operation_id, rc):
     """Test :func:`config_update_operation`.
 
     Ensure the operation is created and executed, and that the expected values

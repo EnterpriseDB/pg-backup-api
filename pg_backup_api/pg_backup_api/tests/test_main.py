@@ -39,7 +39,7 @@ _HELP_OUTPUT = {
 
         Postgres Backup API by EnterpriseDB (www.enterprisedb.com)
 \
-    """),
+    """),  # noqa: E501
     "pg-backup-api serve --help": dedent("""\
         usage: pg-backup-api serve [-h] [--port PORT]
 
