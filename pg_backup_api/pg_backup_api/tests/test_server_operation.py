@@ -31,6 +31,7 @@ from pg_backup_api.server_operation import (
     Operation,
     RecoveryOperation,
     ConfigSwitchOperation,
+    ConfigUpdateOperation,
 )
 
 
@@ -1051,4 +1052,95 @@ class TestConfigSwitchOperation:
         mock_get_args.assert_called_once()
         mock_run_subprocess.assert_called_once_with(
             ["barman", "config-switch"] + arguments,
+        )
+
+
+@patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+class TestConfigUpdateOperation:
+    """Run tests for :class:`ConfigUpdateOperation`."""
+
+    @pytest.fixture
+    @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+    def operation(self):
+        """Create a :class:`ConfigUpdateOperation` instance for testing.
+
+        :return: a new instance of :class:`ConfigUpdateOperation` for testing.
+        """
+        return ConfigUpdateOperation(None)
+
+    def test__validate_job_content_content_missing_keys(self, operation):
+        """Test :meth:`ConfigUpdateOperation._validate_job_content`.
+
+        Ensure an exception is raised if the content is missing the required
+        keys.
+        """
+        with pytest.raises(MalformedContent) as exc:
+            operation._validate_job_content({})
+
+        assert str(exc.value) == (
+            "Missing required arguments: changes"
+        )
+
+    def test__validate_job_content_ok(self, operation):
+        """Test :meth:`ConfigUpdateOperation._validate_job_content`.
+
+        Ensure execution is fine if required keys are giving.
+        """
+        operation._validate_job_content({"changes": "SOME_CHANGES"})
+
+    @patch("pg_backup_api.server_operation.Operation.time_event_now")
+    @patch("pg_backup_api.server_operation.Operation.write_job_file")
+    def test_write_job_file(self, mock_write_job_file, mock_time_event_now,
+                            operation):
+        """Test :meth:`ConfigUpdateOperation.write_job_file`.
+
+        Ensure the underlying methods are called as expected.
+        """
+        content = {
+            "SOME": "CONTENT",
+        }
+        extended_content = {
+            "SOME": "CONTENT",
+            "operation_type": OperationType.CONFIG_UPDATE.value,
+            "start_time": "SOME_TIMESTAMP",
+        }
+
+        with patch.object(operation, "_validate_job_content") as mock:
+            mock_time_event_now.return_value = "SOME_TIMESTAMP"
+
+            operation.write_job_file(content)
+
+            mock_time_event_now.assert_called_once()
+            mock.assert_called_once_with(extended_content)
+            mock_write_job_file.assert_called_once_with(extended_content)
+
+    def test__get_args(self, operation):
+        """Test :meth:`ConfigUpdateOperation._get_args`.
+
+        Ensure it returns the correct arguments for ``barman config-update``.
+        """
+        with patch.object(operation, "read_job_file") as mock:
+            mock.return_value = {"changes": [{"SOME": "CHANGES"}]}
+
+            expected = ['[{"SOME": "CHANGES"}]']
+            assert operation._get_args() == expected
+
+    @patch("pg_backup_api.server_operation.Operation._run_subprocess")
+    @patch("pg_backup_api.server_operation.ConfigUpdateOperation._get_args")
+    def test__run_logic(self, mock_get_args, mock_run_subprocess, operation):
+        """Test :meth:`ConfigUpdateOperation._run_logic`.
+
+        Ensure the underlying calls occur as expected.
+        """
+        arguments = ["SOME", "ARGUMENTS"]
+        output = ("SOME OUTPUT", 0)
+
+        mock_get_args.return_value = arguments
+        mock_run_subprocess.return_value = output
+
+        assert operation._run_logic() == output
+
+        mock_get_args.assert_called_once()
+        mock_run_subprocess.assert_called_once_with(
+            ["barman", "config-update"] + arguments,
         )

@@ -777,21 +777,72 @@ class TestUtilityController:
         mock_popen.assert_not_called()
 
     @patch("pg_backup_api.logic.utility_controller.OperationServer", Mock())
-    def test_server_operation_post_ok(self, client):
-        """Test ``/operations`` endpoint.
+    @patch("pg_backup_api.logic.utility_controller.OperationType")
+    @patch("pg_backup_api.logic.utility_controller.ConfigUpdateOperation")
+    @patch("subprocess.Popen")
+    def test_instance_operation_post_cu_op_missing_options(self, mock_popen,
+                                                           mock_cu_op,
+                                                           mock_op_type,
+                                                           client):
+        """Test ``operations`` endpoint.
 
-        Ensure ``POST`` request returns ``202`` if everything is ok when
-        requesting an instance operation.
+        Ensure ``POST`` request returns ``400`` if any option is missing when
+        requesting a config update operation.
         """
-        path = "/operations"
+        path = "operations"
         json_data = {
-            "SOME": "THING",
+            "type": "config_update",
         }
+
+        mock_op_type.return_value = mock_op_type.CONFIG_UPDATE
+        mock_cu_op.return_value.id = "SOME_OP_ID"
+        mock_write_job = mock_cu_op.return_value.write_job_file
+        mock_write_job.side_effect = MalformedContent("SOME_ERROR")
 
         response = client.post(path, json=json_data)
 
+        mock_op_type.assert_called_once_with("config_update")
+        mock_cu_op.assert_called_once_with(None)
+        mock_write_job.assert_called_once_with(json_data)
+        mock_popen.assert_not_called()
+
+        assert response.status_code == 400
+        expected = b"Make sure all options/arguments are met and try again"
+        assert expected in response.data
+
+    @patch("pg_backup_api.logic.utility_controller.OperationServer", Mock())
+    @patch("pg_backup_api.logic.utility_controller.OperationType")
+    @patch("pg_backup_api.logic.utility_controller.ConfigUpdateOperation")
+    @patch("subprocess.Popen")
+    def test_instance_operation_post_cu_ok(self, mock_popen, mock_cu_op,
+                                           mock_op_type, client):
+        """Test ``operations`` endpoint.
+
+        Ensure ``POST`` request returns ``202`` if everything is ok when
+        requesting a config-update operation, and ensure the subprocess is
+        started.
+        """
+        path = "/operations"
+        json_data = {
+            "type": "config_update",
+            "changes": "SOME_CHANGES",
+        }
+
+        mock_op_type.return_value = mock_op_type.CONFIG_UPDATE
+        mock_cu_op.return_value.id = "SOME_OP_ID"
+
+        response = client.post(path, json=json_data)
+
+        mock_write_job = mock_cu_op.return_value.write_job_file
+        mock_op_type.assert_called_once_with("config_update")
+        mock_cu_op.assert_called_once_with(None)
+        mock_write_job.assert_called_once_with(json_data)
+        mock_popen.assert_called_once_with(["pg-backup-api", "config-update",
+                                            "--operation-id",
+                                            "SOME_OP_ID"])
+
         assert response.status_code == 202
-        assert response.data == b'{"operation_id":"DUMMY"}\n'
+        assert response.data == b'{"operation_id":"SOME_OP_ID"}\n'
 
     def test_instance_operation_not_allowed(self, client):
         """Test ``/operations`` endpoint.
