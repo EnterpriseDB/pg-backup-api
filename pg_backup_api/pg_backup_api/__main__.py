@@ -21,7 +21,8 @@ import argparse
 import sys
 
 from pg_backup_api.run import (serve, status, recovery_operation,
-                               config_switch_operation)
+                               config_switch_operation,
+                               config_update_operation)
 
 
 def main() -> None:
@@ -81,6 +82,16 @@ def main() -> None:
     p_ops.add_argument("--operation-id", required=True,
                        help="ID of the operation in the 'pg-backup-api'.")
     p_ops.set_defaults(func=config_switch_operation)
+
+    p_ops = subparsers.add_parser(
+        "config-update",
+        description="Perform a 'barman config-update' through the "
+                    "'pg-backup-api'. Can only be run if a config-update "
+                    "operation has been previously registered."
+    )
+    p_ops.add_argument("--operation-id", required=True,
+                       help="ID of the operation in the 'pg-backup-api'.")
+    p_ops.set_defaults(func=config_update_operation)
 
     args = p.parse_args()
     if hasattr(args, "func") is False:

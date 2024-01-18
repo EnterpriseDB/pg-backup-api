@@ -28,17 +28,18 @@ from pg_backup_api.__main__ import main
 
 _HELP_OUTPUT = {
     "pg-backup-api --help": dedent("""\
-        usage: pg-backup-api [-h] {serve,status,recovery,config-switch} ...
+        usage: pg-backup-api [-h]
+                             {serve,status,recovery,config-switch,config-update} ...
 
         positional arguments:
-          {serve,status,recovery,config-switch}
+          {serve,status,recovery,config-switch,config-update}
 
         optional arguments:
           -h, --help            show this help message and exit
 
         Postgres Backup API by EnterpriseDB (www.enterprisedb.com)
 \
-    """),
+    """),  # noqa: E501
     "pg-backup-api serve --help": dedent("""\
         usage: pg-backup-api serve [-h] [--port PORT]
 
@@ -91,6 +92,18 @@ _HELP_OUTPUT = {
                                 ID of the operation in the 'pg-backup-api'.
 \
     """),  # noqa: E501
+    "pg-backup-api config-update --help": dedent("""\
+        usage: pg-backup-api config-update [-h] --operation-id OPERATION_ID
+
+        Perform a 'barman config-update' through the 'pg-backup-api'. Can only be run
+        if a config-update operation has been previously registered.
+
+        optional arguments:
+          -h, --help            show this help message and exit
+          --operation-id OPERATION_ID
+                                ID of the operation in the 'pg-backup-api'.
+\
+    """),  # noqa: E501
 }
 
 _COMMAND_FUNC = {
@@ -98,6 +111,7 @@ _COMMAND_FUNC = {
     "pg-backup-api status": "status",
     "pg-backup-api recovery --server-name SOME_SERVER --operation-id SOME_OP_ID": "recovery_operation",  # noqa: E501
     "pg-backup-api config-switch --server-name SOME_SERVER --operation-id SOME_OP_ID": "config_switch_operation",  # noqa: E501
+    "pg-backup-api config-update --operation-id SOME_OP_ID": "config_update_operation",  # noqa: E501
 }
 
 

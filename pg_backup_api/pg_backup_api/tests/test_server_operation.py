@@ -31,6 +31,7 @@ from pg_backup_api.server_operation import (
     Operation,
     RecoveryOperation,
     ConfigSwitchOperation,
+    ConfigUpdateOperation,
 )
 
 
@@ -41,34 +42,44 @@ _BARMAN_SERVER = "BARMAR_SERVER"
 class TestOperationServer:
     """Run tests for :class:`OperationServer`."""
 
-    @pytest.fixture
+    @pytest.fixture(params=[_BARMAN_SERVER, None])
     @patch("pg_backup_api.server_operation.get_server_by_name", Mock())
     @patch("pg_backup_api.server_operation.load_barman_config", Mock())
     @patch.object(OperationServer, "_create_dir", Mock())
-    def op_server(self):
+    def op_server(self, request):
         """Create a :class:`OperationServer` instance for testing.
 
         :return: :class:`OperationServer` instance for testing.
         """
         with patch("barman.__config__") as mock_config:
             mock_config.barman_home = _BARMAN_HOME
-            return OperationServer(_BARMAN_SERVER)
+            return OperationServer(request.param)
 
     def test___init__(self, op_server):
         """Test :meth:`OperationServer.__init__`.
 
         Ensure its attributes are set as expected.
         """
+        # Handle the 2 possible fixtures, one for server operations and another
+        # for instance operations
+        expected_name = None
+        expected_jobs = os.path.join(_BARMAN_HOME, "jobs")
+        expected_output = os.path.join(_BARMAN_HOME, "output")
+
+        if op_server.name is not None:
+            expected_name = _BARMAN_SERVER
+            expected_jobs = os.path.join(_BARMAN_HOME, _BARMAN_SERVER, "jobs")
+            expected_output = os.path.join(_BARMAN_HOME, _BARMAN_SERVER,
+                                           "output")
+
         # Ensure name is as expected.
-        assert op_server.name == _BARMAN_SERVER
+        assert op_server.name == expected_name
 
         # Ensure "jobs" directory is created in expected path.
-        expected = os.path.join(_BARMAN_HOME, _BARMAN_SERVER, "jobs")
-        assert op_server.jobs_basedir == expected
+        assert op_server.jobs_basedir == expected_jobs
 
         # Ensure "output" directory is created in the expected path.
-        expected = os.path.join(_BARMAN_HOME, _BARMAN_SERVER, "output")
-        assert op_server.output_basedir == expected
+        assert op_server.output_basedir == expected_output
 
     @patch("os.path.isdir")
     @patch("os.path.exists")
@@ -586,14 +597,14 @@ class TestOperationServer:
 class TestOperation:
     """Run tests for :class:`Operation`."""
 
-    @pytest.fixture
-    @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
-    def operation(self):
+    @pytest.fixture(params=[_BARMAN_SERVER, None])
+    @patch("pg_backup_api.server_operation.OperationServer")
+    def operation(self, mock_op_server, request):
         """Create an :class:`Operation` instance for testing.
 
         :return: a new instance of :class:`Operation` for testing.
         """
-        return Operation(_BARMAN_SERVER)
+        return Operation(request.param)
 
     def test___init___auto_id(self, operation):
         """Test :meth:`Operation.__init__`.
@@ -604,7 +615,7 @@ class TestOperation:
 
         with patch.object(Operation, "_generate_id") as mock_generate_id:
             mock_generate_id.return_value = id
-            operation = Operation(_BARMAN_SERVER)
+            operation = Operation(operation.server.name)
             assert operation.id == id
             mock_generate_id.assert_called_once()
 
@@ -616,7 +627,7 @@ class TestOperation:
         id = "CUSTOM_OP_ID"
 
         with patch.object(Operation, "_generate_id") as mock_generate_id:
-            operation = Operation(_BARMAN_SERVER, id)
+            operation = Operation(operation.server.name, id)
             assert operation.id == id
             mock_generate_id.assert_not_called()
 
@@ -1041,4 +1052,95 @@ class TestConfigSwitchOperation:
         mock_get_args.assert_called_once()
         mock_run_subprocess.assert_called_once_with(
             ["barman", "config-switch"] + arguments,
+        )
+
+
+@patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+class TestConfigUpdateOperation:
+    """Run tests for :class:`ConfigUpdateOperation`."""
+
+    @pytest.fixture
+    @patch("pg_backup_api.server_operation.OperationServer", MagicMock())
+    def operation(self):
+        """Create a :class:`ConfigUpdateOperation` instance for testing.
+
+        :return: a new instance of :class:`ConfigUpdateOperation` for testing.
+        """
+        return ConfigUpdateOperation(None)
+
+    def test__validate_job_content_content_missing_keys(self, operation):
+        """Test :meth:`ConfigUpdateOperation._validate_job_content`.
+
+        Ensure an exception is raised if the content is missing the required
+        keys.
+        """
+        with pytest.raises(MalformedContent) as exc:
+            operation._validate_job_content({})
+
+        assert str(exc.value) == (
+            "Missing required arguments: changes"
+        )
+
+    def test__validate_job_content_ok(self, operation):
+        """Test :meth:`ConfigUpdateOperation._validate_job_content`.
+
+        Ensure execution is fine if required keys are giving.
+        """
+        operation._validate_job_content({"changes": "SOME_CHANGES"})
+
+    @patch("pg_backup_api.server_operation.Operation.time_event_now")
+    @patch("pg_backup_api.server_operation.Operation.write_job_file")
+    def test_write_job_file(self, mock_write_job_file, mock_time_event_now,
+                            operation):
+        """Test :meth:`ConfigUpdateOperation.write_job_file`.
+
+        Ensure the underlying methods are called as expected.
+        """
+        content = {
+            "SOME": "CONTENT",
+        }
+        extended_content = {
+            "SOME": "CONTENT",
+            "operation_type": OperationType.CONFIG_UPDATE.value,
+            "start_time": "SOME_TIMESTAMP",
+        }
+
+        with patch.object(operation, "_validate_job_content") as mock:
+            mock_time_event_now.return_value = "SOME_TIMESTAMP"
+
+            operation.write_job_file(content)
+
+            mock_time_event_now.assert_called_once()
+            mock.assert_called_once_with(extended_content)
+            mock_write_job_file.assert_called_once_with(extended_content)
+
+    def test__get_args(self, operation):
+        """Test :meth:`ConfigUpdateOperation._get_args`.
+
+        Ensure it returns the correct arguments for ``barman config-update``.
+        """
+        with patch.object(operation, "read_job_file") as mock:
+            mock.return_value = {"changes": [{"SOME": "CHANGES"}]}
+
+            expected = ['[{"SOME": "CHANGES"}]']
+            assert operation._get_args() == expected
+
+    @patch("pg_backup_api.server_operation.Operation._run_subprocess")
+    @patch("pg_backup_api.server_operation.ConfigUpdateOperation._get_args")
+    def test__run_logic(self, mock_get_args, mock_run_subprocess, operation):
+        """Test :meth:`ConfigUpdateOperation._run_logic`.
+
+        Ensure the underlying calls occur as expected.
+        """
+        arguments = ["SOME", "ARGUMENTS"]
+        output = ("SOME OUTPUT", 0)
+
+        mock_get_args.return_value = arguments
+        mock_run_subprocess.return_value = output
+
+        assert operation._run_logic() == output
+
+        mock_get_args.assert_called_once()
+        mock_run_subprocess.assert_called_once_with(
+            ["barman", "config-update"] + arguments,
         )

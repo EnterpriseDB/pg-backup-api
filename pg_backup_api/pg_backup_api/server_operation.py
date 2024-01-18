@@ -49,6 +49,7 @@ class OperationType(Enum):
     """Describe operations that can be performed through pg-backup-api."""
     RECOVERY = "recovery"
     CONFIG_SWITCH = "config_switch"
+    CONFIG_UPDATE = "config_update"
 
 
 DEFAULT_OP_TYPE = OperationType.RECOVERY
@@ -71,15 +72,17 @@ class OperationNotExists(LookupError):
 
 class OperationServer:
     """
-    Contain metadata about a Barman server and logic to handle operations.
+    Contain logic to handle operations for a Barman instance or Barman server.
 
-    :ivar name: name of the Barman server.
-    :ivar config: Barman configuration of the Barman server.
+    :ivar name: name of the Barman server, if it's server operation, otherwise
+        ``None`` for a "global" (instance) operation.
+    :ivar config: Barman configuration of the Barman server, if it's a server
+        operation, otherwise ``None`` for a "global" (instance) operation.
     :ivar jobs_basedir: directory where to save files of operations that have
-        been created for this Barman server.
+        been created for this Barman server or instance.
     :ivar output_basedir: directory where to save files with output of
-        operations that have been finished for this Barman server -- both for
-        failed and successful executions.
+        operations that have been finished for this Barman server or instance
+        -- both for failed and successful executions.
     """
 
     # Name of the pg-backup-api ``jobs`` directory. Files created under this
@@ -94,39 +97,50 @@ class OperationServer:
     # Set of required keys when creating an operation output file.
     _REQUIRED_OUTPUT_KEYS = ("success", "end_time", "output",)
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: Optional[str]) -> None:
         """
         Initialize a new instance of :class:`OperationServer`.
 
-        Fill all the metadata required by pg-backup-api of a given Barman
-        server named *name*, if it exists in Barman. Also prepare the Barman
-        server to execute pg-backup-api operations.
+        Fill all the metadata required by pg-backup-api for a given Barman
+        server named *name*, if a Barman server opartion and the server exists
+        in Barman. Also prepare the Barman server or instance to execute
+        pg-backup-api operations.
 
-        :param name: name of the Barman server.
+        :param name: name of the Barman server, if it's a Barman server
+            operation, ``None`` for a "global" (instance) operation.
 
         :raises:
             :exc:`OperationServerConfigError`: if no Barman configuration could
-                be found for server *name*.
+                be found for server *name*, in case of a Barman server
+                operation.
         """
         self.name = name
-        self.config = get_server_by_name(name)
-
-        if not self.config:
-            raise OperationServerConfigError(
-                f"No barman config found for '{name}'."
-            )
+        self.config = None
 
         load_barman_config()
+
+        if name:
+            self.config = get_server_by_name(name)
+
+            if not self.config:
+                raise OperationServerConfigError(
+                    f"No barman config found for '{name}'."
+                )
 
         if TYPE_CHECKING:  # pragma: no cover
             assert isinstance(barman.__config__, BarmanConfig)
 
         barman_home = barman.__config__.barman_home
 
-        self.jobs_basedir = join(barman_home, name, self._JOBS_DIR_NAME)
-        self._create_jobs_dir()
+        if name:
+            self.jobs_basedir = join(barman_home, name, self._JOBS_DIR_NAME)
+            self.output_basedir = join(barman_home, name,
+                                       self._OUTPUT_DIR_NAME)
+        else:
+            self.jobs_basedir = join(barman_home, self._JOBS_DIR_NAME)
+            self.output_basedir = join(barman_home, self._OUTPUT_DIR_NAME)
 
-        self.output_basedir = join(barman_home, name, self._OUTPUT_DIR_NAME)
+        self._create_jobs_dir()
         self._create_output_dir()
 
     @staticmethod
@@ -151,11 +165,11 @@ class OperationServer:
             os.makedirs(dir_path)
 
     def _create_jobs_dir(self) -> None:
-        """Create the ``jobs`` directory of this Barman server."""
+        """Create the ``jobs`` directory of Barman server or instance."""
         self._create_dir(self.jobs_basedir)
 
     def _create_output_dir(self) -> None:
-        """Create the ``outputs`` directory of this Barman server."""
+        """Create the ``outputs`` directory of Barman server or instance."""
         self._create_dir(self.output_basedir)
 
     def get_job_file_path(self, op_id: str) -> str:
@@ -318,16 +332,16 @@ class OperationServer:
     def get_operations_list(self, op_type: Optional[OperationType] = None) \
             -> List[Dict[str, Any]]:
         """
-        Get the list of operations of this Barman server.
+        Get the list of operations of this Barman server or instance.
 
         Fetch operation from all ``.json`` files found under the
-        :attr:`jobs_basedir` of this server.
+        :attr:`jobs_basedir` of this server or instance.
 
         :param op_type: if ``None`` retrieve all operations. If something other
             than ``None``, filter by the given type.
 
-        :return: list of operations of this Barman server. Each item has the
-            following keys:
+        :return: list of operations of this Barman server or instance. Each
+            item has the following keys:
 
             * ``id``: ID of the operation;
             * ``type``: type of the operation.
@@ -393,12 +407,13 @@ class Operation:
     :ivar id: ID of this operation.
     """
 
-    def __init__(self, server_name: str, id: Optional[str] = None) -> None:
+    def __init__(self, server_name: Optional[str],
+                 id: Optional[str] = None) -> None:
         """
         Initialize a new instance of :class:`Operation`.
 
-        :param server_name: name of the Barman server, so we can manage this
-            operation.
+        :param server_name: name of the Barman server, in case of a Barman
+            server operation, ``None`` in case of a Barman instance operation.
         :param id: ID of the operation. Useful when querying an existing
             operation. Use ``None`` when creating an operation, so this class
             generates a new ID.
@@ -612,6 +627,7 @@ class RecoveryOperation(Operation):
         remote_ssh_command = job_content.get("remote_ssh_command")
 
         if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(self.server.name, str)
             assert isinstance(backup_id, str)
             assert isinstance(destination_directory, str)
             assert isinstance(remote_ssh_command, str)
@@ -727,6 +743,7 @@ class ConfigSwitchOperation(Operation):
         reset = job_content.get("reset")
 
         if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(self.server.name, str)
             assert model_name is None or isinstance(model_name, str)
             assert reset is None or isinstance(reset, bool)
 
@@ -754,6 +771,92 @@ class ConfigSwitchOperation(Operation):
             * exit code of ``barman config-switch``.
         """
         cmd = ["barman", "config-switch"] + self._get_args()
+        return self._run_subprocess(cmd)
+
+
+class ConfigUpdateOperation(Operation):
+    """
+    Contain information and logic to process a config update operation.
+
+    :cvar REQUIRED_ARGUMENTS: required arguments when creating a config update
+        operation.
+    :cvar TYPE: enum type of this operation.
+    """
+
+    REQUIRED_ARGUMENTS = ("changes",)
+    TYPE = OperationType.CONFIG_UPDATE
+
+    @classmethod
+    def _validate_job_content(cls, content: Dict[str, Any]) -> None:
+        """
+        Validate the content of the job file before creating it.
+
+        :param content: Python dictionary representing the JSON content of the
+            job file.
+
+        :raises:
+            :exc:`MalformedContent`: if the set of options in *content* is
+                either missing required keys.
+        """
+        required_args: Set[str] = set(cls.REQUIRED_ARGUMENTS)
+        missing_args = required_args - set(content.keys())
+
+        if missing_args:
+            msg = (
+                "Missing required arguments: "
+                f"{', '.join(sorted(missing_args))}"
+            )
+            raise MalformedContent(msg)
+
+    def write_job_file(self, content: Dict[str, Any]) -> None:
+        """
+        Write the job file with *content*.
+
+        .. note::
+            See :meth:`Operation.write_job_file` for more details.
+
+        :param content: Python dictionary representing the JSON content of the
+            job file. Besides what is contained in *content*, this method adds
+            the following keys:
+
+            * ``operation_type``: ``config_update``;
+            * ``start_time``: current timestamp.
+        """
+        content["operation_type"] = self.TYPE.value
+        content["start_time"] = self.time_event_now()
+        self._validate_job_content(content)
+        super().write_job_file(content)
+
+    def _get_args(self) -> List[str]:
+        """
+        Get arguments for running ``barman config-update`` command.
+
+        :return: list of arguments for ``barman config-update`` command.
+        """
+        job_content = self.read_job_file()
+
+        json_changes = json.dumps(job_content.get("changes"))
+
+        if TYPE_CHECKING:  # pragma: no cover
+            assert isinstance(json_changes, str)
+
+        return [json_changes]
+
+    def _run_logic(self) -> \
+            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
+        """
+        Logic to be ran when executing the config update operation.
+
+        Run ``barman config-update`` command with the configured arguments.
+
+        Will be called when running :meth:`Operation.run`.
+
+        :return: a tuple consisting of:
+
+            * ``stdout``/``stderr`` of ``barman config-update``;
+            * exit code of ``barman config-update``.
+        """
+        cmd = ["barman", "config-update"] + self._get_args()
         return self._run_subprocess(cmd)
 
 
@@ -789,7 +892,7 @@ if __name__ == "__main__":
                     "get information about jobs without a running REST API.",
     )
     parser.add_argument(
-        "--server-name", required=True,
+        "--server-name",
         help="Name of the Barman server related to the operation.",
     )
     parser.add_argument(

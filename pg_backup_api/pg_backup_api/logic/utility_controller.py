@@ -19,7 +19,7 @@
 """Define the Flask endpoints of the pg-backup-api REST API server."""
 import json
 import subprocess
-from typing import Any, Dict, Tuple, Union, TYPE_CHECKING
+from typing import Any, Dict, Optional, Tuple, Union, TYPE_CHECKING
 
 from flask import abort, jsonify, request
 
@@ -37,6 +37,7 @@ from pg_backup_api.server_operation import (OperationServer,
                                             DEFAULT_OP_TYPE,
                                             RecoveryOperation,
                                             ConfigSwitchOperation,
+                                            ConfigUpdateOperation,
                                             MalformedContent)
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -112,16 +113,13 @@ def resource_not_found(error: Any) -> Tuple['Response', int]:
     return jsonify(error=str(error)), 404
 
 
-@app.route("/servers/<server_name>/operations/<operation_id>")
-def servers_operation_id_get(server_name: str, operation_id: str) \
+def _operation_id_get(server_name: Optional[str], operation_id: str) \
         -> 'Response':
     """
-    ``GET`` request to ``/servers/*server_name*/operations/*operation_id*``.
+    Get status of an operation with ID *operation_id*.
 
-    Get status of an operation with ID *operation_id* for Barman server named
-    *server_name*.
-
-    :param server_name: name of the Barman server related to the operation.
+    :param server_name: name of the Barman server related to the operation, if
+        it's a server operation, ``None`` if it's an instance operation.
     :param operation_id: ID of the operation previously created through
         pg-backup-api.
     :return: if *server_name* and *operation_id* are valid, return a JSON
@@ -144,6 +142,37 @@ def servers_operation_id_get(server_name: str, operation_id: str) \
         abort(404, description=str(e))
     except Exception:
         abort(404, description="Resource not found")
+
+
+@app.route("/servers/<server_name>/operations/<operation_id>")
+def servers_operation_id_get(server_name: str, operation_id: str) \
+        -> 'Response':
+    """
+    ``GET`` request to ``/servers/*server_name*/operations/*operation_id*``.
+
+    Get status of an operation with ID *operation_id* for Barman server named
+    *server_name*.
+
+    :param server_name: name of the Barman server related to the operation.
+    :param operation_id: ID of the operation previously created through
+        pg-backup-api.
+    :return: see :func:`_operation_id_get` for details.
+    """
+    return _operation_id_get(server_name, operation_id)
+
+
+@app.route("/operations/<operation_id>")
+def instance_operation_id_get(operation_id: str) -> 'Response':
+    """
+    ``GET`` request to ``/operations/*operation_id*``.
+
+    Get status of an operation with ID *operation_id* for the Barman instance.
+
+    :param operation_id: ID of the operation previously created through
+        pg-backup-api.
+    :return: see :func:`_operation_id_get` for details.
+    """
+    return _operation_id_get(None, operation_id)
 
 
 def servers_operations_post(server_name: str,
@@ -235,6 +264,26 @@ def servers_operations_post(server_name: str,
     return {"operation_id": operation.id}
 
 
+def _operations_get(server_name: Optional[str]) \
+        -> Union[Tuple['Response', int], 'Response']:
+    """
+    Get a list of operations for a Barman server or instance.
+
+    :param server_name: name of the Barman server to fetch operations from, or
+        ``None`` for instance operations.
+
+    :return: a JSON response with ``operations`` key containing a list of
+        operations for a Barman server or instance. Each item in the list
+        contains the operation ID and the operation type.
+    """
+    try:
+        operation = OperationServer(server_name)
+        available_operations = {"operations": operation.get_operations_list()}
+        return jsonify(available_operations)
+    except OperationServerConfigError as e:
+        abort(404, description=str(e))
+
+
 @app.route("/servers/<server_name>/operations", methods=("GET", "POST"))
 def server_operation(server_name: str) \
         -> Union[Tuple['Response', int], 'Response']:
@@ -262,9 +311,86 @@ def server_operation(server_name: str) \
     if request.method == "POST":
         return jsonify(servers_operations_post(server_name, request)), 202
 
+    return _operations_get(server_name)
+
+
+def instance_operations_post(request: 'Request') -> Dict[str, str]:
+    """
+    Handle ``POST`` request to ``/operations``.
+
+    :param request: the flask request that has been received by the routing
+        function.
+
+        Should contain a JSON body with a key ``type``, which identifies the
+        type of the operation. The rest of the content depends on the type of
+        operation being requested:
+
+        * ``config_update``:
+
+            * ``changes``: an array of dictionaries to be used in
+              ``barman config-update``
+
+    :return: if the JSON body informed through the ``POST`` request is valid,
+        return a JSON response containing a key ``operation_id`` with the ID of
+        the operation that has been created.
+
+        Otherwise, if any issue is identified, return a response with either of
+        the following statuses and the relevant error message:
+
+        * ``400``: if any required option is missing in the JSON request body.
+        * ``404``: if any value in the JSON request body is invalid.
+    """
+    request_body = request.get_json()
+
+    if not request_body:
+        msg_400 = "Minimum barman options not met for instance operation"
+        abort(400, description=msg_400)
+
+    operation = None
+    cmd = None
+    op_type = OperationType(request_body.get("type"))
+
+    if op_type == OperationType.CONFIG_UPDATE:
+        operation = ConfigUpdateOperation(None)
+        cmd = "pg-backup-api config-update"
+
+    if TYPE_CHECKING:  # pragma: no cover
+        assert isinstance(operation, Operation)
+        assert isinstance(cmd, str)
+
     try:
-        operation = OperationServer(server_name)
-        available_operations = {"operations": operation.get_operations_list()}
-        return jsonify(available_operations)
-    except OperationServerConfigError as e:
-        abort(404, description=str(e))
+        operation.write_job_file(request_body)
+    except MalformedContent:
+        msg_400 = "Make sure all options/arguments are met and try again"
+        abort(400, description=msg_400)
+
+    cmd += f" --operation-id {operation.id}"
+    subprocess.Popen(cmd.split())
+
+    return {"operation_id": operation.id}
+
+
+@app.route("/operations", methods=("GET", "POST"))
+def instance_operation() -> Union[Tuple['Response', int], 'Response']:
+    """
+    Handle ``GET``/``POST`` request to ``/operations``.
+
+    Get a list of operations for the Barman instance, if a ``GET`` request, or
+    create a new operation for the instance, if a ``POST`` request.
+
+    :return: the returned response varies:
+
+        * If a successful ``GET`` request, then return a JSON response with
+          ``operations`` key containing a list of operations for the Barman
+          instance. Each item in the list contain the operation ID and the
+          operation type;
+        * If a successful ``POST`` request, then return a JSON response with
+          HTTP status ``202`` containing an ``operation_id`` key with the ID
+          of the operation that has been created for the Barman instance;
+        * If any issue is faced when processing the request, return an HTTP
+          ``400`` or ``404`` response with the relevant error message.
+    """
+    if request.method == "POST":
+        return jsonify(instance_operations_post(request)), 202
+
+    return _operations_get(None)
