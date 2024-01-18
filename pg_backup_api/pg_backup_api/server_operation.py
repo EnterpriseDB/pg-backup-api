@@ -49,7 +49,7 @@ class OperationType(Enum):
     """Describe operations that can be performed through pg-backup-api."""
     RECOVERY = "recovery"
     CONFIG_SWITCH = "config_switch"
-    CONFIG_MODEL = "config_model"
+    CONFIG_UPDATE = "config_update"
 
 
 DEFAULT_OP_TYPE = OperationType.RECOVERY
@@ -117,6 +117,8 @@ class OperationServer:
         self.name = name
         self.config = None
 
+        load_barman_config()
+
         if name:
             self.config = get_server_by_name(name)
 
@@ -124,8 +126,6 @@ class OperationServer:
                 raise OperationServerConfigError(
                     f"No barman config found for '{name}'."
                 )
-
-        load_barman_config()
 
         if TYPE_CHECKING:  # pragma: no cover
             assert isinstance(barman.__config__, BarmanConfig)
@@ -774,17 +774,17 @@ class ConfigSwitchOperation(Operation):
         return self._run_subprocess(cmd)
 
 
-class ConfigModelOperation(Operation):
+class ConfigUpdateOperation(Operation):
     """
-    Contain information and logic to process a config model operation.
+    Contain information and logic to process a config update operation.
 
-    :cvar POSSIBLE_ARGUMENTS: possible arguments when creating a config model
+    :cvar REQUIRED_ARGUMENTS: required arguments when creating a config update
         operation.
     :cvar TYPE: enum type of this operation.
     """
 
-    POSSIBLE_ARGUMENTS = ("todo_to", "todo_be", "todo_defined",)
-    TYPE = OperationType.CONFIG_MODEL
+    REQUIRED_ARGUMENTS = ("changes",)
+    TYPE = OperationType.CONFIG_UPDATE
 
     @classmethod
     def _validate_job_content(cls, content: Dict[str, Any]) -> None:
@@ -795,21 +795,18 @@ class ConfigModelOperation(Operation):
             job file.
 
         :raises:
-            :exc:`MalformedContent`: if the set of options in *content* is not
-                compliant with the supported options and how to use them.
+            :exc:`MalformedContent`: if the set of options in *content* is
+                either missing required keys.
         """
-        for key, type_ in [
-            ("todo_to", str,),
-            ("todo_be", str,),
-            ("todo_defined", str),
-        ]:
-            if key in content and not isinstance(content[key], type_):
-                msg = (
-                    f"`{key}` is expected to be a `{type_}`, but a "
-                    f"`{type(content[key])}` was found instead: "
-                    f"`{content[key]}`."
-                )
-                raise MalformedContent(msg)
+        required_args: Set[str] = set(cls.REQUIRED_ARGUMENTS)
+        missing_args = required_args - set(content.keys())
+
+        if missing_args:
+            msg = (
+                "Missing required arguments: "
+                f"{', '.join(sorted(missing_args))}"
+            )
+            raise MalformedContent(msg)
 
     def write_job_file(self, content: Dict[str, Any]) -> None:
         """
@@ -822,7 +819,7 @@ class ConfigModelOperation(Operation):
             job file. Besides what is contained in *content*, this method adds
             the following keys:
 
-            * ``operation_type``: ``config_model``;
+            * ``operation_type``: ``config_update``;
             * ``start_time``: current timestamp.
         """
         content["operation_type"] = self.TYPE.value
@@ -832,42 +829,34 @@ class ConfigModelOperation(Operation):
 
     def _get_args(self) -> List[str]:
         """
-        Get arguments for running ``barman config-model`` command.
+        Get arguments for running ``barman config-update`` command.
 
-        :return: list of arguments for ``barman config-model`` command.
+        :return: list of arguments for ``barman config-update`` command.
         """
         job_content = self.read_job_file()
 
-        todo_to = job_content.get("todo_to")
-        todo_be = job_content.get("todo_be")
-        todo_defined = job_content.get("todo_defined")
+        json_changes = json.dumps(job_content.get("changes"))
 
         if TYPE_CHECKING:  # pragma: no cover
-            assert isinstance(todo_to, str)
-            assert isinstance(todo_be, str)
-            assert isinstance(todo_defined, str)
+            assert isinstance(json_changes, str)
 
-        return [
-            todo_to,
-            todo_be,
-            todo_defined,
-        ]
+        return [json_changes]
 
     def _run_logic(self) -> \
             Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
-        Logic to be ran when executing the config model operation.
+        Logic to be ran when executing the config update operation.
 
-        Run ``barman config-model`` command with the configured arguments.
+        Run ``barman config-update`` command with the configured arguments.
 
         Will be called when running :meth:`Operation.run`.
 
         :return: a tuple consisting of:
 
-            * ``stdout``/``stderr`` of ``barman config-model``;
-            * exit code of ``barman config-model``.
+            * ``stdout``/``stderr`` of ``barman config-update``;
+            * exit code of ``barman config-update``.
         """
-        cmd = ["barman", "config-model"] + self._get_args()
+        cmd = ["barman", "config-update"] + self._get_args()
         return self._run_subprocess(cmd)
 
 

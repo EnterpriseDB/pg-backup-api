@@ -37,7 +37,7 @@ from pg_backup_api.server_operation import (OperationServer,
                                             DEFAULT_OP_TYPE,
                                             RecoveryOperation,
                                             ConfigSwitchOperation,
-                                            ConfigModelOperation,
+                                            ConfigUpdateOperation,
                                             MalformedContent)
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -325,11 +325,10 @@ def instance_operations_post(request: 'Request') -> Dict[str, str]:
         type of the operation. The rest of the content depends on the type of
         operation being requested:
 
-        * ``config_model``:
+        * ``config_update``:
 
-            * ``todo_to``: to value;
-            * ``todo_be``: be value;
-            * ``todo_defined``: defined value.
+            * ``changes``: an array of dictionaries to be used in
+              ``barman config-update``
 
     :return: if the JSON body informed through the ``POST`` request is valid,
         return a JSON response containing a key ``operation_id`` with the ID of
@@ -351,9 +350,9 @@ def instance_operations_post(request: 'Request') -> Dict[str, str]:
     cmd = None
     op_type = OperationType(request_body.get("type"))
 
-    if op_type == OperationType.CONFIG_MODEL:
-        operation = ConfigModelOperation()
-        cmd = "pg-backup-api config-model"
+    if op_type == OperationType.CONFIG_UPDATE:
+        operation = ConfigUpdateOperation(None)
+        cmd = "pg-backup-api config-update"
 
     if TYPE_CHECKING:  # pragma: no cover
         assert isinstance(operation, Operation)
