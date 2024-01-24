@@ -73,10 +73,18 @@ def diagnose() -> 'Response':
         else:
             server_dict[server] = Server(conf)
 
+    available_models = barman.__config__.model_names()
+    model_dict = {}
+    for model in available_models:  # pyright: ignore
+        model_dict[model] = barman.__config__.get_model(model)
+
     # errors list with duplicate paths between servers
     errors_list = barman.__config__.servers_msg_list
 
-    barman_diagnose.exec_diagnose(server_dict, errors_list)
+    barman_diagnose.exec_diagnose(server_dict,
+                                  model_dict,
+                                  errors_list,
+                                  show_config_source=False)
 
     # new outputs are appended, so grab the last one
     stored_output = json.loads(output._writer.json_output["_INFO"][-1])
