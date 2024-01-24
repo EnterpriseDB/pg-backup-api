@@ -3,6 +3,15 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "2.1.0"
+    date: "20240125"
+    changes:
+      Notable changes:
+        - |
+          Barman now supports changes in the configuration whilst it's running. This
+          pg-backup-api release adds the required endpoints to trigger that switch
+          when requested.
+
   - version: "2.0.0"
     date: "20231003"
     changes:
