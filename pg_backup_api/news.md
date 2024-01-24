@@ -2,6 +2,14 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2023 - All rights reserved.
 
+## 2.1.0 (2024-01-25)
+
+### Notable changes
+
+- Barman now supports changes in the configuration whilst it's running. This
+  pg-backup-api release adds the required endpoints to trigger that switch
+  when requested.
+
 ## 2.0.0 (2023-10-03)
 
 ### Notable changes
