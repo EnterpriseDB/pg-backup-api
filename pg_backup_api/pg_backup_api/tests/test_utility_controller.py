@@ -91,6 +91,29 @@ class TestUtilityController:
         assert response.status_code == 200
         assert response.data == b'{"global":{"config":{}}}\n'
 
+    @patch("pg_backup_api.logic.utility_controller.barman_diagnose", Mock())
+    @patch.dict(
+        "pg_backup_api.logic.utility_controller.output._writer.json_output",
+        {
+            '_INFO': ['SOME', 'JSON', 'ENTRIES', '{"global":{"config":{}}}'],
+        },
+    )
+    def test_diagnose_ok_old_barman(self, client):
+        """Test ``/diagnose`` endpoint.
+
+        Ensure a ``GET`` request returns ``200`` and the expected JSON output,
+        even if using Barman 3.9 or older, in which case models implementation
+        is not available.
+        """
+        path = "/diagnose"
+
+        with patch("barman.__config__") as mock_config:
+            mock_config.model_names.side_effect = AttributeError("Old Barman")
+            response = client.get(path)
+
+        assert response.status_code == 200
+        assert response.data == b'{"global":{"config":{}}}\n'
+
     def test_diagnose_not_allowed(self, client):
         """Test ``/diagnose`` endpoint.
 
