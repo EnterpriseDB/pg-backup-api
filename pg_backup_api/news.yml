@@ -3,6 +3,12 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "2.1.1"
+    date: "20240629"
+    changes:
+      Buxfixes:
+        - Functions/methods signatures updates to fix regression with Barman <= 3.9
+
   - version: "2.1.0"
     date: "20240125"
     changes:
