@@ -1,6 +1,6 @@
 # pg-backup-api release notes
 
-© Copyright EnterpriseDB UK Limited 2021-2023 - All rights reserved.
+© Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
 
 ## 2.1.0 (2024-01-25)
 
