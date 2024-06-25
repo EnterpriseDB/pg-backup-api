@@ -2,6 +2,12 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
 
+## 2.1.1 (2024-06-29)
+
+### Buxfixes
+
+- Functions/methods signatures updates to fix regression with Barman <= 3.9
+
 ## 2.1.0 (2024-01-25)
 
 ### Notable changes
