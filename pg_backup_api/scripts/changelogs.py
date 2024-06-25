@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#  © Copyright EnterpriseDB UK Limited 2021-2023 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
 #
 """
 Generate news.md from a source yaml file using Jinja templates.
