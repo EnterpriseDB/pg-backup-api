@@ -82,15 +82,20 @@ def diagnose() -> 'Response':
         for model in available_models:  # pyright: ignore
             model_dict[model] = barman.__config__.get_model(model)
 
-        barman_diagnose.exec_diagnose(server_dict,
-                                      model_dict,
-                                      errors_list,
-                                      show_config_source=False)
+        barman_diagnose.exec_diagnose(
+            server_dict,
+            model_dict,
+            errors_list,
+            show_config_source=False,
+        )  # pyright: ignore [reportCallIssue]
     # An attribute error is thown when calling `model_names()` if using Barman
     # older than 3.10, in which case models are not yet implemented, so we fall
     # back to the old signature of diagnose command.
     except AttributeError:
-        barman_diagnose.exec_diagnose(server_dict, errors_list)
+        barman_diagnose.exec_diagnose(
+            server_dict,
+            errors_list,
+        )  # pyright: ignore [reportCallIssue]
 
     # new outputs are appended, so grab the last one
     stored_output = json.loads(output._writer.json_output["_INFO"][-1])
