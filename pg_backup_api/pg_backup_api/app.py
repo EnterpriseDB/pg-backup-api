@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -33,7 +33,7 @@ from barman import output
 from pg_backup_api.run import app
 from pg_backup_api.utils import (
     load_barman_config,
-    setup_logging_for_wsgi_server
+    setup_logging_for_wsgi_server,
 )
 
 load_barman_config()

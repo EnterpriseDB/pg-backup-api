@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" Determine the version string from news.yml. """
+"""Determine the version string from news.yml."""
 
 import yaml
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -30,8 +30,11 @@ with open("./version.txt", "r") as f:
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-REQUIRES = ["barman>=2.19,<4.0.0", "Flask>=0.10.1,<3.0.0",
-            "requests>=2.0.0,<3.0.0"]
+REQUIRES = [
+    "barman>=2.19,<4.0.0",
+    "Flask>=0.10.1,<3.0.0",
+    "requests>=2.0.0,<3.0.0",
+]
 
 setup(
     name=NAME,

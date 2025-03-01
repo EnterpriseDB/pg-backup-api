@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -27,18 +27,23 @@ import barman
 from barman import diagnose as barman_diagnose, output
 from barman.server import Server
 
-from pg_backup_api.utils import (load_barman_config, get_server_by_name,
-                                 parse_backup_id)
+from pg_backup_api.utils import (
+    load_barman_config,
+    get_server_by_name,
+    parse_backup_id,
+)
 
 from pg_backup_api.run import app
-from pg_backup_api.server_operation import (OperationServer,
-                                            OperationServerConfigError,
-                                            OperationType,
-                                            DEFAULT_OP_TYPE,
-                                            RecoveryOperation,
-                                            ConfigSwitchOperation,
-                                            ConfigUpdateOperation,
-                                            MalformedContent)
+from pg_backup_api.server_operation import (
+    OperationServer,
+    OperationServerConfigError,
+    OperationType,
+    DEFAULT_OP_TYPE,
+    RecoveryOperation,
+    ConfigSwitchOperation,
+    ConfigUpdateOperation,
+    MalformedContent,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from flask import Request, Response
@@ -47,7 +52,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 @app.route("/diagnose", methods=["GET"])
-def diagnose() -> 'Response':
+def diagnose() -> "Response":
     """
     Handle ``GET`` request to ``/diagnose``.
 
@@ -119,7 +124,7 @@ def status() -> str:
 
 
 @app.errorhandler(404)
-def resource_not_found(error: Any) -> Tuple['Response', int]:
+def resource_not_found(error: Any) -> Tuple["Response", int]:
     """
     Configure a handler for HTTP 404 responses.
 
@@ -132,8 +137,9 @@ def resource_not_found(error: Any) -> Tuple['Response', int]:
     return jsonify(error=str(error)), 404
 
 
-def _operation_id_get(server_name: Optional[str], operation_id: str) \
-        -> 'Response':
+def _operation_id_get(
+    server_name: Optional[str], operation_id: str
+) -> "Response":
     """
     Get status of an operation with ID *operation_id*.
 
@@ -164,8 +170,9 @@ def _operation_id_get(server_name: Optional[str], operation_id: str) \
 
 
 @app.route("/servers/<server_name>/operations/<operation_id>")
-def servers_operation_id_get(server_name: str, operation_id: str) \
-        -> 'Response':
+def servers_operation_id_get(
+    server_name: str, operation_id: str
+) -> "Response":
     """
     ``GET`` request to ``/servers/*server_name*/operations/*operation_id*``.
 
@@ -181,7 +188,7 @@ def servers_operation_id_get(server_name: str, operation_id: str) \
 
 
 @app.route("/operations/<operation_id>")
-def instance_operation_id_get(operation_id: str) -> 'Response':
+def instance_operation_id_get(operation_id: str) -> "Response":
     """
     ``GET`` request to ``/operations/*operation_id*``.
 
@@ -194,8 +201,9 @@ def instance_operation_id_get(operation_id: str) -> 'Response':
     return _operation_id_get(None, operation_id)
 
 
-def servers_operations_post(server_name: str,
-                            request: 'Request') -> Dict[str, str]:
+def servers_operations_post(
+    server_name: str, request: "Request"
+) -> Dict[str, str]:
     """
     Handle ``POST`` request to ``/servers/*server_name*/operations``.
 
@@ -283,8 +291,9 @@ def servers_operations_post(server_name: str,
     return {"operation_id": operation.id}
 
 
-def _operations_get(server_name: Optional[str]) \
-        -> Union[Tuple['Response', int], 'Response']:
+def _operations_get(
+    server_name: Optional[str],
+) -> Union[Tuple["Response", int], "Response"]:
     """
     Get a list of operations for a Barman server or instance.
 
@@ -304,8 +313,9 @@ def _operations_get(server_name: Optional[str]) \
 
 
 @app.route("/servers/<server_name>/operations", methods=("GET", "POST"))
-def server_operation(server_name: str) \
-        -> Union[Tuple['Response', int], 'Response']:
+def server_operation(
+    server_name: str,
+) -> Union[Tuple["Response", int], "Response"]:
     """
     Handle ``GET``/``POST`` request to ``/servers/*server_name*/operations``.
 
@@ -333,7 +343,7 @@ def server_operation(server_name: str) \
     return _operations_get(server_name)
 
 
-def instance_operations_post(request: 'Request') -> Dict[str, str]:
+def instance_operations_post(request: "Request") -> Dict[str, str]:
     """
     Handle ``POST`` request to ``/operations``.
 
@@ -390,7 +400,7 @@ def instance_operations_post(request: 'Request') -> Dict[str, str]:
 
 
 @app.route("/operations", methods=("GET", "POST"))
-def instance_operation() -> Union[Tuple['Response', int], 'Response']:
+def instance_operation() -> Union[Tuple["Response", int], "Response"]:
     """
     Handle ``GET``/``POST`` request to ``/operations``.
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -22,9 +22,13 @@ from unittest.mock import MagicMock, patch, call
 from barman.infofile import BackupInfo
 import pytest
 
-from pg_backup_api.utils import (create_app, load_barman_config,
-                                 setup_logging_for_wsgi_server,
-                                 get_server_by_name, parse_backup_id)
+from pg_backup_api.utils import (
+    create_app,
+    load_barman_config,
+    setup_logging_for_wsgi_server,
+    get_server_by_name,
+    parse_backup_id,
+)
 
 
 @patch("pg_backup_api.utils.Flask")
@@ -95,11 +99,13 @@ def test_get_server_by_name_not_found(mock_config):
     assert get_server_by_name("SERVER_4") is None
 
     mock_server_names.assert_called_once_with()
-    mock_get_server.assert_has_calls([
-        call("SERVER_1"),
-        call("SERVER_2"),
-        call("SERVER_3"),
-    ])
+    mock_get_server.assert_has_calls(
+        [
+            call("SERVER_1"),
+            call("SERVER_2"),
+            call("SERVER_3"),
+        ]
+    )
 
 
 @patch("barman.__config__")
@@ -115,10 +121,12 @@ def test_get_server_by_name_ok(mock_config):
     assert get_server_by_name("SERVER_2") == mock_get_server.return_value
 
     mock_server_names.assert_called_once_with()
-    mock_get_server.assert_has_calls([
-        call("SERVER_1"),
-        call("SERVER_2"),
-    ])
+    mock_get_server.assert_has_calls(
+        [
+            call("SERVER_1"),
+            call("SERVER_2"),
+        ]
+    )
 
 
 @pytest.mark.parametrize("backup_id", ["latest", "last"])

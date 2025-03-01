@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -29,9 +29,11 @@ from requests.exceptions import ConnectionError
 from barman import output
 
 from pg_backup_api.utils import create_app, load_barman_config
-from pg_backup_api.server_operation import (RecoveryOperation,
-                                            ConfigSwitchOperation,
-                                            ConfigUpdateOperation)
+from pg_backup_api.server_operation import (
+    RecoveryOperation,
+    ConfigSwitchOperation,
+    ConfigUpdateOperation,
+)
 
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -41,7 +43,7 @@ if TYPE_CHECKING:  # pragma: no cover
 app = create_app()
 
 
-def serve(args: 'argparse.Namespace') -> Tuple[None, bool]:
+def serve(args: "argparse.Namespace") -> Tuple[None, bool]:
     """
     Run the Postgres Backup API app.
 
@@ -65,7 +67,7 @@ def serve(args: 'argparse.Namespace') -> Tuple[None, bool]:
     return (run, True)
 
 
-def status(args: 'argparse.Namespace') -> Tuple[str, bool]:
+def status(args: "argparse.Namespace") -> Tuple[str, bool]:
     """
     Check Postgres Backup API app status.
 
@@ -85,7 +87,7 @@ def status(args: 'argparse.Namespace') -> Tuple[str, bool]:
     return (message, True if message == "OK" else False)
 
 
-def _run_operation(operation: 'Operation') -> Tuple[None, bool]:
+def _run_operation(operation: "Operation") -> Tuple[None, bool]:
     """
     Perform an operation through the pg-backup-api.
 
@@ -118,7 +120,7 @@ def _run_operation(operation: 'Operation') -> Tuple[None, bool]:
     return (operation.write_output_file(content), success)
 
 
-def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
+def recovery_operation(args: "argparse.Namespace") -> Tuple[None, bool]:
     """
     Perform a ``barman recover`` through the pg-backup-api.
 
@@ -132,11 +134,12 @@ def recovery_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
         * ``None`` -- output of :meth:`RecoveryOperation.write_output_file`;
         * ``True`` if ``barman recover`` was successful, ``False`` otherwise.
     """
-    return _run_operation(RecoveryOperation(args.server_name,
-                                            args.operation_id))
+    return _run_operation(
+        RecoveryOperation(args.server_name, args.operation_id)
+    )
 
 
-def config_switch_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
+def config_switch_operation(args: "argparse.Namespace") -> Tuple[None, bool]:
     """
     Perform a ``barman config switch`` through the pg-backup-api.
 
@@ -152,11 +155,12 @@ def config_switch_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
         * ``True`` if ``barman config-switch`` was successful, ``False``
             otherwise.
     """
-    return _run_operation(ConfigSwitchOperation(args.server_name,
-                                                args.operation_id))
+    return _run_operation(
+        ConfigSwitchOperation(args.server_name, args.operation_id)
+    )
 
 
-def config_update_operation(args: 'argparse.Namespace') -> Tuple[None, bool]:
+def config_update_operation(args: "argparse.Namespace") -> Tuple[None, bool]:
     """
     Perform a ``barman config-update`` through the pg-backup-api.
 

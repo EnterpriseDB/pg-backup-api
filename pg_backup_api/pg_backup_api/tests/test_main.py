@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -27,7 +27,8 @@ from pg_backup_api.__main__ import main
 
 
 _HELP_OUTPUT = {
-    "pg-backup-api --help": dedent("""\
+    "pg-backup-api --help": dedent(
+        """\
         usage: pg-backup-api [-h]
                              {serve,status,recovery,config-switch,config-update} ...
 
@@ -39,8 +40,10 @@ _HELP_OUTPUT = {
 
         Postgres Backup API by EnterpriseDB (www.enterprisedb.com)
 \
-    """),  # noqa: E501
-    "pg-backup-api serve --help": dedent("""\
+    """
+    ),  # noqa: E501
+    "pg-backup-api serve --help": dedent(
+        """\
         usage: pg-backup-api serve [-h] [--port PORT]
 
         Start the REST API server. Listen for requests on '127.0.0.1', on the given
@@ -50,8 +53,10 @@ _HELP_OUTPUT = {
           -h, --help   show this help message and exit
           --port PORT  Port to bind to.
 \
-    """),  # noqa: E501
-    "pg-backup-api status --help": dedent("""\
+    """
+    ),  # noqa: E501
+    "pg-backup-api status --help": dedent(
+        """\
         usage: pg-backup-api status [-h] [--port PORT]
 
         Check if the REST API server is up and running
@@ -60,8 +65,10 @@ _HELP_OUTPUT = {
           -h, --help   show this help message and exit
           --port PORT  Port to be checked.
 \
-    """),  # noqa: E501
-    "pg-backup-api recovery --help": dedent("""\
+    """
+    ),  # noqa: E501
+    "pg-backup-api recovery --help": dedent(
+        """\
         usage: pg-backup-api recovery [-h] --server-name SERVER_NAME --operation-id
                                       OPERATION_ID
 
@@ -75,8 +82,10 @@ _HELP_OUTPUT = {
           --operation-id OPERATION_ID
                                 ID of the operation in the 'pg-backup-api'.
 \
-    """),  # noqa: E501
-    "pg-backup-api config-switch --help": dedent("""\
+    """
+    ),  # noqa: E501
+    "pg-backup-api config-switch --help": dedent(
+        """\
         usage: pg-backup-api config-switch [-h] --server-name SERVER_NAME
                                            --operation-id OPERATION_ID
 
@@ -91,8 +100,10 @@ _HELP_OUTPUT = {
           --operation-id OPERATION_ID
                                 ID of the operation in the 'pg-backup-api'.
 \
-    """),  # noqa: E501
-    "pg-backup-api config-update --help": dedent("""\
+    """
+    ),  # noqa: E501
+    "pg-backup-api config-update --help": dedent(
+        """\
         usage: pg-backup-api config-update [-h] --operation-id OPERATION_ID
 
         Perform a 'barman config-update' through the 'pg-backup-api'. Can only be run
@@ -103,7 +114,8 @@ _HELP_OUTPUT = {
           --operation-id OPERATION_ID
                                 ID of the operation in the 'pg-backup-api'.
 \
-    """),  # noqa: E501
+    """
+    ),  # noqa: E501
 }
 
 _COMMAND_FUNC = {
