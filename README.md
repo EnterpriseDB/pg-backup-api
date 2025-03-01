@@ -42,13 +42,13 @@ As Barman user run:
 pg-backup-api serve
 ```
 
-**Note:** by default `pg-backup-api` runs on port `7480`. You can override that
-behavior by passing `--port N` to `serve` command, `N` being the port to listen
-on.
-
 The above comand will start up the REST API as a development server. If you
 want to run the REST API as an WSGI application, use the approach described in
 the `Service` section.
+
+**Note:** by default `pg-backup-api` runs on port `7480`. You can override that
+behavior by passing `--port N` to `serve` command, being `N` the port to listen
+on.
 
 ### Service
 
@@ -104,6 +104,21 @@ systemctl enable pg-backup-api --now
 
 **Note:** by default the `pg-backup-api` service runs on port `7480`. You can
 override that behavior by changing the port in `/etc/pg-backup-api-config.py`.
+
+### Changing some defaults
+
+Either manually or running via gunicorn, it's possible to change some defaults by
+setting environment variables. We will describe and explain the most important ones
+here.
+
+#### Change Barman configuration
+
+`pg-backup-api` by default loads the Barman configuration from `/etc/barman.conf`.
+You could override that using `PG_BACKUP_API_BARMAN_CONF`. For example:
+
+```bash
+PG_BACKUP_API_BARMAN_CONF=/path/to/my/barman.conf pg-backup-api serve
+```
 
 ### Verify the app
 
