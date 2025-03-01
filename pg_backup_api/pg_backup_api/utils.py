@@ -31,6 +31,7 @@ import barman
 from barman import config
 from barman.infofile import BackupInfo
 
+import os
 
 if TYPE_CHECKING:  # pragma: no cover
     import flask.app
@@ -38,7 +39,7 @@ if TYPE_CHECKING:  # pragma: no cover
     import barman.server
 
 
-CONFIG_FILENAME = "/etc/barman.conf"
+DEFAULT_BARMAN_CONFIG_FILE = "/etc/barman.conf"
 LOG_FILENAME = "/var/log/barman/barman-api.log"
 
 
@@ -57,10 +58,17 @@ def load_barman_config() -> None:
 
     Source Barman config is retrieved from file :data:`CONFIG_FILE_NAME`.
     """
-    cfg = config.Config(CONFIG_FILENAME)
+    cfg = config.Config(get_barman_config_file())
     barman.__config__ = cfg
     cfg.load_configuration_files_directory()
 
+def get_barman_config_file() -> str:
+    """
+    Get the path to the Barman configuration file.
+
+    :return: path to the Barman configuration file.
+    """
+    return os.getenv("PG_BACKUP_API_BARMAN_CONF", DEFAULT_BARMAN_CONFIG_FILE)
 
 def setup_logging_for_wsgi_server() -> None:
     """
