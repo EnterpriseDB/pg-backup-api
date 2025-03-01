@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -69,8 +69,9 @@ class TestOperationServer:
         if op_server.name is not None:
             expected_name = _BARMAN_SERVER
             expected_jobs = os.path.join(_BARMAN_HOME, _BARMAN_SERVER, "jobs")
-            expected_output = os.path.join(_BARMAN_HOME, _BARMAN_SERVER,
-                                           "output")
+            expected_output = os.path.join(
+                _BARMAN_HOME, _BARMAN_SERVER, "output"
+            )
 
         # Ensure name is as expected.
         assert op_server.name == expected_name
@@ -104,8 +105,9 @@ class TestOperationServer:
 
     @patch("os.path.isdir")
     @patch("os.path.exists")
-    def test__create_dir_directory_exists(self, mock_exists, mock_isdir,
-                                          op_server):
+    def test__create_dir_directory_exists(
+        self, mock_exists, mock_isdir, op_server
+    ):
         """Test :meth:`OperationServer._create_dir`.
 
         Ensure no exception occurs if the directory already exists.
@@ -123,8 +125,9 @@ class TestOperationServer:
     @patch("os.makedirs")
     @patch("os.path.isdir")
     @patch("os.path.exists")
-    def test__create_dir_ok(self, mock_exists, mock_isdir, mock_makedirs,
-                            op_server):
+    def test__create_dir_ok(
+        self, mock_exists, mock_isdir, mock_makedirs, op_server
+    ):
         """Test :meth:`OperationServer._create_dir`.
 
         Ensure the directory is created if it's missing.
@@ -198,8 +201,9 @@ class TestOperationServer:
     @patch("json.dump")
     @patch("builtins.open")
     @patch("os.path.exists")
-    def test__write_file_ok(self, mock_exists, mock_open, mock_dump,
-                            op_server):
+    def test__write_file_ok(
+        self, mock_exists, mock_open, mock_dump, op_server
+    ):
         """Test :meth:`OperationServer._write_file`.
 
         Ensure the file is created with the expected content.
@@ -215,13 +219,23 @@ class TestOperationServer:
         mock_open.assert_called_once_with(file_path, "w")
         mock_dump.assert_called_once_with(file_content, "SOME_FILE_DESCRIPTOR")
 
-    @pytest.mark.parametrize("content,missing_keys", [
-        ({}, "operation_type, start_time",),
-        ({"operation_type": "SOME_OPERATION_TYPE"}, "start_time"),
-        ({"start_time": "SOME_START_TIME"}, "operation_type",),
-    ])
-    def test_write_job_file_content_missing_keys(self, content, missing_keys,
-                                                 op_server):
+    @pytest.mark.parametrize(
+        "content,missing_keys",
+        [
+            (
+                {},
+                "operation_type, start_time",
+            ),
+            ({"operation_type": "SOME_OPERATION_TYPE"}, "start_time"),
+            (
+                {"start_time": "SOME_START_TIME"},
+                "operation_type",
+            ),
+        ],
+    )
+    def test_write_job_file_content_missing_keys(
+        self, content, missing_keys, op_server
+    ):
         """Test :meth:`OperationServer.write_job_file`.
 
         Ensure an exception is raised if the content is missing keys.
@@ -274,17 +288,36 @@ class TestOperationServer:
                 content,
             )
 
-    @pytest.mark.parametrize("content,missing_keys", [
-        ({}, "end_time, output, success",),
-        ({"end_time": "SOME_END_TIME"}, "output, success"),
-        ({"output": "SOME_OUTPUT"}, "end_time, success",),
-        ({"success": "SOME_SUCCESS"}, "end_time, output",),
-        ({"end_time": "SOME_END_TIME", "output": "SOME_OUTPUT"}, "success"),
-        ({"end_time": "SOME_END_TIME", "success": "SOME_SUCCESS"}, "output"),
-        ({"output": "SOME_OUTPUT", "success": "SOME_SUCCESS"}, "end_time"),
-    ])
-    def test_write_output_file_content_missing_keys(self, content,
-                                                    missing_keys, op_server):
+    @pytest.mark.parametrize(
+        "content,missing_keys",
+        [
+            (
+                {},
+                "end_time, output, success",
+            ),
+            ({"end_time": "SOME_END_TIME"}, "output, success"),
+            (
+                {"output": "SOME_OUTPUT"},
+                "end_time, success",
+            ),
+            (
+                {"success": "SOME_SUCCESS"},
+                "end_time, output",
+            ),
+            (
+                {"end_time": "SOME_END_TIME", "output": "SOME_OUTPUT"},
+                "success",
+            ),
+            (
+                {"end_time": "SOME_END_TIME", "success": "SOME_SUCCESS"},
+                "output",
+            ),
+            ({"output": "SOME_OUTPUT", "success": "SOME_SUCCESS"}, "end_time"),
+        ],
+    )
+    def test_write_output_file_content_missing_keys(
+        self, content, missing_keys, op_server
+    ):
         """Test :meth:`OperationServer.write_output_file`.
 
         Ensure an exception is raised if the content is missing keys.
@@ -432,8 +465,9 @@ class TestOperationServer:
         mock_listdir.assert_called_once_with(op_server.jobs_basedir)
 
     @patch("os.listdir")
-    def test_get_operations_list_ignore_non_json_files(self, mock_listdir,
-                                                       op_server):
+    def test_get_operations_list_ignore_non_json_files(
+        self, mock_listdir, op_server
+    ):
         """Test :meth:`OperationServer.get_operations_list`.
 
         Ensure non-JSON files are not considered.
@@ -450,9 +484,9 @@ class TestOperationServer:
 
     @patch("pg_backup_api.server_operation.OperationServer.read_job_file")
     @patch("os.listdir")
-    def test_get_operations_list_with_no_filters(self, mock_listdir,
-                                                 mock_read_job_file,
-                                                 op_server):
+    def test_get_operations_list_with_no_filters(
+        self, mock_listdir, mock_read_job_file, op_server
+    ):
         """Test :meth:`OperationServer.get_operations_list`.
 
         Ensure expected operations are returned if no filters are applied.
@@ -479,15 +513,18 @@ class TestOperationServer:
         ]
         assert op_server.get_operations_list() == expected
 
-        mock_read_job_file.assert_has_calls([
-            call("SOME_OPERATION_1"),
-            call("SOME_OPERATION_2"),
-        ])
+        mock_read_job_file.assert_has_calls(
+            [
+                call("SOME_OPERATION_1"),
+                call("SOME_OPERATION_2"),
+            ]
+        )
 
     @patch("pg_backup_api.server_operation.OperationServer.read_job_file")
     @patch("os.listdir")
-    def test_get_operations_list_with_filters(self, mock_listdir,
-                                              mock_read_job_file, op_server):
+    def test_get_operations_list_with_filters(
+        self, mock_listdir, mock_read_job_file, op_server
+    ):
         """Test :meth:`OperationServer.get_operations_list`.
 
         Ensure expected operations are returned if filters are applied.
@@ -511,15 +548,18 @@ class TestOperationServer:
         result = op_server.get_operations_list(OperationType.RECOVERY)
         assert result == expected
 
-        mock_read_job_file.assert_has_calls([
-            call("SOME_OPERATION_1"),
-            call("SOME_OPERATION_2"),
-        ])
+        mock_read_job_file.assert_has_calls(
+            [
+                call("SOME_OPERATION_1"),
+                call("SOME_OPERATION_2"),
+            ]
+        )
 
     @patch("pg_backup_api.server_operation.OperationServer.read_output_file")
     @patch("pg_backup_api.server_operation.OperationServer.read_job_file")
-    def test_get_operation_status_done(self, mock_read_job_file,
-                                       mock_read_output_file, op_server):
+    def test_get_operation_status_done(
+        self, mock_read_job_file, mock_read_output_file, op_server
+    ):
         """Test :meth:`OperationServer.get_operation_status`.
 
         Ensure it returns ``DONE`` if the output file is successful.
@@ -535,8 +575,9 @@ class TestOperationServer:
 
     @patch("pg_backup_api.server_operation.OperationServer.read_output_file")
     @patch("pg_backup_api.server_operation.OperationServer.read_job_file")
-    def test_get_operation_status_failed(self, mock_read_job_file,
-                                         mock_read_output_file, op_server):
+    def test_get_operation_status_failed(
+        self, mock_read_job_file, mock_read_output_file, op_server
+    ):
         """Test :meth:`OperationServer.get_operation_status`.
 
         Ensure it returns ``FAILED`` if the output file is not successful.
@@ -552,9 +593,9 @@ class TestOperationServer:
 
     @patch("pg_backup_api.server_operation.OperationServer.read_output_file")
     @patch("pg_backup_api.server_operation.OperationServer.read_job_file")
-    def test_get_operation_status_in_progress(self, mock_read_job_file,
-                                              mock_read_output_file,
-                                              op_server):
+    def test_get_operation_status_in_progress(
+        self, mock_read_job_file, mock_read_output_file, op_server
+    ):
         """Test :meth:`OperationServer.get_operation_status`.
 
         Ensure it returns ``IN_PROGRESS`` if the job file exists, but no
@@ -572,9 +613,9 @@ class TestOperationServer:
 
     @patch("pg_backup_api.server_operation.OperationServer.read_output_file")
     @patch("pg_backup_api.server_operation.OperationServer.read_job_file")
-    def test_get_operation_status_exception(self, mock_read_job_file,
-                                            mock_read_output_file,
-                                            op_server):
+    def test_get_operation_status_exception(
+        self, mock_read_job_file, mock_read_output_file, op_server
+    ):
         """Test :meth:`OperationServer.get_operation_status`.
 
         Ensure an exception is raised if neither job nor output file exist.
@@ -747,8 +788,9 @@ class TestOperation:
 
             assert operation._run_subprocess(cmd) == (stdout, return_code)
 
-            mock_popen.assert_called_once_with(cmd, stdout=subprocess.PIPE,
-                                               stderr=subprocess.STDOUT)
+            mock_popen.assert_called_once_with(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+            )
 
     def test_run(self, operation):
         """Test :meth:`Operation.run`.
@@ -773,27 +815,51 @@ class TestRecoveryOperation:
         """
         return RecoveryOperation(_BARMAN_SERVER)
 
-    @pytest.mark.parametrize("content,missing_keys", [
-        ({}, "backup_id, destination_directory, remote_ssh_command",),
-        ({"backup_id": "SOME_BACKUP_ID"},
-         "destination_directory, remote_ssh_command"),
-        ({"destination_directory": "SOME_DESTINATION_DIRECTORY"},
-         "backup_id, remote_ssh_command",),
-        ({"remote_ssh_command": "SOME_REMOTE_SSH_COMMAND"},
-         "backup_id, destination_directory",),
-        ({"backup_id": "SOME_BACKUP_ID",
-          "destination_directory": "SOME_DESTINATION_DIRECTORY"},
-         "remote_ssh_command"),
-        ({"backup_id": "SOME_BACKUP_ID",
-          "remote_ssh_command": "SOME_REMOTE_SSH_COMMAND"},
-         "destination_directory"),
-        ({"destination_directory": "SOME_DESTINATION_DIRECTORY",
-          "remote_ssh_command": "SOME_REMOTE_SSH_COMMAND"},
-         "backup_id"),
-    ])
-    def test__validate_job_content_content_missing_keys(self, content,
-                                                        missing_keys,
-                                                        operation):
+    @pytest.mark.parametrize(
+        "content,missing_keys",
+        [
+            (
+                {},
+                "backup_id, destination_directory, remote_ssh_command",
+            ),
+            (
+                {"backup_id": "SOME_BACKUP_ID"},
+                "destination_directory, remote_ssh_command",
+            ),
+            (
+                {"destination_directory": "SOME_DESTINATION_DIRECTORY"},
+                "backup_id, remote_ssh_command",
+            ),
+            (
+                {"remote_ssh_command": "SOME_REMOTE_SSH_COMMAND"},
+                "backup_id, destination_directory",
+            ),
+            (
+                {
+                    "backup_id": "SOME_BACKUP_ID",
+                    "destination_directory": "SOME_DESTINATION_DIRECTORY",
+                },
+                "remote_ssh_command",
+            ),
+            (
+                {
+                    "backup_id": "SOME_BACKUP_ID",
+                    "remote_ssh_command": "SOME_REMOTE_SSH_COMMAND",
+                },
+                "destination_directory",
+            ),
+            (
+                {
+                    "destination_directory": "SOME_DESTINATION_DIRECTORY",
+                    "remote_ssh_command": "SOME_REMOTE_SSH_COMMAND",
+                },
+                "backup_id",
+            ),
+        ],
+    )
+    def test__validate_job_content_content_missing_keys(
+        self, content, missing_keys, operation
+    ):
         """Test :meth:`RecoveryOperation._validate_job_content`.
 
         Ensure an exception is raised if the content is missing keys.
@@ -817,8 +883,9 @@ class TestRecoveryOperation:
 
     @patch("pg_backup_api.server_operation.Operation.time_event_now")
     @patch("pg_backup_api.server_operation.Operation.write_job_file")
-    def test_write_job_file(self, mock_write_job_file, mock_time_event_now,
-                            operation):
+    def test_write_job_file(
+        self, mock_write_job_file, mock_time_event_now, operation
+    ):
         """Test :meth:`RecoveryOperation.write_job_file`.
 
         Ensure the underlying methods are called as expected.
@@ -917,10 +984,12 @@ class TestConfigSwitchOperation:
         and ``reset`` keys.
         """
         with pytest.raises(MalformedContent) as exc:
-            operation._validate_job_content({
-                "model_name": "SOME_MODEL",
-                "reset": True,
-            })
+            operation._validate_job_content(
+                {
+                    "model_name": "SOME_MODEL",
+                    "reset": True,
+                }
+            )
 
         assert str(exc.value) == (
             "Only one among the following arguments should be specified: "
@@ -928,8 +997,9 @@ class TestConfigSwitchOperation:
         )
 
     @pytest.mark.parametrize("model_name", [1, 1.0, True, None])
-    def test__validate_job_content_invalid_model_name_type(self, model_name,
-                                                           operation):
+    def test__validate_job_content_invalid_model_name_type(
+        self, model_name, operation
+    ):
         """Test :meth:`ConfigSwitchOperation._validate_job_content`.
 
         Ensure an exception is raised if ``model_name`` has a value of an
@@ -986,8 +1056,9 @@ class TestConfigSwitchOperation:
 
     @patch("pg_backup_api.server_operation.Operation.time_event_now")
     @patch("pg_backup_api.server_operation.Operation.write_job_file")
-    def test_write_job_file(self, mock_write_job_file, mock_time_event_now,
-                            operation):
+    def test_write_job_file(
+        self, mock_write_job_file, mock_time_event_now, operation
+    ):
         """Test :meth:`ConfigSwitchOperation.write_job_file`.
 
         Ensure the underlying methods are called as expected.
@@ -1077,9 +1148,7 @@ class TestConfigUpdateOperation:
         with pytest.raises(MalformedContent) as exc:
             operation._validate_job_content({})
 
-        assert str(exc.value) == (
-            "Missing required arguments: changes"
-        )
+        assert str(exc.value) == ("Missing required arguments: changes")
 
     def test__validate_job_content_ok(self, operation):
         """Test :meth:`ConfigUpdateOperation._validate_job_content`.
@@ -1090,8 +1159,9 @@ class TestConfigUpdateOperation:
 
     @patch("pg_backup_api.server_operation.Operation.time_event_now")
     @patch("pg_backup_api.server_operation.Operation.write_job_file")
-    def test_write_job_file(self, mock_write_job_file, mock_time_event_now,
-                            operation):
+    def test_write_job_file(
+        self, mock_write_job_file, mock_time_event_now, operation
+    ):
         """Test :meth:`ConfigUpdateOperation.write_job_file`.
 
         Ensure the underlying methods are called as expected.

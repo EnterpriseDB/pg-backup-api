@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -24,9 +24,13 @@ from unittest.mock import MagicMock, patch, call
 
 import pytest
 
-from pg_backup_api.run import (serve, status, recovery_operation,
-                               config_switch_operation,
-                               config_update_operation)
+from pg_backup_api.run import (
+    serve,
+    status,
+    recovery_operation,
+    config_switch_operation,
+    config_update_operation,
+)
 
 
 @pytest.mark.parametrize("port", [7480, 7481])
@@ -97,16 +101,19 @@ def test_recovery_operation(mock_rec_op, server_name, operation_id, rc):
     Ensure the operation is created and executed, and that the expected values
     are returned depending on the return code.
     """
-    args = argparse.Namespace(server_name=server_name,
-                              operation_id=operation_id)
+    args = argparse.Namespace(
+        server_name=server_name, operation_id=operation_id
+    )
 
     mock_rec_op.return_value.run.return_value = ("SOME_OUTPUT", rc)
     mock_write_output = mock_rec_op.return_value.write_output_file
     mock_time_event = mock_rec_op.return_value.time_event_now
     mock_read_job = mock_rec_op.return_value.read_job_file
 
-    assert recovery_operation(args) == (mock_write_output.return_value,
-                                        rc == 0)
+    assert recovery_operation(args) == (
+        mock_write_output.return_value,
+        rc == 0,
+    )
 
     mock_rec_op.assert_called_once_with(server_name, operation_id)
     mock_rec_op.return_value.run.assert_called_once_with()
@@ -116,11 +123,13 @@ def test_recovery_operation(mock_rec_op, server_name, operation_id, rc):
     # Make sure the expected content was added to `read_job_file` output before
     # writing it to the output file.
     assert len(mock_read_job.return_value.__setitem__.mock_calls) == 3
-    mock_read_job.return_value.__setitem__.assert_has_calls([
-        call('success', rc == 0),
-        call('end_time', mock_time_event.return_value),
-        call('output', "SOME_OUTPUT"),
-    ])
+    mock_read_job.return_value.__setitem__.assert_has_calls(
+        [
+            call("success", rc == 0),
+            call("end_time", mock_time_event.return_value),
+            call("output", "SOME_OUTPUT"),
+        ]
+    )
 
     mock_write_output.assert_called_once_with(mock_read_job.return_value)
 
@@ -135,16 +144,19 @@ def test_config_switch_operation(mock_cs_op, server_name, operation_id, rc):
     Ensure the operation is created and executed, and that the expected values
     are returned depending on the return code.
     """
-    args = argparse.Namespace(server_name=server_name,
-                              operation_id=operation_id)
+    args = argparse.Namespace(
+        server_name=server_name, operation_id=operation_id
+    )
 
     mock_cs_op.return_value.run.return_value = ("SOME_OUTPUT", rc)
     mock_write_output = mock_cs_op.return_value.write_output_file
     mock_time_event = mock_cs_op.return_value.time_event_now
     mock_read_job = mock_cs_op.return_value.read_job_file
 
-    assert config_switch_operation(args) == (mock_write_output.return_value,
-                                             rc == 0)
+    assert config_switch_operation(args) == (
+        mock_write_output.return_value,
+        rc == 0,
+    )
 
     mock_cs_op.assert_called_once_with(server_name, operation_id)
     mock_cs_op.return_value.run.assert_called_once_with()
@@ -154,11 +166,13 @@ def test_config_switch_operation(mock_cs_op, server_name, operation_id, rc):
     # Make sure the expected content was added to `read_job_file` output before
     # writing it to the output file.
     assert len(mock_read_job.return_value.__setitem__.mock_calls) == 3
-    mock_read_job.return_value.__setitem__.assert_has_calls([
-        call('success', rc == 0),
-        call('end_time', mock_time_event.return_value),
-        call('output', "SOME_OUTPUT"),
-    ])
+    mock_read_job.return_value.__setitem__.assert_has_calls(
+        [
+            call("success", rc == 0),
+            call("end_time", mock_time_event.return_value),
+            call("output", "SOME_OUTPUT"),
+        ]
+    )
 
     mock_write_output.assert_called_once_with(mock_read_job.return_value)
 
@@ -179,8 +193,10 @@ def test_config_update_operation(mock_cu_op, operation_id, rc):
     mock_time_event = mock_cu_op.return_value.time_event_now
     mock_read_job = mock_cu_op.return_value.read_job_file
 
-    assert config_update_operation(args) == (mock_write_output.return_value,
-                                             rc == 0)
+    assert config_update_operation(args) == (
+        mock_write_output.return_value,
+        rc == 0,
+    )
 
     mock_cu_op.assert_called_once_with(None, operation_id)
     mock_cu_op.return_value.run.assert_called_once_with()
@@ -190,10 +206,12 @@ def test_config_update_operation(mock_cu_op, operation_id, rc):
     # Make sure the expected content was added to `read_job_file` output before
     # writing it to the output file.
     assert len(mock_read_job.return_value.__setitem__.mock_calls) == 3
-    mock_read_job.return_value.__setitem__.assert_has_calls([
-        call('success', rc == 0),
-        call('end_time', mock_time_event.return_value),
-        call('output', "SOME_OUTPUT"),
-    ])
+    mock_read_job.return_value.__setitem__.assert_has_calls(
+        [
+            call("success", rc == 0),
+            call("end_time", mock_time_event.return_value),
+            call("output", "SOME_OUTPUT"),
+        ]
+    )
 
     mock_write_output.assert_called_once_with(mock_read_job.return_value)

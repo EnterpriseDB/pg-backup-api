@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -30,8 +30,17 @@ import logging
 import os
 import subprocess
 import sys
-from typing import (Any, Callable, Dict, List, Optional, Set, Tuple, Union,
-                    TYPE_CHECKING)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+    TYPE_CHECKING,
+)
 
 from datetime import datetime
 from os.path import join
@@ -47,6 +56,7 @@ log = logging.getLogger()
 
 class OperationType(Enum):
     """Describe operations that can be performed through pg-backup-api."""
+
     RECOVERY = "recovery"
     CONFIG_SWITCH = "config_switch"
     CONFIG_UPDATE = "config_update"
@@ -57,16 +67,19 @@ DEFAULT_OP_TYPE = OperationType.RECOVERY
 
 class OperationServerConfigError(ValueError):
     """Indicate Barman does not have configuration for the given server."""
+
     pass
 
 
 class MalformedContent(ValueError):
     """When trying to write corrupted content to a file."""
+
     pass
 
 
 class OperationNotExists(LookupError):
     """If trying to fetch information about a non-existing operation."""
+
     pass
 
 
@@ -93,9 +106,16 @@ class OperationServer:
     # either it has failed or has succeeded.
     _OUTPUT_DIR_NAME = "output"
     # Set of required keys when creating an operation job file.
-    _REQUIRED_JOB_KEYS = ("operation_type", "start_time",)
+    _REQUIRED_JOB_KEYS = (
+        "operation_type",
+        "start_time",
+    )
     # Set of required keys when creating an operation output file.
-    _REQUIRED_OUTPUT_KEYS = ("success", "end_time", "output",)
+    _REQUIRED_OUTPUT_KEYS = (
+        "success",
+        "end_time",
+        "output",
+    )
 
     def __init__(self, name: Optional[str]) -> None:
         """
@@ -134,8 +154,9 @@ class OperationServer:
 
         if name:
             self.jobs_basedir = join(barman_home, name, self._JOBS_DIR_NAME)
-            self.output_basedir = join(barman_home, name,
-                                       self._OUTPUT_DIR_NAME)
+            self.output_basedir = join(
+                barman_home, name, self._OUTPUT_DIR_NAME
+            )
         else:
             self.jobs_basedir = join(barman_home, self._JOBS_DIR_NAME)
             self.output_basedir = join(barman_home, self._OUTPUT_DIR_NAME)
@@ -191,8 +212,7 @@ class OperationServer:
         return os.path.join(self.output_basedir, f"{op_id}.json")
 
     @staticmethod
-    def _write_file(file_path: str, content: Dict[str, Any]) \
-            -> None:
+    def _write_file(file_path: str, content: Dict[str, Any]) -> None:
         """
         Write a file to *file_path* with *content*.
 
@@ -329,8 +349,9 @@ class OperationServer:
             msg = f"Output file for operation '{op_id}' does not exist"
             raise FileNotFoundError(msg)
 
-    def get_operations_list(self, op_type: Optional[OperationType] = None) \
-            -> List[Dict[str, Any]]:
+    def get_operations_list(
+        self, op_type: Optional[OperationType] = None
+    ) -> List[Dict[str, Any]]:
         """
         Get the list of operations of this Barman server or instance.
 
@@ -359,10 +380,12 @@ class OperationServer:
             operation_type = content.get("operation_type")
 
             if operation_type == (op_type_aux or operation_type):
-                jobs_list.append({
-                    "id": op_id,
-                    "type": operation_type,
-                })
+                jobs_list.append(
+                    {
+                        "id": op_id,
+                        "type": operation_type,
+                    }
+                )
 
         return jobs_list
 
@@ -407,8 +430,9 @@ class Operation:
     :ivar id: ID of this operation.
     """
 
-    def __init__(self, server_name: Optional[str],
-                 id: Optional[str] = None) -> None:
+    def __init__(
+        self, server_name: Optional[str], id: Optional[str] = None
+    ) -> None:
         """
         Initialize a new instance of :class:`Operation`.
 
@@ -510,8 +534,9 @@ class Operation:
         return self.server.get_operation_status(self.id)
 
     @staticmethod
-    def _run_subprocess(cmd: List[str]) -> \
-            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
+    def _run_subprocess(
+        cmd: List[str],
+    ) -> Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Run *cmd* as a subprocess.
 
@@ -522,15 +547,17 @@ class Operation:
             * ``stdout``/``stderr`` of the command;
             * exit code of the command.
         """
-        process = subprocess.Popen(cmd, stderr=subprocess.STDOUT,
-                                   stdout=subprocess.PIPE)
+        process = subprocess.Popen(
+            cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE
+        )
         stdout, _ = process.communicate()
         stdout = stdout.decode() if isinstance(stdout, bytes) else stdout
         return stdout, process.returncode
 
     @abstractmethod
-    def _run_logic(self) -> \
-            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
+    def _run_logic(
+        self,
+    ) -> Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Logic to be ran when executing the operation.
 
@@ -569,8 +596,11 @@ class RecoveryOperation(Operation):
     :cvar TYPE: enum type of this operation.
     """
 
-    REQUIRED_ARGUMENTS = ("backup_id", "destination_directory",
-                          "remote_ssh_command",)
+    REQUIRED_ARGUMENTS = (
+        "backup_id",
+        "destination_directory",
+        "remote_ssh_command",
+    )
     TYPE = OperationType.RECOVERY
 
     @classmethod
@@ -640,8 +670,9 @@ class RecoveryOperation(Operation):
             remote_ssh_command,
         ]
 
-    def _run_logic(self) -> \
-            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
+    def _run_logic(
+        self,
+    ) -> Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Logic to be ran when executing the recovery operation.
 
@@ -667,7 +698,10 @@ class ConfigSwitchOperation(Operation):
     :cvar TYPE: enum type of this operation.
     """
 
-    POSSIBLE_ARGUMENTS = ("model_name", "reset",)
+    POSSIBLE_ARGUMENTS = (
+        "model_name",
+        "reset",
+    )
     TYPE = OperationType.CONFIG_SWITCH
 
     @classmethod
@@ -697,8 +731,14 @@ class ConfigSwitchOperation(Operation):
             raise MalformedContent(msg)
 
         for key, type_ in [
-            ("model_name", str,),
-            ("reset", bool,),
+            (
+                "model_name",
+                str,
+            ),
+            (
+                "reset",
+                bool,
+            ),
         ]:
             if key in content and not isinstance(content[key], type_):
                 msg = (
@@ -756,8 +796,9 @@ class ConfigSwitchOperation(Operation):
 
         return ret
 
-    def _run_logic(self) -> \
-            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
+    def _run_logic(
+        self,
+    ) -> Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Logic to be ran when executing the config switch operation.
 
@@ -842,8 +883,9 @@ class ConfigUpdateOperation(Operation):
 
         return [json_changes]
 
-    def _run_logic(self) -> \
-            Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
+    def _run_logic(
+        self,
+    ) -> Tuple[Union[str, bytearray, memoryview], Union[int, Any]]:
         """
         Logic to be ran when executing the config update operation.
 
@@ -889,7 +931,7 @@ if __name__ == "__main__":
     # API, i.e., like list and get recovery operations.
     parser = argparse.ArgumentParser(
         description="Alternative to the REST API, so one can list, create and "
-                    "get information about jobs without a running REST API.",
+        "get information about jobs without a running REST API.",
     )
     parser.add_argument(
         "--server-name",
@@ -900,18 +942,18 @@ if __name__ == "__main__":
         choices=[op_type.value for op_type in OperationType],
         default=OperationType.RECOVERY.value,
         help="Type of the operation. Optional for 'list-operations' command. "
-             "Defaults to 'recovery' for 'get-operation' command."
+        "Defaults to 'recovery' for 'get-operation' command.",
     )
     parser.add_argument(
         "--operation-id",
         help="ID of the operation, if you are trying to query an existing "
-             "operation."
+        "operation.",
     )
     parser.add_argument(
         "command",
         choices=["list-operations", "get-operation"],
         help="What we should do -- list operations, or get info about a "
-             "specific operation.",
+        "specific operation.",
     )
 
     args = parser.parse_args()
@@ -931,8 +973,10 @@ if __name__ == "__main__":
         callback_args = (op_type,)
     elif args.command == "get-operation":
         if args.operation_id is None:
-            raise RuntimeError("'--operation-id' must be given when running "
-                               "'get-operation' command")
+            raise RuntimeError(
+                "'--operation-id' must be given when running "
+                "'get-operation' command"
+            )
 
         callback = op_server.get_operation_status
         callback_args = (args.operation_id,)

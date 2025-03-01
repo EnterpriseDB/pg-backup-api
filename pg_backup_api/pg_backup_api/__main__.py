@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -20,9 +20,13 @@
 import argparse
 import sys
 
-from pg_backup_api.run import (serve, status, recovery_operation,
-                               config_switch_operation,
-                               config_update_operation)
+from pg_backup_api.run import (
+    serve,
+    status,
+    recovery_operation,
+    config_switch_operation,
+    config_update_operation,
+)
 
 
 def main() -> None:
@@ -44,53 +48,69 @@ def main() -> None:
     p_serve = subparsers.add_parser(
         "serve",
         description="Start the REST API server. Listen for requests on "
-                    "'127.0.0.1', on the given port.",
+        "'127.0.0.1', on the given port.",
     )
-    p_serve.add_argument("--port", type=int, default=7480,
-                         help="Port to bind to.")
+    p_serve.add_argument(
+        "--port", type=int, default=7480, help="Port to bind to."
+    )
     p_serve.set_defaults(func=serve)
 
     p_status = subparsers.add_parser(
         "status",
         description="Check if the REST API server is up and running",
     )
-    p_status.add_argument("--port", type=int, default=7480,
-                          help="Port to be checked.")
+    p_status.add_argument(
+        "--port", type=int, default=7480, help="Port to be checked."
+    )
     p_status.set_defaults(func=status)
 
     p_ops = subparsers.add_parser(
         "recovery",
         description="Perform a 'barman recover' through the 'pg-backup-api'. "
-                    "Can only be run if a recover operation has been "
-                    "previously registered."
+        "Can only be run if a recover operation has been "
+        "previously registered.",
     )
-    p_ops.add_argument("--server-name", required=True,
-                       help="Name of the Barman server to be recovered.")
-    p_ops.add_argument("--operation-id", required=True,
-                       help="ID of the operation in the 'pg-backup-api'.")
+    p_ops.add_argument(
+        "--server-name",
+        required=True,
+        help="Name of the Barman server to be recovered.",
+    )
+    p_ops.add_argument(
+        "--operation-id",
+        required=True,
+        help="ID of the operation in the 'pg-backup-api'.",
+    )
     p_ops.set_defaults(func=recovery_operation)
 
     p_ops = subparsers.add_parser(
         "config-switch",
         description="Perform a 'barman config switch' through the "
-                    "'pg-backup-api'. Can only be run if a config switch "
-                    "operation has been previously registered."
+        "'pg-backup-api'. Can only be run if a config switch "
+        "operation has been previously registered.",
     )
-    p_ops.add_argument("--server-name", required=True,
-                       help="Name of the Barman server which config should be "
-                            "switched.")
-    p_ops.add_argument("--operation-id", required=True,
-                       help="ID of the operation in the 'pg-backup-api'.")
+    p_ops.add_argument(
+        "--server-name",
+        required=True,
+        help="Name of the Barman server which config should be " "switched.",
+    )
+    p_ops.add_argument(
+        "--operation-id",
+        required=True,
+        help="ID of the operation in the 'pg-backup-api'.",
+    )
     p_ops.set_defaults(func=config_switch_operation)
 
     p_ops = subparsers.add_parser(
         "config-update",
         description="Perform a 'barman config-update' through the "
-                    "'pg-backup-api'. Can only be run if a config-update "
-                    "operation has been previously registered."
+        "'pg-backup-api'. Can only be run if a config-update "
+        "operation has been previously registered.",
     )
-    p_ops.add_argument("--operation-id", required=True,
-                       help="ID of the operation in the 'pg-backup-api'.")
+    p_ops.add_argument(
+        "--operation-id",
+        required=True,
+        help="ID of the operation in the 'pg-backup-api'.",
+    )
     p_ops.set_defaults(func=config_update_operation)
 
     args = p.parse_args()

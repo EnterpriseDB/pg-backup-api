@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# © Copyright EnterpriseDB UK Limited 2021-2024 - All rights reserved.
+# © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 #
 # This file is part of Postgres Backup API.
 #
@@ -43,7 +43,7 @@ DEFAULT_BARMAN_CONFIG_FILE = "/etc/barman.conf"
 LOG_FILENAME = "/var/log/barman/barman-api.log"
 
 
-def create_app() -> 'flask.app.Flask':
+def create_app() -> "flask.app.Flask":
     """
     Create the connexion app with the required API.
 
@@ -62,6 +62,7 @@ def load_barman_config() -> None:
     barman.__config__ = cfg
     cfg.load_configuration_files_directory()
 
+
 def get_barman_config_file() -> str:
     """
     Get the path to the Barman configuration file.
@@ -69,6 +70,7 @@ def get_barman_config_file() -> str:
     :return: path to the Barman configuration file.
     """
     return os.getenv("PG_BACKUP_API_BARMAN_CONF", DEFAULT_BARMAN_CONFIG_FILE)
+
 
 def setup_logging_for_wsgi_server() -> None:
     """
@@ -99,7 +101,7 @@ def setup_logging_for_wsgi_server() -> None:
     )
 
 
-def get_server_by_name(server_name: str) -> Optional['ServerConfig']:
+def get_server_by_name(server_name: str) -> Optional["ServerConfig"]:
     """
     Get configuration of a Barman server based on the *server_name*.
 
@@ -116,8 +118,9 @@ def get_server_by_name(server_name: str) -> Optional['ServerConfig']:
             return conf
 
 
-def parse_backup_id(server: barman.server.Server,
-                    backup_id: str) -> Optional[BackupInfo]:
+def parse_backup_id(
+    server: barman.server.Server, backup_id: str
+) -> Optional[BackupInfo]:
     """
     Get backup with ID *backup_id* from *server.
 
