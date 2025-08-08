@@ -44,7 +44,7 @@ setup(
     author_email="barman@enterprisedb.com",
     url="http://www.pgbarman.org/",
     keywords=["Postgres Backup REST API"],
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     install_requires=REQUIRES,
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
