@@ -150,6 +150,7 @@ class OperationServer:
         if TYPE_CHECKING:  # pragma: no cover
             assert isinstance(barman.__config__, BarmanConfig)
 
+        #TODO: barman_home can be undefined in the config
         barman_home = barman.__config__.barman_home
 
         if name:

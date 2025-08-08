@@ -17,4 +17,4 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 """Create the ``pg_backup_api`` package."""
-import pg_backup_api.logic.utility_controller  # noqa: F401
+#import pg_backup_api.logic.utility_controller  # noqa: F401

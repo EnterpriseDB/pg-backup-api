@@ -21,8 +21,6 @@ import json
 import subprocess
 from typing import Any, Dict, Optional, Tuple, Union, TYPE_CHECKING
 
-from flask import abort, jsonify, request
-
 import barman
 from barman import diagnose as barman_diagnose, output
 from barman.server import Server
@@ -31,9 +29,12 @@ from pg_backup_api.utils import (
     load_barman_config,
     get_server_by_name,
     parse_backup_id,
+    response_abort,
+    response_ok,
+    response_ok_accepted,
+    response_not_found,
 )
 
-from pg_backup_api.run import app
 from pg_backup_api.server_operation import (
     OperationServer,
     OperationServerConfigError,
@@ -51,7 +52,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from pg_backup_api.server_operation import Operation
 
 
-@app.route("/diagnose", methods=["GET"])
+#@app.route("/diagnose", methods=["GET"])
 def diagnose() -> "Response":
     """
     Handle ``GET`` request to ``/diagnose``.
@@ -108,10 +109,10 @@ def diagnose() -> "Response":
     # clear the output writer dict
     output._writer.json_output = {}
 
-    return jsonify(stored_output)
+    return response_ok(stored_output)
 
 
-@app.route("/status", methods=["GET"])
+#@app.route("/status", methods=["GET"])
 def status() -> str:
     """
     Handle ``GET`` request to ``/status``.
@@ -120,21 +121,7 @@ def status() -> str:
 
     :return: an `"OK"` response if up and running.
     """
-    return '"OK"'  # If this app isn't running, we obviously won't return!
-
-
-@app.errorhandler(404)
-def resource_not_found(error: Any) -> Tuple["Response", int]:
-    """
-    Configure a handler for HTTP 404 responses.
-
-    :param error: error message for the response.
-    :return: a tuple consisting of:
-
-        * JSON response with an ``error`` key containing the error;
-        * ``404`` to indicate an HTTP 404 response.
-    """
-    return jsonify(error=str(error)), 404
+    return response_ok("OK")  # If this app isn't running, we obviously won't return!
 
 
 def _operation_id_get(
@@ -157,19 +144,21 @@ def _operation_id_get(
         If either *server_name* or *operation_id* is invalid -- or both --
         return a HTTP 400 response with the relevant error message.
     """
+    response = None
     try:
         op_server = OperationServer(server_name)
+        print("op")
         status = op_server.get_operation_status(operation_id)
-        response = {"operation_id": operation_id, "status": status}
-
-        return jsonify(response)
+        body = {"operation_id": operation_id, "status": status}
+        response = response_ok(body)
     except OperationServerConfigError as e:
-        abort(404, description=str(e))
+        response = response_abort(e)
     except Exception:
-        abort(404, description="Resource not found")
+        response = response_abort("Resource not found")
 
+    return response
 
-@app.route("/servers/<server_name>/operations/<operation_id>")
+#@app.route("/servers/<server_name>/operations/<operation_id>")
 def servers_operation_id_get(
     server_name: str, operation_id: str
 ) -> "Response":
@@ -187,7 +176,7 @@ def servers_operation_id_get(
     return _operation_id_get(server_name, operation_id)
 
 
-@app.route("/operations/<operation_id>")
+#@app.route("/operations/<operation_id>")
 def instance_operation_id_get(operation_id: str) -> "Response":
     """
     ``GET`` request to ``/operations/*operation_id*``.
@@ -202,7 +191,7 @@ def instance_operation_id_get(operation_id: str) -> "Response":
 
 
 def servers_operations_post(
-    server_name: str, request: "Request"
+    server_name: str, request_body
 ) -> Dict[str, str]:
     """
     Handle ``POST`` request to ``/servers/*server_name*/operations``.
@@ -240,17 +229,16 @@ def servers_operations_post(
         * ``404``: if either *server_name* or any value in the JSON request
             body is invalid.
     """
-    request_body = request.get_json()
 
     if not request_body:
         msg_400 = f"Minimum barman options not met for server '{server_name}'"
-        abort(400, description=msg_400)
+        return response_abort(msg_400)
 
     server = get_server_by_name(server_name)
 
     if not server:
         msg_404 = f"Server '{server_name}' does not exist"
-        abort(404, description=msg_404)
+        return response_abort(msg_404)
 
     operation = None
     cmd = None
@@ -261,13 +249,13 @@ def servers_operations_post(
             msg_backup_id = request_body["backup_id"]
         except KeyError:
             msg_400 = "Request body is missing ``backup_id``"
-            abort(400, description=msg_400)
+            return response_abort(msg_400)
 
         backup_id = parse_backup_id(Server(server), msg_backup_id)
 
         if not backup_id:
             msg_404 = f"Backup '{msg_backup_id}' does not exist"
-            abort(404, description=msg_404)
+            return response_not_found(msg_404)
 
         operation = RecoveryOperation(server_name)
         cmd = f"pg-backup-api recovery --server-name {server_name}"
@@ -283,7 +271,7 @@ def servers_operations_post(
         operation.write_job_file(request_body)
     except MalformedContent:
         msg_400 = "Make sure all options/arguments are met and try again"
-        abort(400, description=msg_400)
+        return response_abort(msg_400)
 
     cmd += f" --operation-id {operation.id}"
     subprocess.Popen(cmd.split())
@@ -307,12 +295,12 @@ def _operations_get(
     try:
         operation = OperationServer(server_name)
         available_operations = {"operations": operation.get_operations_list()}
-        return jsonify(available_operations)
+        return response_ok(available_operations)
     except OperationServerConfigError as e:
-        abort(404, description=str(e))
+        return response_abort(e)
 
 
-@app.route("/servers/<server_name>/operations", methods=("GET", "POST"))
+#@app.route("/servers/<server_name>/operations", methods=("GET", "POST"))
 def server_operation(
     server_name: str,
 ) -> Union[Tuple["Response", int], "Response"]:
@@ -337,13 +325,11 @@ def server_operation(
         * If any issue is faced when processing the request, return an HTTP
           ``400`` or ``404`` response with the relevant error message.
     """
-    if request.method == "POST":
-        return jsonify(servers_operations_post(server_name, request)), 202
 
     return _operations_get(server_name)
 
 
-def instance_operations_post(request: "Request") -> Dict[str, str]:
+def instance_operations_post(request_body: "Request") -> Dict[str, str]:
     """
     Handle ``POST`` request to ``/operations``.
 
@@ -369,11 +355,10 @@ def instance_operations_post(request: "Request") -> Dict[str, str]:
         * ``400``: if any required option is missing in the JSON request body.
         * ``404``: if any value in the JSON request body is invalid.
     """
-    request_body = request.get_json()
 
     if not request_body:
         msg_400 = "Minimum barman options not met for instance operation"
-        abort(400, description=msg_400)
+        return response_abort(msg_400)
 
     operation = None
     cmd = None
@@ -391,7 +376,7 @@ def instance_operations_post(request: "Request") -> Dict[str, str]:
         operation.write_job_file(request_body)
     except MalformedContent:
         msg_400 = "Make sure all options/arguments are met and try again"
-        abort(400, description=msg_400)
+        return response_abort(msg_400)
 
     cmd += f" --operation-id {operation.id}"
     subprocess.Popen(cmd.split())
@@ -399,8 +384,9 @@ def instance_operations_post(request: "Request") -> Dict[str, str]:
     return {"operation_id": operation.id}
 
 
-@app.route("/operations", methods=("GET", "POST"))
-def instance_operation() -> Union[Tuple["Response", int], "Response"]:
+#@app.route("/operations", methods=("GET", "POST"))
+def instance_operation(*args) -> Union[Tuple["Response", int], "Response"]:
+    print (args)
     """
     Handle ``GET``/``POST`` request to ``/operations``.
 
@@ -419,7 +405,5 @@ def instance_operation() -> Union[Tuple["Response", int], "Response"]:
         * If any issue is faced when processing the request, return an HTTP
           ``400`` or ``404`` response with the relevant error message.
     """
-    if request.method == "POST":
-        return jsonify(instance_operations_post(request)), 202
 
     return _operations_get(None)

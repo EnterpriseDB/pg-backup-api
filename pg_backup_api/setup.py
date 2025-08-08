@@ -32,7 +32,6 @@ with open("./version.txt", "r") as f:
 
 REQUIRES = [
     "barman>=2.19,<4.0.0",
-    "Flask>=0.10.1,<3.0.0",
     "requests>=2.0.0,<3.0.0",
 ]
 

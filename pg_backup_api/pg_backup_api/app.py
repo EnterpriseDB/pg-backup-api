@@ -30,7 +30,7 @@ output writer.
 """
 from barman import output
 
-from pg_backup_api.run import app
+from pg_backup_api.wsgi_application import application
 from pg_backup_api.utils import (
     load_barman_config,
     setup_logging_for_wsgi_server,
@@ -39,4 +39,3 @@ from pg_backup_api.utils import (
 load_barman_config()
 setup_logging_for_wsgi_server()
 output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
-application = app

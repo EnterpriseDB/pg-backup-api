@@ -25,31 +25,20 @@ Utility functions and constants used through pg-backup-api code.
 from logging.config import dictConfig
 from typing import Optional, TYPE_CHECKING
 
-from flask import Flask
-
 import barman
+import barman.server
 from barman import config
 from barman.infofile import BackupInfo
 
 import os
 
+
 if TYPE_CHECKING:  # pragma: no cover
-    import flask.app
     from barman.config import Config as BarmanConfig, ServerConfig
     import barman.server
 
-
 DEFAULT_BARMAN_CONFIG_FILE = "/etc/barman.conf"
 LOG_FILENAME = "/var/log/barman/barman-api.log"
-
-
-def create_app() -> "flask.app.Flask":
-    """
-    Create the connexion app with the required API.
-
-    :return: flask application instance with name ``Postgres Backup API``.
-    """
-    return Flask("Postgres Backup API")
 
 
 def load_barman_config() -> None:
@@ -145,3 +134,16 @@ def parse_backup_id(
         parsed_backup_id = server.get_last_backup_id([BackupInfo.FAILED])
 
     return server.get_backup(parsed_backup_id)
+
+
+def response_abort(message):
+    return str(message), 400
+
+def response_ok(message):
+    return str(message), 200
+
+def response_ok_accepted(message):
+    return str(message), 202
+
+def response_not_found(message):
+    return str(message), 404

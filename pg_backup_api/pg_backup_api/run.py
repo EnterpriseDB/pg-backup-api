@@ -25,10 +25,11 @@ import requests
 from typing import Tuple, TYPE_CHECKING
 
 from requests.exceptions import ConnectionError
+from wsgi_application import application, get_lightweight_server
 
 from barman import output
 
-from pg_backup_api.utils import create_app, load_barman_config
+from pg_backup_api.utils import load_barman_config
 from pg_backup_api.server_operation import (
     RecoveryOperation,
     ConfigSwitchOperation,
@@ -39,8 +40,6 @@ from pg_backup_api.server_operation import (
 if TYPE_CHECKING:  # pragma: no cover
     from pg_backup_api.server_operation import Operation
     import argparse
-
-app = create_app()
 
 
 def serve(args: "argparse.Namespace") -> Tuple[None, bool]:
@@ -63,7 +62,11 @@ def serve(args: "argparse.Namespace") -> Tuple[None, bool]:
     output.set_output_writer(output.AVAILABLE_WRITERS["json"]())
 
     # bc currently only the PEM agent will be connecting, only run on localhost
-    run = app.run(host="127.0.0.1", port=args.port)
+    light_server = get_lightweight_server()
+    with light_server(host="127.0.0.1", port=args.port, app=application) as httpd:
+        print(f"Serving on port {args.port}...")
+        run = httpd.serve_forever()
+
     return (run, True)
 
 
