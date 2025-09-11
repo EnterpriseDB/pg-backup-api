@@ -3,6 +3,14 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "2.2.0"
+    date: "20250912"
+    changes:
+      Notable changes:
+        - |
+          The location of the barman conf file can now be specified by using
+          the PG_BACKUP_API_BARMAN_CONF environment variable.
+
   - version: "2.1.1"
     date: "20240629"
     changes:
