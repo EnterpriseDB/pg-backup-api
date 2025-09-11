@@ -2,6 +2,13 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2025 - All rights reserved.
 
+## 2.2.0 (2025-09-12)
+
+### Notable changes
+
+- The location of the barman conf file can now be specified by using
+  the PG_BACKUP_API_BARMAN_CONF environment variable.
+
 ## 2.1.1 (2024-06-29)
 
 ### Buxfixes
@@ -13,8 +20,8 @@
 ### Notable changes
 
 - Barman now supports changes in the configuration whilst it's running. This
-  pg-backup-api release adds the required endpoints to trigger that switch
-  when requested.
+  pg-backup-api release adds the required endpoints to trigger that switch when
+  requested.
 
 ## 2.0.0 (2023-10-03)
 
@@ -50,8 +57,8 @@
 - Ability to parse and recognise Barman shortcuts like `latest` or `oldest`.
 
 - Access to barman-api.log is now only required when running under a WSGI
-  server. This means pg-backup-api commands like status will no longer fail
-  if they are executed by a user that cannot access barman-api.log.`
+  server. This means pg-backup-api commands like status will no longer fail if
+  they are executed by a user that cannot access barman-api.log.`
 
 ## 1.2.0 (2023-03-29)
 
