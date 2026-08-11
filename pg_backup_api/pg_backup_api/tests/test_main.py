@@ -17,13 +17,25 @@
 # along with Postgres Backup API.  If not, see <http://www.gnu.org/licenses/>.
 
 """Unit tests for the CLI."""
-import sys
+import re
 from textwrap import dedent
 from unittest.mock import MagicMock, patch
 
 import pytest
 
 from pg_backup_api.__main__ import main
+
+
+def _normalize_usage(text):
+    """Collapse argparse usage line continuations into a single line.
+
+    argparse changed its line-wrapping algorithm in Python 3.13, causing the
+    usage line to break at different points across versions. Normalizing both
+    the actual and expected output makes the comparison version-agnostic.
+    """
+    head, sep, rest = text.partition("\n\n")
+    head = re.sub(r"\n\s+(?=\S)", " ", head)
+    return head + (sep + rest if sep else "")
 
 
 _HELP_OUTPUT = {
@@ -142,13 +154,10 @@ def test_main_helper(mock_term_size, command, capsys):
 
     assert str(exc.value) == "0"
 
-    expected = _HELP_OUTPUT[command]
-    version = sys.version_info
+    expected = _HELP_OUTPUT[command].replace("optional arguments:", "options:")
 
-    if version.major >= 3 and version.minor >= 10:
-        expected = expected.replace("optional arguments:", "options:")
-
-    assert capsys.readouterr().out == expected
+    actual = _normalize_usage(capsys.readouterr().out)
+    assert actual == _normalize_usage(expected)
 
 
 @pytest.mark.parametrize("command", _COMMAND_FUNC.keys())
