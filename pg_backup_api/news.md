@@ -2,12 +2,19 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2026 - All rights reserved.
 
+## 2.3.0 (2026-08-28)
+
+### Notable changes
+
+- Drop support for Python versions older than 3.12. The earliest Python version
+  supported is now 3.12.
+
 ## 2.2.0 (2025-09-12)
 
 ### Notable changes
 
-- The location of the barman conf file can now be specified by using
-  the PG_BACKUP_API_BARMAN_CONF environment variable.
+- The location of the barman conf file can now be specified by using the
+  PG_BACKUP_API_BARMAN_CONF environment variable.
 
 ## 2.1.1 (2024-06-29)
 
