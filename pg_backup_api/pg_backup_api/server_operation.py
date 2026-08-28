@@ -153,8 +153,10 @@ class OperationServer:
         barman_home = barman.__config__.barman_home
 
         if name:
-            self.jobs_basedir = join(barman_home, name, self._JOBS_DIR_NAME)
-            self.output_basedir = join(
+            self.jobs_basedir = self._safe_join(
+                barman_home, name, self._JOBS_DIR_NAME
+            )
+            self.output_basedir = self._safe_join(
                 barman_home, name, self._OUTPUT_DIR_NAME
             )
         else:
@@ -163,6 +165,30 @@ class OperationServer:
 
         self._create_jobs_dir()
         self._create_output_dir()
+
+    @staticmethod
+    def _safe_join(base_dir: str, *parts: str) -> str:
+        """
+        Join *parts* to *base_dir*, ensuring the result stays under it.
+
+        :param base_dir: trusted base directory.
+        :param parts: path components to append to *base_dir*, which may
+            contain untrusted/user-controlled data.
+        :return: the resolved path of *base_dir* joined with *parts*.
+        :raises:
+            :exc:`ValueError`: if the resolved path escapes *base_dir*, e.g.
+                through path traversal sequences in *parts*.
+        """
+        real_base_dir = os.path.realpath(base_dir)
+        candidate = os.path.realpath(join(real_base_dir, *parts))
+
+        if os.path.commonpath([candidate, real_base_dir]) != real_base_dir:
+            raise ValueError(
+                f"Invalid path composed of base directory '{base_dir}' and "
+                f"parts {parts!r}"
+            )
+
+        return candidate
 
     @staticmethod
     def _create_dir(dir_path: str) -> None:
@@ -199,8 +225,11 @@ class OperationServer:
 
         :param op_id: ID of the pg-backup-api operation.
         :return: path to job file of operation *op_id*.
+        :raises:
+            :exc:`ValueError`: if *op_id* would resolve to a path outside of
+                :attr:`jobs_basedir`, e.g. through path traversal sequences.
         """
-        return os.path.join(self.jobs_basedir, f"{op_id}.json")
+        return self._safe_join(self.jobs_basedir, f"{op_id}.json")
 
     def get_output_file_path(self, op_id: str) -> str:
         """
@@ -208,8 +237,11 @@ class OperationServer:
 
         :param op_id: ID of the pg-backup-api operation.
         :return: path to output file of operation *op_id*.
+        :raises:
+            :exc:`ValueError`: if *op_id* would resolve to a path outside of
+                :attr:`output_basedir`, e.g. through path traversal sequences.
         """
-        return os.path.join(self.output_basedir, f"{op_id}.json")
+        return self._safe_join(self.output_basedir, f"{op_id}.json")
 
     @staticmethod
     def _write_file(file_path: str, content: Dict[str, Any]) -> None:

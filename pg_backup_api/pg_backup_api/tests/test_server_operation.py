@@ -82,6 +82,22 @@ class TestOperationServer:
         # Ensure "output" directory is created in the expected path.
         assert op_server.output_basedir == expected_output
 
+    @patch("pg_backup_api.server_operation.get_server_by_name", Mock())
+    @patch("pg_backup_api.server_operation.load_barman_config", Mock())
+    @patch.object(OperationServer, "_create_dir", Mock())
+    def test___init___path_traversal(self):
+        """Test :meth:`OperationServer.__init__`.
+
+        Ensure an exception is raised if *name* attempts path traversal.
+        """
+        with patch("barman.__config__") as mock_config:
+            mock_config.barman_home = _BARMAN_HOME
+
+            with pytest.raises(ValueError) as exc:
+                OperationServer("../../etc")
+
+        assert "Invalid path" in str(exc.value)
+
     @patch("os.path.isdir")
     @patch("os.path.exists")
     def test__create_dir_file_exists(self, mock_exists, mock_isdir, op_server):
@@ -170,6 +186,18 @@ class TestOperationServer:
         expected = os.path.join(op_server.jobs_basedir, f"{id}.json")
         assert op_server.get_job_file_path(id) == expected
 
+    def test_get_job_file_path_path_traversal(self, op_server):
+        """Test :meth:`OperationServer.get_job_file_path`.
+
+        Ensure an exception is raised if *op_id* attempts path traversal.
+        """
+        malicious_id = "../../../etc/passwd"
+
+        with pytest.raises(ValueError) as exc:
+            op_server.get_job_file_path(malicious_id)
+
+        assert "Invalid path" in str(exc.value)
+
     def test_get_output_file_path(self, op_server):
         """Test :meth:`OperationServer.get_output_file_path`.
 
@@ -179,6 +207,38 @@ class TestOperationServer:
 
         expected = os.path.join(op_server.output_basedir, f"{id}.json")
         assert op_server.get_output_file_path(id) == expected
+
+    def test_get_output_file_path_path_traversal(self, op_server):
+        """Test :meth:`OperationServer.get_output_file_path`.
+
+        Ensure an exception is raised if *op_id* attempts path traversal.
+        """
+        malicious_id = "../../../etc/passwd"
+
+        with pytest.raises(ValueError) as exc:
+            op_server.get_output_file_path(malicious_id)
+
+        assert "Invalid path" in str(exc.value)
+
+    def test__safe_join_ok(self, op_server):
+        """Test :meth:`OperationServer._safe_join`.
+
+        Ensure it returns the resolved path when it stays under *base_dir*.
+        """
+        expected = os.path.join(_BARMAN_HOME, _BARMAN_SERVER, "jobs")
+        result = op_server._safe_join(_BARMAN_HOME, _BARMAN_SERVER, "jobs")
+        assert result == expected
+
+    def test__safe_join_path_traversal(self, op_server):
+        """Test :meth:`OperationServer._safe_join`.
+
+        Ensure an exception is raised if the resulting path escapes
+        *base_dir*.
+        """
+        with pytest.raises(ValueError) as exc:
+            op_server._safe_join(_BARMAN_HOME, "../../etc", "passwd")
+
+        assert "Invalid path" in str(exc.value)
 
     @patch("os.path.exists")
     def test__write_file_file_already_exists(self, mock_exists, op_server):
