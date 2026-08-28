@@ -2,6 +2,14 @@
 
 © Copyright EnterpriseDB UK Limited 2021-2026 - All rights reserved.
 
+## 2.3.1 (2026-08-28)
+
+### Bugfixes
+
+- Fix a potential path injection issue when building filesystem paths from
+  server names and operation IDs, ensuring the resulting paths cannot escape
+  the expected Barman directories.
+
 ## 2.3.0 (2026-08-28)
 
 ### Notable changes
