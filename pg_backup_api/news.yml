@@ -3,6 +3,15 @@
 # pg-backup-api News - History of user-visible changes
 
 pg-backup-api release notes:
+  - version: "2.3.1"
+    date: "20260828"
+    changes:
+      Bugfixes:
+        - |
+          Fix a potential path injection issue when building filesystem paths
+          from server names and operation IDs, ensuring the resulting paths
+          cannot escape the expected Barman directories.
+
   - version: "2.3.0"
     date: "20260828"
     changes:
